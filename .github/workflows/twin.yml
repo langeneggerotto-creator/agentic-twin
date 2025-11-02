@@ -17,4 +17,15 @@ jobs:
 
       - name: Run Agentic Twin
         run: |
-          python runner/controller.py
+          python runner/controller.py || true
+
+      - name: Print output files
+        run: |
+          echo "Plan:"
+          cat outputs/plan.md || echo "Plan missing"
+          echo "Code:"
+          cat outputs/generated_code.py || echo "Code missing"
+          echo "Tests:"
+          cat outputs/test_results.txt || echo "Tests missing"
+
+
