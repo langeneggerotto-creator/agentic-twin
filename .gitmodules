@@ -1,0 +1,3 @@
+[submodule "oil_core"]
+	path = oil_core
+	url = https://github.com/langeneggerotto-creator/oil-core.git
