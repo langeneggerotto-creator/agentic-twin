@@ -1,0 +1,16 @@
+﻿# 🧭 O∞ Canon Manifest — OIL-Core Integration vΩ-1.0
+submodule:
+  name: OIL-Core
+  repo: https://github.com/langeneggerotto-creator/oil-core.git
+  commit: dfe5a3f
+  sync_date: 2025-11-02 15:19:00
+  truth_integrity: 0.98
+  entropy_level: 0.04
+  guardian_status: verified
+linked_to:
+  parent_repo: agentic-twin
+  commit: f8ca209
+  harmonics: [ΔE≤0, ΔT≥0, Resonance≥0.95]
+notes: >
+  This manifest anchors OIL-Core within Agentic-Twin under O∞ Canon Law.
+  Do not edit manually. Update via oil-sync to refresh hash and constants.
