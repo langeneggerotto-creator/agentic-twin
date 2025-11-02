@@ -1,30 +1,28 @@
-import sys
-import os
+from agents import planner, developer, tester, reflector
+from governance.gatekeeper import enforce_canon
 
-sys.path.append(os.path.abspath("."))
+# Plan
+plan = planner.plan_from_vision("vault/vision.json", "vault/canon.json")
+with open("outputs/plan.md", "w") as f: f.write(plan)
 
-from agents import planner, developer, tester
-from governance import gatekeeper
-
-vision = "vault/vision.json"
-canon = "vault/canon.json"
-
-plan = planner.plan_from_vision(vision, canon)
-with open("outputs/plan.md", "w") as f:
-    f.write(plan)
-
+# Code
 code = developer.generate_code_from_plan(plan)
-with open("outputs/generated_code.py", "w") as f:
-    f.write(code)
+with open("outputs/generated_code.py", "w") as f: f.write(code)
 
-tests = tester.run_tests_on_code()
-with open("outputs/test_results.txt", "w") as f:
-    f.write(tests)
+# Tests
+test_results = tester.run_tests_on_code()
+with open("outputs/test_results.txt", "w") as f: f.write(test_results)
 
-violations = gatekeeper.enforce_canon(code, canon)
+# Reflect
+reflections = reflector.reflect_on_results(plan, code, test_results)
+with open("outputs/reflection.txt", "w") as f: f.write(reflections)
+
+# Canon
+violations = enforce_canon(code, "vault/canon.json")
 if violations:
-    print("❌ Canon Violations:")
-    for v in violations:
-        print("-", v)
+    print("❌ Canon Violations:", violations)
 else:
-    print("✅ Canon compliance passed.")
+    print("✅ Canon Compliance Passed")
+
+print("🪞 Reflections:")
+print(reflections)
