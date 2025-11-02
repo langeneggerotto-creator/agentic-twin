@@ -1,5 +1,10 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath("."))
+
 from agents import planner, developer, tester
-from governance.gatekeeper import enforce_canon
+from governance import gatekeeper
 
 vision = "vault/vision.json"
 canon = "vault/canon.json"
@@ -16,7 +21,7 @@ tests = tester.run_tests_on_code()
 with open("outputs/test_results.txt", "w") as f:
     f.write(tests)
 
-violations = enforce_canon(code, canon)
+violations = gatekeeper.enforce_canon(code, canon)
 if violations:
     print("❌ Canon Violations:")
     for v in violations:
