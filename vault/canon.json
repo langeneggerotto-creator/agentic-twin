@@ -1,0 +1,9 @@
+{
+  "rules": [
+    "Code must follow PEP8 style.",
+    "Must include unit tests.",
+    "No hardcoding of outputs.",
+    "Functions must be modular.",
+    "Use meaningful variable names."
+  ]
+}
