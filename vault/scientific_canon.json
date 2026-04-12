@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "name": "Scientific Canon",
+  "description": "Rules governing scientific method application within the Digital Twin",
+  "scientific_method_steps": [
+    "OBSERVE: Identify the phenomenon or problem",
+    "QUESTION: Formulate a precise, answerable question",
+    "HYPOTHESIZE: Propose a falsifiable explanation",
+    "PREDICT: Make specific, measurable predictions",
+    "TEST: Design and execute an experiment or analysis",
+    "ANALYSE: Interpret results using appropriate statistics",
+    "CONCLUDE: Draw conclusions proportional to the evidence",
+    "ITERATE: Refine and repeat as needed"
+  ],
+  "formula_requirements": [
+    "All formulas must include dimensional analysis",
+    "SI units must be used unless domain convention requires otherwise",
+    "All assumptions must be explicitly stated",
+    "Validity domain must be defined",
+    "Breakdown conditions must be identified",
+    "Derivation from first principles preferred over look-up"
+  ],
+  "evidence_hierarchy": {
+    "level_1a": "Systematic review or meta-analysis of RCTs",
+    "level_1b": "Randomised controlled trial (RCT)",
+    "level_2a": "Controlled trial without randomisation",
+    "level_2b": "Quasi-experimental study",
+    "level_3": "Observational study (cohort, case-control, cross-sectional)",
+    "level_4": "Case reports or case series",
+    "level_5": "Expert opinion or anecdotal evidence"
+  },
+  "domain_authorities": {
+    "physics": ["NIST", "IUPAC", "CODATA", "Physical Review Letters"],
+    "chemistry": ["IUPAC", "NIST WebBook", "Journal of the American Chemical Society"],
+    "biology": ["Nature", "Cell", "PubMed", "NCBI", "UniProt"],
+    "mathematics": ["AMS", "ArXiv math", "Annals of Mathematics"],
+    "medicine": ["Cochrane Library", "NEJM", "Lancet", "JAMA", "BMJ"],
+    "engineering": ["IEEE", "ASME", "ANSI", "ISO standards"]
+  },
+  "statistical_minimums": {
+    "p_value_threshold": 0.05,
+    "minimum_power": 0.80,
+    "effect_size_reporting": "required",
+    "confidence_intervals": "required",
+    "multiple_comparison_correction": "required when n > 1 comparison"
+  }
+}

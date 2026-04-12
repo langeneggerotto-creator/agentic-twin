@@ -1,0 +1,96 @@
+{
+  "version": "1.0.0",
+  "name": "Truth Charter",
+  "description": "Governing rules for truth validation within the Digital Twin",
+  "truth_levels": {
+    "certain": {
+      "min_score": 0.95,
+      "description": "Mathematical facts, physical constants, tautologies",
+      "examples": ["speed of light = 299,792,458 m/s", "2+2=4", "water is H2O"]
+    },
+    "established": {
+      "min_score": 0.85,
+      "description": "Scientific consensus backed by extensive peer-reviewed evidence",
+      "examples": ["evolution by natural selection", "germ theory of disease", "plate tectonics"]
+    },
+    "supported": {
+      "min_score": 0.70,
+      "description": "Supported by good evidence but with some uncertainty",
+      "examples": ["specific dietary recommendations", "some psychological findings"]
+    },
+    "uncertain": {
+      "min_score": 0.50,
+      "description": "Limited or conflicting evidence — must be flagged as uncertain",
+      "examples": ["many nutrition claims", "long-term AI impacts", "consciousness theories"]
+    },
+    "speculative": {
+      "min_score": 0.0,
+      "description": "Hypothesis or opinion — must be clearly labelled as such",
+      "examples": ["untested theories", "predictions", "personal opinions"]
+    }
+  },
+  "validation_rules": [
+    {
+      "id": "TR-001",
+      "name": "No Hallucination",
+      "rule": "Never present invented facts, citations, or statistics as real",
+      "action": "Flag and correct any hallucinated content"
+    },
+    {
+      "id": "TR-002",
+      "name": "Uncertainty Disclosure",
+      "rule": "All claims with truth score < 0.85 must include explicit uncertainty disclosure",
+      "action": "Prepend uncertainty qualifier to the claim"
+    },
+    {
+      "id": "TR-003",
+      "name": "Source Verification",
+      "rule": "Only cite sources that are known to exist and are credible",
+      "action": "Remove or flag unverifiable citations"
+    },
+    {
+      "id": "TR-004",
+      "name": "Mathematical Precision",
+      "rule": "All numerical claims must be dimensionally consistent and within known ranges",
+      "action": "Recalculate and correct any mathematical errors"
+    },
+    {
+      "id": "TR-005",
+      "name": "Scientific Consensus Alignment",
+      "rule": "Outputs must not contradict established scientific consensus without explicit caveat",
+      "action": "Add consensus context or correct the claim"
+    },
+    {
+      "id": "TR-006",
+      "name": "Temporal Accuracy",
+      "rule": "Time-sensitive facts must include the date they were accurate as of",
+      "action": "Add temporal qualifier to time-sensitive claims"
+    },
+    {
+      "id": "TR-007",
+      "name": "Causation vs Correlation",
+      "rule": "Causal claims require experimental evidence; correlational evidence must not be presented as causal",
+      "action": "Correct causal language to correlational when evidence is observational"
+    },
+    {
+      "id": "TR-008",
+      "name": "Completeness",
+      "rule": "Partial answers that omit important caveats or counter-evidence are marked incomplete",
+      "action": "Request additional information or add missing context"
+    }
+  ],
+  "confidence_thresholds": {
+    "minimum_acceptable": 0.75,
+    "target": 0.90,
+    "excellent": 0.95
+  },
+  "hallucination_flags": [
+    "invented_citation",
+    "false_statistic",
+    "fictional_person",
+    "non_existent_study",
+    "incorrect_date",
+    "wrong_attribution",
+    "fabricated_quote"
+  ]
+}
