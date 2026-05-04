@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — DigitalMarket</title>
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    .dash-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 64px); }
+    .sidebar {
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .sidebar a {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.6rem 0.75rem; border-radius: 8px;
+      text-decoration: none; color: var(--muted);
+      font-weight: 500; font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .sidebar a.active, .sidebar a:hover { background: #f0eeff; color: var(--primary); }
+    .dash-content { padding: 2rem; overflow-y: auto; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 1.25rem; box-shadow: var(--shadow);
+    }
+    .stat-label { font-size: 0.8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--text); margin-top: 0.25rem; }
+    .stat-value.green { color: var(--success); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    th { background: #f8f9fc; padding: 0.75rem 1rem; text-align: left; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 0.85rem 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+    tr:hover td { background: #f8f9fc; }
+    .status-badge {
+      display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 700;
+    }
+    .status-completed { background: #dcfce7; color: #15803d; }
+    .status-pending { background: #fef9c3; color: #92400e; }
+    @media (max-width: 768px) {
+      .dash-layout { grid-template-columns: 1fr; }
+      .sidebar { flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">⚡ DigitalMarket</a>
+  <div class="nav-links">
+    <a href="/">Browse</a>
+    <button class="btn btn-outline btn-sm" id="nav-logout">Log Out</button>
+  </div>
+</nav>
+
+<div class="dash-layout">
+  <aside class="sidebar">
+    <div style="padding:0.5rem 0.75rem;margin-bottom:0.5rem">
+      <div id="dash-username" style="font-weight:700;font-size:1rem"></div>
+      <div id="dash-role" style="font-size:0.8rem;color:var(--muted)"></div>
+    </div>
+    <a href="#" class="active" onclick="showTab('overview')">📊 Overview</a>
+    <a href="#" onclick="showTab('products')" id="tab-products-link">📦 My Products</a>
+    <a href="#" onclick="showTab('orders')">🛒 My Orders</a>
+    <a href="#" onclick="showTab('sales')" id="tab-sales-link">💰 Sales</a>
+    <a href="#" onclick="showTab('subscription')" id="tab-sub-link">⭐ Subscription</a>
+    <a href="#" onclick="showTab('wallet')" id="tab-wallet-link">💳 Wallet</a>
+  </aside>
+
+  <main class="dash-content">
+    <!-- Overview -->
+    <div class="tab-content active" id="tab-overview">
+      <h2 style="margin-bottom:1.5rem">Dashboard</h2>
+      <div class="stat-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Wallet Balance</div><div class="stat-value green" id="stat-balance">$0.00</div></div>
+        <div class="stat-card"><div class="stat-label">Total Earnings</div><div class="stat-value" id="stat-earnings">$0.00</div></div>
+        <div class="stat-card"><div class="stat-label">Total Sales</div><div class="stat-value" id="stat-sales">0</div></div>
+        <div class="stat-card"><div class="stat-label">Products Listed</div><div class="stat-value" id="stat-products">0</div></div>
+      </div>
+      <h3 style="margin-bottom:1rem">Top Products</h3>
+      <div id="top-products-list"></div>
+    </div>
+
+    <!-- Products -->
+    <div class="tab-content" id="tab-products">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2>My Products</h2>
+        <button class="btn btn-primary" onclick="openModal('modal-new-product')">+ New Product</button>
+      </div>
+      <table>
+        <thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Sales</th><th>Rating</th><th>Status</th></tr></thead>
+        <tbody id="my-products-table"></tbody>
+      </table>
+    </div>
+
+    <!-- Orders -->
+    <div class="tab-content" id="tab-orders">
+      <h2 style="margin-bottom:1.5rem">My Purchases</h2>
+      <table>
+        <thead><tr><th>Order ID</th><th>Product</th><th>Amount</th><th>Status</th><th>Date</th><th>Download</th></tr></thead>
+        <tbody id="my-orders-table"></tbody>
+      </table>
+    </div>
+
+    <!-- Sales -->
+    <div class="tab-content" id="tab-sales">
+      <h2 style="margin-bottom:1.5rem">Sales History</h2>
+      <table>
+        <thead><tr><th>Order ID</th><th>Product ID</th><th>You Earned</th><th>Platform Fee</th><th>Date</th></tr></thead>
+        <tbody id="my-sales-table"></tbody>
+      </table>
+    </div>
+
+    <!-- Subscription -->
+    <div class="tab-content" id="tab-subscription">
+      <h2 style="margin-bottom:1.5rem">Subscription</h2>
+      <div id="sub-info" style="background:var(--card);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.5rem"></div>
+      <button class="btn btn-primary" id="btn-upgrade" onclick="upgradeToProSimulate()">Upgrade to Pro — $29/month</button>
+      <button class="btn btn-outline" id="btn-cancel-sub" style="display:none;margin-left:0.75rem" onclick="cancelSub()">Cancel Subscription</button>
+    </div>
+
+    <!-- Wallet -->
+    <div class="tab-content" id="tab-wallet">
+      <h2 style="margin-bottom:1.5rem">Wallet & Payouts</h2>
+      <div style="background:var(--card);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);max-width:400px">
+        <div class="stat-label">Available Balance</div>
+        <div class="stat-value green" id="wallet-balance">$0.00</div>
+        <p style="color:var(--muted);font-size:0.85rem;margin:0.75rem 0">Minimum withdrawal: $10.00. Arrives in 2-3 business days.</p>
+        <button class="btn btn-success" onclick="withdraw()">Withdraw to Bank</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- New Product Modal -->
+<div class="modal-overlay" id="modal-new-product">
+  <div class="modal" style="max-width:520px">
+    <h2>List New Product</h2>
+    <form id="form-new-product">
+      <div class="form-group"><label>Title</label><input type="text" id="p-title" required minlength="5" /></div>
+      <div class="form-group"><label>Description</label><textarea id="p-desc" rows="3" required></textarea></div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="p-category">
+          <option value="template">Template</option>
+          <option value="ebook">Ebook</option>
+          <option value="tool">Tool</option>
+          <option value="course">Course</option>
+          <option value="graphic">Graphic</option>
+          <option value="plugin">Plugin</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Price (USD)</label><input type="number" id="p-price" step="0.01" min="0.99" max="9999" required /></div>
+      <div class="form-group"><label>File URL (S3 / CDN link)</label><input type="url" id="p-file-url" /></div>
+      <div class="form-group"><label>Thumbnail URL</label><input type="url" id="p-thumb-url" /></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-new-product')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Publish Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/static/js/app.js"></script>
+<script>
+const API = "";
+
+function showTab(name) {
+  document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".sidebar a").forEach(el => el.classList.remove("active"));
+  document.getElementById(`tab-${name}`).classList.add("active");
+  event.currentTarget.classList.add("active");
+  if (name === "products") loadMyProducts();
+  if (name === "orders") loadMyOrders();
+  if (name === "sales") loadMySales();
+  if (name === "subscription") loadSubscription();
+  if (name === "wallet") updateWalletDisplay();
+}
+
+async function loadDashboard() {
+  if (!token) { window.location.href = "/"; return; }
+  await loadCurrentUser();
+  if (!currentUser) { window.location.href = "/"; return; }
+
+  document.getElementById("dash-username").textContent = currentUser.username;
+  document.getElementById("dash-role").textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+
+  const isSeller = currentUser.role === "seller" || currentUser.role === "admin";
+  if (!isSeller) {
+    document.getElementById("tab-products-link").style.display = "none";
+    document.getElementById("tab-sales-link").style.display = "none";
+    document.getElementById("tab-sub-link").style.display = "none";
+    document.getElementById("tab-wallet-link").style.display = "none";
+  }
+
+  document.getElementById("stat-balance").textContent = `$${currentUser.balance.toFixed(2)}`;
+  updateWalletDisplay();
+
+  if (isSeller) {
+    try {
+      const dash = await api("/analytics/seller/dashboard");
+      document.getElementById("stat-earnings").textContent = `$${dash.total_earnings.toFixed(2)}`;
+      document.getElementById("stat-sales").textContent = dash.total_sales;
+      document.getElementById("stat-products").textContent = dash.total_products;
+
+      const topList = document.getElementById("top-products-list");
+      if (dash.top_products.length) {
+        topList.innerHTML = `<table>
+          <thead><tr><th>Product</th><th>Sales</th><th>Revenue</th></tr></thead>
+          <tbody>${dash.top_products.map(p =>
+            `<tr><td>${p.title}</td><td>${p.sales}</td><td>$${p.revenue.toFixed(2)}</td></tr>`
+          ).join("")}</tbody></table>`;
+      } else {
+        topList.innerHTML = `<p style="color:var(--muted)">No sales yet. List your first product!</p>`;
+      }
+    } catch { /* non-seller */ }
+  }
+}
+
+async function loadMyProducts() {
+  const tbody = document.getElementById("my-products-table");
+  tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">Loading...</td></tr>`;
+  try {
+    const products = await api(`/products/seller/${currentUser.id}`);
+    if (!products.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">No products yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = products.map(p => `
+      <tr>
+        <td><strong>${p.title}</strong></td>
+        <td>${p.category}</td>
+        <td>$${p.price.toFixed(2)}</td>
+        <td>${p.sales_count}</td>
+        <td>${p.avg_rating.toFixed(1)} ★ (${p.review_count})</td>
+        <td><span class="status-badge ${p.is_active ? 'status-completed' : 'status-pending'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+      </tr>`).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger)">${err.message}</td></tr>`;
+  }
+}
+
+async function loadMyOrders() {
+  const tbody = document.getElementById("my-orders-table");
+  tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">Loading...</td></tr>`;
+  try {
+    const orders = await api("/orders/my");
+    if (!orders.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">No purchases yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = orders.map(o => `
+      <tr>
+        <td>#${o.id}</td>
+        <td>Product #${o.product_id}</td>
+        <td>$${o.amount_paid.toFixed(2)}</td>
+        <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+        <td>${new Date(o.created_at).toLocaleDateString()}</td>
+        <td>${o.status === 'completed' ? `<button class="btn btn-sm btn-primary" onclick="getDownload(${o.id})">Download</button>` : '-'}</td>
+      </tr>`).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger)">${err.message}</td></tr>`;
+  }
+}
+
+async function loadMySales() {
+  const tbody = document.getElementById("my-sales-table");
+  tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted)">Loading...</td></tr>`;
+  try {
+    const sales = await api("/orders/seller/sales");
+    if (!sales.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted)">No sales yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = sales.map(o => `
+      <tr>
+        <td>#${o.id}</td>
+        <td>Product #${o.product_id}</td>
+        <td style="color:var(--success)">+$${o.seller_earnings.toFixed(2)}</td>
+        <td style="color:var(--muted)">$${o.platform_fee.toFixed(2)}</td>
+        <td>${new Date(o.created_at).toLocaleDateString()}</td>
+      </tr>`).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger)">${err.message}</td></tr>`;
+  }
+}
+
+async function loadSubscription() {
+  const info = document.getElementById("sub-info");
+  try {
+    const sub = await api("/payments/subscription");
+    info.innerHTML = `
+      <p><strong>Plan:</strong> ${sub.plan.toUpperCase()}</p>
+      <p><strong>Status:</strong> ${sub.status}</p>
+      ${sub.current_period_end ? `<p><strong>Renews:</strong> ${new Date(sub.current_period_end).toLocaleDateString()}</p>` : ""}
+      ${sub.cancel_at_period_end ? `<p style="color:var(--warning)">⚠ Cancels at period end</p>` : ""}`;
+    document.getElementById("btn-upgrade").style.display = sub.plan === "pro" ? "none" : "inline-flex";
+    document.getElementById("btn-cancel-sub").style.display = sub.plan === "pro" && !sub.cancel_at_period_end ? "inline-flex" : "none";
+  } catch {
+    info.innerHTML = `<p style="color:var(--muted)">No subscription record found.</p>`;
+  }
+}
+
+async function upgradeToProSimulate() {
+  try {
+    await api("/payments/subscription/upgrade", {
+      method: "POST",
+      body: JSON.stringify({ payment_method_id: "pm_mock_card" }),
+    });
+    toast("Upgraded to Pro! Commission reduced to 10%.");
+    loadSubscription();
+  } catch (err) { toast(`Error: ${err.message}`); }
+}
+
+async function cancelSub() {
+  try {
+    await api("/payments/subscription/cancel", { method: "POST" });
+    toast("Subscription will cancel at period end.");
+    loadSubscription();
+  } catch (err) { toast(`Error: ${err.message}`); }
+}
+
+function updateWalletDisplay() {
+  if (currentUser) {
+    document.getElementById("wallet-balance").textContent = `$${currentUser.balance.toFixed(2)}`;
+  }
+}
+
+async function withdraw() {
+  try {
+    const result = await api("/payments/withdraw", { method: "POST" });
+    toast(result.message);
+    currentUser.balance = 0;
+    updateWalletDisplay();
+    document.getElementById("stat-balance").textContent = "$0.00";
+  } catch (err) { toast(`Error: ${err.message}`); }
+}
+
+async function getDownload(orderId) {
+  try {
+    const link = await api(`/orders/${orderId}/download`);
+    toast(`Download link: ${link.download_url}`);
+    window.open(link.download_url, "_blank");
+  } catch (err) { toast(`Error: ${err.message}`); }
+}
+
+document.getElementById("form-new-product")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const payload = {
+    title: document.getElementById("p-title").value,
+    description: document.getElementById("p-desc").value,
+    category: document.getElementById("p-category").value,
+    price: parseFloat(document.getElementById("p-price").value),
+    file_url: document.getElementById("p-file-url").value || null,
+    thumbnail_url: document.getElementById("p-thumb-url").value || null,
+  };
+  try {
+    const product = await api("/products", { method: "POST", body: JSON.stringify(payload) });
+    closeModal("modal-new-product");
+    toast(`Product "${product.title}" published!`);
+    e.target.reset();
+    loadMyProducts();
+  } catch (err) { toast(`Error: ${err.message}`); }
+});
+
+document.getElementById("nav-logout")?.addEventListener("click", () => {
+  logout();
+  window.location.href = "/";
+});
+
+document.addEventListener("DOMContentLoaded", loadDashboard);
+</script>
+</body>
+</html>
