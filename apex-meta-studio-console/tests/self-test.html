@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>APEX Meta Studio Console Self-Test</title>
+  <link rel="stylesheet" href="./self-test.css">
+</head>
+<body>
+  <main class="wrap">
+    <section class="card hero">
+      <div class="eyebrow">APEX Meta Studio / Runtime Verification</div>
+      <h1>Console Self-Test v0.1</h1>
+      <p>Verifies browser basics before deeper feature work: JavaScript, storage, secure context, SHA-256, Mini parser, manifest decision, and download helper.</p>
+      <span id="overall" class="pill warn">Pending</span>
+    </section>
+
+    <section class="card">
+      <button id="runTests">Run Self-Test</button>
+      <button id="copyReport" class="secondary">Copy Report</button>
+      <button id="downloadReport" class="warning">Download Report JSON</button>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
+      <pre id="out">Press Run Self-Test.</pre>
+    </section>
+  </main>
+  <script src="./self-test.js"></script>
+</body>
+</html>
