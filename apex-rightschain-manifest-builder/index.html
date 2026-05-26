@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APEX Rights Ledger v0.1</title>
+<link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+<main class="wrap">
+<section class="card hero">
+<div class="eyebrow">APEX Meta Studio</div>
+<h1>Rights Ledger Builder v0.1</h1>
+<p>Create a clear record for artifact identity, contribution, source inputs, license intent, review status, and file proof.</p>
+<div class="pills"><span id="jsPill" class="pill warn">JavaScript: starting</span><span id="hashPill" class="pill warn">Hash: waiting</span><span id="releasePill" class="pill warn">Status: draft</span><span id="storagePill" class="pill warn">Storage: checking</span></div>
+</section>
+<section class="grid two">
+<form id="manifestForm" class="card">
+<h2>Artifact</h2>
+<label>Title<input id="title" value="See the Seed in the Sketch"></label>
+<label>Type<select id="artifactType"><option>image_series</option><option>comic_strip</option><option>story</option><option>video</option><option>code</option><option>game_asset</option><option>course</option><option>other</option></select></label>
+<label>Description<textarea id="description">A clear artifact record for a creative output.</textarea></label>
+<label>Vision Owner<input id="owner" value="Otto Langenegger"></label>
+<label>Status<select id="status"><option>draft</option><option>private_prototype</option><option>release_candidate</option><option>published</option></select></label>
+<h2>Contributors</h2>
+<p class="hint">One per line: Name | role | percent</p>
+<textarea id="contributors">Human Creator | vision_direction_selection | 40
+AI System | generation_layout_variation | 45
+Human Editor | final_curation_revision | 15</textarea>
+<h2>Sources</h2>
+<p class="hint">One per line: type | description | permission</p>
+<textarea id="sources">user_input | user-provided creative seed | authorized
+concept_reference | general creative method only | no_direct_copy</textarea>
+<h2>License Intent</h2>
+<label>Default Use<select id="defaultUse"><option>private_prototype</option><option>personal_use</option><option>public_with_attribution</option><option>commercial_pending_review</option><option>commercial_allowed</option></select></label>
+<label>Derivative Use<select id="derivatives"><option>allowed_with_attribution</option><option>not_allowed</option><option>private_only</option></select></label>
+</form>
+<section class="card">
+<h2>Review Gates</h2>
+<div class="checks">
+<label><input type="checkbox" id="flagPrivate" checked> Private or sensitive</label>
+<label><input type="checkbox" id="flagSource"> Unclear source permission</label>
+<label><input type="checkbox" id="flagClaims"> Claims need expert review</label>
+<label><input type="checkbox" id="flagLikeness"> Real-person likeness or publicity rights</label>
+<label><input type="checkbox" id="flagPublic"> Intended for public release</label>
+<label><input type="checkbox" id="flagToken"> Public token record requested</label>
+</div>
+<label>Record Path<select id="recordPreference"><option>auto_recommend</option><option>private_ledger</option><option>hash_timestamp_only</option><option>unique_public_record</option><option>edition_public_record</option><option>non_transferable_contributor_record</option></select></label>
+<div class="actions"><button type="button" id="generateBtn">Generate Manifest</button><button type="button" id="hashBtn" class="secondary">Hash Manifest</button><button type="button" id="selfTestBtn" class="secondary">Run Self-Test</button><button type="button" id="copyBtn" class="warnbtn">Copy Manifest</button><button type="button" id="downloadBtn" class="warnbtn">Download JSON</button><button type="button" id="resetBtn" class="darkbtn">Reset Example</button></div>
+</section>
+</section>
+<section class="grid two"><section class="card"><h2>Manifest Output</h2><pre id="manifestOut">Press Generate Manifest.</pre></section><section class="card"><h2>Decision Output</h2><pre id="decisionOut">No decision yet.</pre></section></section>
+<section class="card truth"><h2>Truth Boundary</h2><p>This tool records provenance, attribution, license intent, review status, and hash proof. It does not replace contracts, legal review, platform rules, or actual enforcement.</p></section>
+</main>
+<script type="module" src="./src/app.js"></script>
+</body>
+</html>
