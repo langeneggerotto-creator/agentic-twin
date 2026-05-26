@@ -1,0 +1,40 @@
+{
+  "system": "APEX",
+  "repository_layer": "agentic-twin/APEX",
+  "status": "initialized",
+  "truth_status": "STRUCTURE_CREATED_NOT_PRODUCTION_CERTIFIED",
+  "created_purpose": "Document, govern, test, and evolve the APEX Perfect AI / Vision-to-Reality Meta-System.",
+  "primary_purpose_statement": "Perfect AI exists to make the entire system more truthful, just, coherent, flourishing, and wisely self-correcting.",
+  "canonical_shortcut": "🏪🅾️♾️💯🚀🏪",
+  "numbering_convention": {
+    "00": "Index and navigation",
+    "01": "Canon and purpose",
+    "02": "Architecture",
+    "03": "Application modules",
+    "04": "Engineering and implementation",
+    "05": "Governance and rights",
+    "06": "Product and launch",
+    "07": "Testing and evidence",
+    "90": "Change logs",
+    "99": "Handoff and recovery"
+  },
+  "active_prototypes": [
+    "apex-meta-studio-console",
+    "apex-python-intent-console",
+    "apex-python-intent-console-v02",
+    "apex-rightschain-manifest-builder",
+    "apex-mobile-python-console-v161"
+  ],
+  "non_goals_now": [
+    "Do not claim production readiness without tests.",
+    "Do not claim legal enforcement from provenance records alone.",
+    "Do not claim medical or psychological diagnosis/treatment.",
+    "Do not bypass platform rules or copyright controls."
+  ],
+  "next_3_plus_1": {
+    "next_1": "Create complete repository map and canonical docs.",
+    "next_2": "Add module registry and application map.",
+    "next_3": "Add evidence/testing gates for every prototype.",
+    "plus_1_control": "Require Truth Status labels for every serious APEX claim."
+  }
+}
