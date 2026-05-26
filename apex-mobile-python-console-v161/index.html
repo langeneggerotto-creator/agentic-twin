@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>APEX Notebook Console v1.6.1 Modular</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="wrap">
+<section class="card hero">
+<h1>APEX Notebook + File Console v1.6.1 Modular</h1>
+<p>Refactored after independent review: modular files, safer storage, notebook cells, file upload/read, diagnostics, and dependency-free Mini execution.</p>
+<span id="jsPill" class="pill warn">JS: starting</span>
+<span id="storePill" class="pill warn">Storage: checking</span>
+<span id="miniPill" class="pill warn">Mini: checking</span>
+<span id="pyPill" class="pill warn">Pyodide: optional</span>
+<span id="runPill" class="pill warn">Run: waiting</span>
+</section>
+<section class="card tabs"><button id="tabNotebook" class="tab active">Notebook</button><button id="tabFiles" class="tab">Files</button><button id="tabHealth" class="tab">Health</button></section>
+<section id="notebookPanel">
+<div class="grid"><section class="card"><h2>Notebook Controls</h2><select id="engineSelect"><option value="auto">Auto: safest available</option><option value="mini">Mini fallback</option><option value="pyodide">Pyodide if loaded</option></select><button id="runCellBtn">Run Current Cell</button><button id="runAllBtn" class="blue">Run All Cells</button><button id="addCellBtn" class="blue">Add Cell</button><button id="deleteCellBtn" class="red">Delete Current Cell</button><button id="saveNotebookBtn" class="dark">Save Notebook Locally</button><button id="exportNotebookBtn" class="yellow">Show Export JSON</button><button id="loadPyodideBtn" class="yellow">Load Optional Pyodide</button><button id="resetBtn" class="red">Reset Notebook</button></section><section class="card"><h2 id="currentLabel">Cell 1</h2><textarea id="code"></textarea><pre id="cellOutput">No output yet.</pre></section></div>
+<section class="card"><h2>Cells</h2><div id="cellList"></div></section>
+</section>
+<section id="filesPanel" class="hidden"><div class="grid"><section class="card"><h2>Files</h2><input id="fileInput" type="file" multiple><button id="insertFileExampleBtn" class="blue">Insert File Example Cell</button><button id="clearFilesBtn" class="red">Clear Files</button><p class="small">Uploaded text files stay in memory only. They are not persisted into localStorage.</p></section><section class="card"><h2>Loaded Files</h2><div id="fileList">No files loaded.</div></section></div><section class="card"><h2>File Preview</h2><pre id="filePreview">No file selected.</pre></section></section>
+<section id="healthPanel" class="hidden"><div class="grid"><section class="card"><h2>Engine Health</h2><pre id="health">Pending...</pre></section><section class="card"><h2>Diagnostics / Export</h2><pre id="diagnostics">No diagnostics yet.</pre><button id="copyDiagBtn" class="yellow">Copy Diagnostics / Export</button><button id="importBtn" class="blue">Import Notebook JSON</button><input id="importInput" type="file" accept=".json,application/json" class="hidden"></section></div><section class="card"><h2>Runtime Log</h2><pre id="log">Booting...</pre></section></section>
+</main>
+<script src="./src/state.js"></script>
+<script src="./src/files.js"></script>
+<script src="./src/mini.js"></script>
+<script src="./src/engines.js"></script>
+<script src="./src/notebook.js"></script>
+<script src="./src/boot.js"></script>
+</body>
+</html>
