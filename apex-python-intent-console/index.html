@@ -1,0 +1,119 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>APEX Python Intent Console v0.1</title><style>:root{--bg:#07101f;--card:#1f2937;--line:#475569;--text:#f8fafc;--muted:#cbd5e1;--g:#22c55e;--b:#38bdf8;--y:#facc15;--r:#fb7185;--p:#c084fc}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#14213d,#07101f 45%,#020617);color:var(--text);font-family:Arial,Helvetica,sans-serif;padding:14px}.wrap{max-width:1180px;margin:auto}.card{background:rgba(31,41,55,.96);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 14px 34px rgba(0,0,0,.25)}.hero{background:linear-gradient(145deg,#111827,#020617);border-color:#1d4ed8}.eyebrow{color:#67e8f9;font-size:12px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}h1{font-size:28px;margin:8px 0 6px}h2{font-size:18px;color:#dbeafe;margin:6px 0 10px}p,.small{color:var(--muted);line-height:1.45;font-size:14px}.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:900px){.two{grid-template-columns:1fr 1fr}.three{grid-template-columns:repeat(3,1fr)}}button,select,input,textarea{font:inherit}button{display:block;width:100%;border:0;border-radius:14px;padding:12px;margin-top:8px;background:var(--g);color:#06130a;font-weight:900;cursor:pointer}button.b{background:var(--b);color:#06131d}button.y{background:var(--y);color:#1c1601}button.r{background:var(--r);color:#25040a}button.p{background:var(--p);color:#190321}button.d{background:#020617;color:#e5e7eb;border:1px solid var(--line)}input,select,textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:#020617;color:#fff;padding:11px;margin:6px 0 10px}textarea{min-height:160px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}pre{background:#020617;border:1px solid var(--line);border-radius:14px;color:#dbeafe;white-space:pre-wrap;overflow:auto;padding:12px;min-height:220px;font-size:13px}.pill{display:inline-block;border:1px solid var(--line);background:#020617;border-radius:999px;padding:7px 10px;margin:4px;color:#cbd5e1;font-size:12px}.good{color:#bbf7d0;border-color:#14532d;background:#052e16}.warn{color:#fde68a;border-color:#854d0e;background:#271905}.bad{color:#fecdd3;border-color:#7f1d1d;background:#2a0b0b}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.metric{font-size:25px;font-weight:900}.kbd{font-family:monospace;color:#fde68a}.hide{display:none}</style></head><body><main class="wrap"><section class="card hero"><div class="eyebrow">APEX Python Intent Console / 🐍🅾️♾️💯🚀🦖</div><h1>APEX Python Intent Console v0.1</h1><p>Paste normal text, a chat, or instructions. The console interprets the intent and generates Python code that follows APEX rules: human control, evidence, safety, rights/provenance, tests, and Next 3+1 improvement.</p><span id="pJS" class="pill warn">JS starting</span><span id="pStore" class="pill warn">Storage checking</span><span id="pSecure" class="pill warn">Hash checking</span><span id="pRun" class="pill warn">Waiting</span></section><section class="grid three"><div class="card"><h2>1. Intent Input</h2><label>APEX mode</label><select id="mode"><option value="auto">Auto route</option><option value="build">Build / improve APEX environment</option><option value="debug">Debug / repair</option><option value="media">Media / content system</option><option value="rights">RightsChain / provenance</option><option value="human_state">Human State Studio</option><option value="game">Game / learning engine</option></select><label>Instructions, chat, or idea</label><textarea id="input">Build a small APEX module that turns a messy creative idea into a safe, rights-aware, testable artifact plan.</textarea><button onclick="generatePython()">Generate APEX Python</button><button class="b" onclick="demo()">Load Strong Demo Prompt</button><button class="y" onclick="saveState()">Save State</button></div><div class="card"><h2>2. Intent Analysis</h2><pre id="analysis">No analysis yet.</pre></div><div class="card"><h2>3. QA / Next 3+1</h2><pre id="qa">No QA yet.</pre><button class="p" onclick="runSelfTest()">Run Console Self-Test</button></div></section><section class="grid two"><div class="card"><h2>Generated Python Code</h2><div class="row"><button class="b" onclick="copyCode()">Copy Code</button><button class="y" onclick="downloadCode()">Download .py</button><button class="d" onclick="downloadManifest()">Download Manifest</button></div><pre id="code">Press Generate APEX Python.</pre></div><div class="card"><h2>Python Output Preview</h2><p class="small">This preview is simulated in-browser. Run the downloaded Python in a real Python environment for actual execution.</p><pre id="preview">No preview yet.</pre></div></section><section class="card"><h2>Truth Boundary</h2><p>This browser console generates Python scaffolds and APEX-aligned plans. It does not run full Python in the browser, does not install packages, does not modify your repo automatically, and does not make legal, medical, or production-readiness guarantees.</p></section></main><script>const $=id=>document.getElementById(id);let lastCode='',lastManifest=null;function boot(){pill('pJS','JS: PASS','good');pill('pStore',storageOK()?'Storage: PASS':'Storage blocked',storageOK()?'good':'bad');pill('pSecure',window.isSecureContext?'Hash: secure':'Hash: fallback',window.isSecureContext?'good':'warn');loadState()}function pill(id,t,c){let e=$(id);e.textContent=t;e.className='pill '+c}function storageOK(){try{localStorage.setItem('apex_py_probe','ok');let ok=localStorage.getItem('apex_py_probe')==='ok';localStorage.removeItem('apex_py_probe');return ok}catch(e){return false}}function escPy(s){return JSON.stringify(String(s))}function words(s){return (String(s).toLowerCase().match(/[a-z0-9_]+/g)||[])}function infer(text,mode){let w=words(text),hit=x=>w.some(v=>x.includes(v));let mods=[];if(mode!=='auto')mods.push(mode);if(hit(['image','video','music','audio','photo','media','reel','short','cinema','voice']))mods.push('media');if(hit(['rights','copyright','license','credit','source','nft','token','provenance']))mods.push('rights');if(hit(['calm','stress','anxiety','emotion','human','state','overwhelm']))mods.push('human_state');if(hit(['bug','debug','fix','error','test','qa','repair']))mods.push('debug');if(hit(['game','rules','child','learning','memory','drawing']))mods.push('game');if(!mods.length)mods.push('build');mods=[...new Set(mods)];let risk=[];if(hit(['diagnose','treat','cure','medical','therapy']))risk.push('clinical_claim_risk');if(hit(['guarantee','100','always','never']))risk.push('absolute_claim_risk');if(hit(['child','kid','minor']))risk.push('child_safety_review');if(hit(['copyright','nft','token','license']))risk.push('rights_review');return{modules:mods,risk_flags:risk,keywords:[...new Set(w)].slice(0,24)}}function makeManifest(text,inf){return{manifest_type:'APEX_PYTHON_INTENT_MANIFEST',version:'0.1',created_utc:new Date().toISOString(),input_chars:text.length,mode:mode.value,inferred_modules:inf.modules,risk_flags:inf.risk_flags,truth_status:{verified:['input captured','python scaffold generated'],inferred:['intent modules','risk flags','next 3+1'],unknown:['production suitability','legal sufficiency','runtime behavior until executed']},release_decision:inf.risk_flags.length?'HOLD_FOR_REVIEW':'PROTOTYPE_OK'}}function generatePython(){let text=input.value.trim(),inf=infer(text,mode.value);lastManifest=makeManifest(text,inf);analysis.textContent=JSON.stringify({interpreted_intent:summarize(text),apex_modules:inf.modules,keywords:inf.keywords,risk_flags:inf.risk_flags},null,2);qa.textContent=JSON.stringify(next31(inf),null,2);lastCode=pythonTemplate(text,inf,lastManifest);code.textContent=lastCode;preview.textContent=JSON.stringify(simulate(text,inf,lastManifest),null,2);pill('pRun','Generated Python','good');if(storageOK())localStorage.setItem('apex_py_console_v01',JSON.stringify({input:text,mode:mode.value}))}function summarize(t){let s=t.replace(/\s+/g,' ').trim();return s.length>180?s.slice(0,180)+'...':s}function next31(inf){let blockers=[];if(inf.risk_flags.includes('clinical_claim_risk'))blockers.push('keep this coaching/education only; no diagnosis or treatment claims');if(inf.risk_flags.includes('rights_review'))blockers.push('record sources, permissions, contributors, and license before release');if(inf.risk_flags.includes('child_safety_review'))blockers.push('apply child-safe language, consent, privacy, and no shame');return{next_1:'Run generated Python locally and inspect JSON output.',next_2:'Add one real input/output test for the intended module.',next_3:'Create or update a RightsChain manifest for any artifact produced.',plus_1_control:'Add truth labels: VERIFIED / INFERRED / ASSUMED / UNKNOWN.',blockers,stop_rule:'Do not deploy until QA gates pass and blockers are resolved.'}}function simulate(text,inf,manifest){return{apex_result:{input_summary:summarize(text),modules:inf.modules,plan:['normalize input','infer intent','generate artifact plan','run safety and rights gates','produce next 3+1'],manifest_status:manifest.release_decision},message:'This is a browser preview of what the Python will output.'}}function pyList(arr){return '['+arr.map(x=>escPy(x)).join(', ')+']'}function pythonTemplate(text,inf,manifest){return `#!/usr/bin/env python3
+"""
+APEX Python Intent Module
+Generated by APEX Python Intent Console v0.1
+Purpose: Convert normal text/chat instructions into an APEX-aligned improvement plan.
+Boundary: stdlib only; no external dependencies; no legal/medical/production guarantees.
+"""
+from __future__ import annotations
+import json, hashlib, datetime, re
+from dataclasses import dataclass, asdict
+from typing import Any, Dict, List
+
+RAW_INPUT = ${escPy(text)}
+INFERRED_MODULES = ${pyList(inf.modules)}
+RISK_FLAGS = ${pyList(inf.risk_flags)}
+
+@dataclass
+class ApexRecord:
+    artifact_type: str
+    input_summary: str
+    modules: List[str]
+    risk_flags: List[str]
+    truth_status: Dict[str, List[str]]
+    plan: List[str]
+    next_3_plus_1: Dict[str, Any]
+    qa_gates: Dict[str, Any]
+    manifest_hash_sha256: str = "pending"
+
+
+def now_utc() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def summarize(text: str, limit: int = 220) -> str:
+    clean = re.sub(r"\\s+", " ", text).strip()
+    return clean if len(clean) <= limit else clean[:limit] + "..."
+
+
+def qa_gates(text: str, risk_flags: List[str]) -> Dict[str, Any]:
+    issues = []
+    passes = []
+    if len(text.strip()) < 20:
+        issues.append("input_too_short_for_strong_interpretation")
+    else:
+        passes.append("input_length_ok")
+    if "clinical_claim_risk" in risk_flags:
+        issues.append("must_remain_education_or_coaching_not_diagnosis_or_treatment")
+    if "rights_review" in risk_flags:
+        issues.append("rights_sources_permissions_and_credit_required")
+    if "child_safety_review" in risk_flags:
+        issues.append("child_safety_privacy_and_consent_review_required")
+    if re.search(r"\\b(guarantee|100%|always|never|cure|diagnose|treat)\\b", text, re.I):
+        issues.append("overclaim_language_review")
+    score = max(0, 100 - 15 * len(issues) + 5 * len(passes))
+    return {"score": score, "passes": passes, "issues": issues, "release_status": "HOLD_FOR_REVIEW" if issues else "PROTOTYPE_OK"}
+
+
+def build_plan(modules: List[str]) -> List[str]:
+    plan = [
+        "Capture input exactly and preserve original user intent.",
+        "Infer the APEX modules that should be activated.",
+        "Generate the smallest useful artifact first.",
+        "Attach QA, safety, rights, and truth-status gates.",
+        "Return Next 3+1: three improvements plus one control/governance upgrade."
+    ]
+    if "debug" in modules:
+        plan.append("Add reproducible tests before changing implementation.")
+    if "media" in modules:
+        plan.append("Create platform-ready media prompts with Lens/Audio/Cinema gates.")
+    if "rights" in modules:
+        plan.append("Create RightsChain contributor/source/license manifest before release.")
+    if "human_state" in modules:
+        plan.append("Keep support non-clinical: coaching, grounding, and reflection only.")
+    if "game" in modules:
+        plan.append("Separate rules, age mode, safety gate, scoring, and learning objective.")
+    return plan
+
+
+def next_3_plus_1(risk_flags: List[str]) -> Dict[str, Any]:
+    return {
+        "next_1": "Run this module with one real sample input and inspect the JSON output.",
+        "next_2": "Write one assertion test for the most important expected behavior.",
+        "next_3": "Create a RightsChain manifest if any artifact will be shared or reused.",
+        "plus_1_control": "Label each major claim as VERIFIED, INFERRED, ASSUMED, or UNKNOWN.",
+        "stop_rule": "Do not deploy or publish until QA issues are resolved.",
+        "risk_flags": risk_flags,
+    }
+
+
+def make_record(text: str = RAW_INPUT) -> ApexRecord:
+    gates = qa_gates(text, RISK_FLAGS)
+    record = ApexRecord(
+        artifact_type="apex_python_intent_plan",
+        input_summary=summarize(text),
+        modules=INFERRED_MODULES,
+        risk_flags=RISK_FLAGS,
+        truth_status={
+            "VERIFIED": ["input captured", "stdlib Python scaffold generated"],
+            "INFERRED": ["intent modules", "risk flags", "recommended plan"],
+            "ASSUMED": ["user wants an APEX environment improvement"],
+            "UNKNOWN": ["production suitability until tested", "legal sufficiency until reviewed"]
+        },
+        plan=build_plan(INFERRED_MODULES),
+        next_3_plus_1=next_3_plus_1(RISK_FLAGS),
+        qa_gates=gates
+    )
+    payload = json.dumps(asdict(record), sort_keys=True, ensure_ascii=False)
+    record.manifest_hash_sha256 = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return record
+
+
+def main() -> None:
+    record = make_record()
+    print(json.dumps(asdict(record), indent=2, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
+`;}function copyCode(){navigator.clipboard&&navigator.clipboard.writeText(lastCode||code.textContent).then(()=>pill('pRun','Copied','good')).catch(()=>pill('pRun','Copy failed','bad'))}function downloadCode(){if(!lastCode)generatePython();download('apex_generated_module.py',lastCode,'text/x-python')}function downloadManifest(){if(!lastManifest)generatePython();download('apex_python_intent_manifest.json',JSON.stringify(lastManifest,null,2),'application/json')}function download(name,text,type){let blob=new Blob([text],{type:type||'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},0)}function saveState(){if(!storageOK())return;localStorage.setItem('apex_py_console_v01',JSON.stringify({input:input.value,mode:mode.value}));pill('pRun','Saved','good')}function loadState(){try{let s=JSON.parse(localStorage.getItem('apex_py_console_v01')||'{}');if(s.input)input.value=s.input;if(s.mode)mode.value=s.mode}catch(e){}}function demo(){input.value='Create an APEX improvement that analyzes an uploaded child drawing, generates a story, a visual prompt, a game card, a RightsChain manifest, and QA gates. Keep it child-safe, non-clinical, source-aware, and testable.';mode.value='auto';generatePython()}async function runSelfTest(){let t=[];t.push(['storage',storageOK()]);input.value=input.value||'test';generatePython();t.push(['generated code',code.textContent.includes('def make_record')]);t.push(['risk parser',Array.isArray(JSON.parse(analysis.textContent).risk_flags)]);t.push(['manifest',!!lastManifest&&lastManifest.manifest_type==='APEX_PYTHON_INTENT_MANIFEST']);qa.textContent=t.map(x=>(x[1]?'PASS':'FAIL')+' — '+x[0]).join('\n');pill('pRun',t.every(x=>x[1])?'Self-test PASS':'Self-test CHECK',t.every(x=>x[1])?'good':'bad')}boot();</script></body></html>
