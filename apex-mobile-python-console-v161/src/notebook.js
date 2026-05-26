@@ -1,0 +1,42 @@
+(function(){
+  const DEFAULT_CELLS = [
+    {id:1,title:"Hello runtime",code:'print("Hello World")\nprint("Hello from APEX Notebook v1.6.1")\nx = 5\ny = 7\nprint("5 + 7 =", x + y)',output:""},
+    {id:2,title:"Files demo",code:'print("Loaded files:", files())\n# print(read("sample.txt"))',output:""}
+  ];
+  const app = {cells: DEFAULT_CELLS.map(x=>Object.assign({},x)), active:0, nextId:3, history:[], health:{js:true,storage:false,mini:true,pyodide:false,lastRun:false,lastEngine:"none",lastError:""}};
+  window.APEX_NOTEBOOK = app;
+  const $ = id => document.getElementById(id);
+  function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+  function setPill(id,text,cls){const el=$(id); el.textContent=text; el.className="pill "+cls;}
+  function log(msg){const el=$("log"); el.textContent += "\n"+new Date().toLocaleTimeString()+" — "+msg; el.scrollTop=el.scrollHeight;}
+  app.log = log;
+  function renderHealth(){
+    $("health").textContent = `JavaScript: ${app.health.js?"PASS":"FAIL"}\nStorage: ${app.health.storage?"PASS":"UNKNOWN"}\nMini: ${app.health.mini?"PASS":"UNKNOWN"}\nPyodide: ${app.health.pyodide?"PASS":"NOT LOADED"}\nFiles: ${APEX_FILES.names().length}\nCells: ${app.cells.length}\nLast engine: ${app.health.lastEngine}\nLast run: ${app.health.lastRun?"PASS":"WAITING"}\nLast error: ${app.health.lastError || "none"}`;
+  }
+  app.renderHealth = renderHealth;
+  function syncEditor(){const cell=app.cells[app.active]; if(!cell) return; cell.code=$("code").value; cell.output=$("cellOutput").textContent==="No output yet."?"":$("cellOutput").textContent;}
+  function save(){syncEditor(); const res=APEX_STATE.saveNotebook(app); if(!res.ok) log("Save failed: "+res.error); return res;}
+  function renderCells(){
+    $("cellList").innerHTML = app.cells.map((c,i)=>`<div class="cell ${i===app.active?"active":""}"><div class="cellHead"><span class="cellTitle">${i+1}. ${esc(c.title||"Cell")}</span><button style="width:auto;padding:8px 12px" data-open-cell="${i}">Open</button></div><pre>${esc((c.output||"No output yet.").slice(0,900))}</pre></div>`).join("");
+    document.querySelectorAll("[data-open-cell]").forEach(btn=>{btn.onclick=()=>selectCell(Number(btn.getAttribute("data-open-cell")));});
+  }
+  function selectCell(index){syncEditor(); app.active=Math.max(0,Math.min(index,app.cells.length-1)); const c=app.cells[app.active]; $("code").value=c.code||""; $("cellOutput").textContent=c.output||"No output yet."; $("currentLabel").textContent=`Cell ${app.active+1}: ${c.title||"Untitled"}`; renderCells(); renderHealth(); save();}
+  window.selectCell=selectCell;
+  function addCell(title="New Cell", code='print("New cell")'){syncEditor(); app.cells.push({id:app.nextId++,title,code,output:""}); selectCell(app.cells.length-1);}
+  function deleteCell(){if(app.cells.length<=1){alert("Keep at least one cell.");return;} app.cells.splice(app.active,1); selectCell(Math.max(0,app.active-1));}
+  async function runCell(index){const c=app.cells[index]; const preferred=$("engineSelect").value==="auto"?"mini":$("engineSelect").value; const result=await APEX_ENGINES.run(c.code,preferred); c.output=result.text; app.history.unshift({time:new Date().toLocaleTimeString(),cell:index+1,engine:result.engine,ok:result.ok}); app.history=app.history.slice(0,20); app.health.lastRun=!!result.ok; app.health.lastEngine=result.engine; app.health.lastError=result.ok?"":String(result.text).slice(0,200); if(result.engine==="pyodide") app.health.pyodide=true; return result;}
+  async function runCurrent(){syncEditor(); setPill("runPill","Run: executing","warn"); const result=await runCell(app.active); $("cellOutput").textContent=result.text; setPill("runPill",`Run: ${result.engine} ${result.ok?"PASS":"CHECK"}`,result.ok?"good":"warn"); log(`Cell ${app.active+1} completed via ${result.engine}`); renderCells(); renderHealth(); save();}
+  async function runAll(){syncEditor(); setPill("runPill","Run all: executing","warn"); const original=app.active; for(let i=0;i<app.cells.length;i++){await runCell(i); renderCells(); renderHealth();} selectCell(original); setPill("runPill","Run all: complete","good"); log("Run all completed");}
+  function renderFiles(){const names=APEX_FILES.names(); $("fileList").innerHTML=names.length?names.map(name=>`<div class="fileitem"><b>${esc(name)}</b><br>${APEX_FILES.read(name).length} chars <button style="width:auto;padding:8px 12px" data-preview="${encodeURIComponent(name)}">Preview</button></div>`).join(""):"No files loaded."; document.querySelectorAll("[data-preview]").forEach(btn=>{btn.onclick=()=>{const name=decodeURIComponent(btn.getAttribute("data-preview")); $("filePreview").textContent="FILE: "+name+"\n\n"+APEX_FILES.read(name).slice(0,5000);};}); renderHealth();}
+  function exportNotebook(){syncEditor(); const data={app:"APEX Notebook",version:"v1.6.1",exported:new Date().toISOString(),cells:app.cells,history:app.history,fileMetadata:APEX_FILES.metadata()}; $("diagnostics").textContent=JSON.stringify(data,null,2);}
+  async function copyDiag(){const text=$("diagnostics").textContent||diagnostics(); try{await navigator.clipboard.writeText(text);}catch(e){$("diagnostics").textContent=text;}}
+  function diagnostics(){return JSON.stringify({app:"APEX Notebook Console",version:"v1.6.1",time:new Date().toISOString(),userAgent:navigator.userAgent,health:app.health,cells:app.cells.length,files:APEX_FILES.metadata(),history:app.history.slice(0,10)},null,2);}
+  function show(panel){$("notebookPanel").classList.toggle("hidden",panel!=="notebook"); $("filesPanel").classList.toggle("hidden",panel!=="files"); $("healthPanel").classList.toggle("hidden",panel!=="health"); ["tabNotebook","tabFiles","tabHealth"].forEach(id=>$(id).classList.remove("active")); $(panel==="notebook"?"tabNotebook":panel==="files"?"tabFiles":"tabHealth").classList.add("active");}
+  async function importNotebookFile(file){try{const data=JSON.parse(await file.text()); if(!Array.isArray(data.cells)) throw new Error("Missing cells array"); if(data.cells.length>500) throw new Error("Notebook too large"); app.cells=data.cells.map((c,i)=>({id:Number(c.id)||i+1,title:String(c.title||"Cell"),code:String(c.code||""),output:String(c.output||"")})); app.nextId=app.cells.reduce((m,c)=>Math.max(m,Number(c.id)||0),0)+1; selectCell(0); log("Notebook imported");}catch(e){alert("Import failed: "+(e.message||String(e)));}}
+  app.boot=function(){app.health.storage=APEX_STATE.storageOK(); setPill("jsPill","JS: PASS","good"); setPill("storePill",app.health.storage?"Storage: PASS":"Storage: blocked",app.health.storage?"good":"bad"); setPill("miniPill","Mini: READY","good"); const loaded=APEX_STATE.loadNotebook(); if(loaded.ok&&loaded.data&&Array.isArray(loaded.data.cells)){app.cells=loaded.data.cells; app.active=loaded.data.active||0; app.nextId=loaded.data.nextId||(app.cells.reduce((m,c)=>Math.max(m,Number(c.id)||0),0)+1); app.history=loaded.data.history||[];} selectCell(app.active); renderFiles(); $("log").textContent="Boot complete. Modular v1.6.1 ready."; runCurrent();};
+  app.bind=function(){
+    $("code").addEventListener("input",save); $("runCellBtn").onclick=runCurrent; $("runAllBtn").onclick=runAll; $("addCellBtn").onclick=()=>addCell(); $("deleteCellBtn").onclick=deleteCell; $("saveNotebookBtn").onclick=()=>{const r=save(); log(r.ok?"Notebook saved":"Save failed: "+r.error);}; $("exportNotebookBtn").onclick=exportNotebook;
+    $("loadPyodideBtn").onclick=async()=>{const r=await APEX_ENGINES.loadPyodide(log); app.health.pyodide=!!r.ok; setPill("pyPill",r.ok?"Pyodide: READY":"Pyodide: failed",r.ok?"good":"bad"); renderHealth();}; $("resetBtn").onclick=()=>{APEX_STATE.clear(); app.cells=DEFAULT_CELLS.map(x=>Object.assign({},x)); app.nextId=3; app.active=0; APEX_FILES.clear(); selectCell(0); renderFiles();};
+    $("fileInput").onchange=async e=>{await APEX_FILES.addFromFileList(e.target.files); renderFiles(); save();}; $("insertFileExampleBtn").onclick=()=>addCell("File example",'print("Loaded files:", files())\n# print(read("sample.txt"))'); $("clearFilesBtn").onclick=()=>{APEX_FILES.clear(); renderFiles();}; $("copyDiagBtn").onclick=copyDiag; $("importBtn").onclick=()=>$("importInput").click(); $("importInput").onchange=e=>e.target.files[0]&&importNotebookFile(e.target.files[0]); $("tabNotebook").onclick=()=>show("notebook"); $("tabFiles").onclick=()=>show("files"); $("tabHealth").onclick=()=>{$("diagnostics").textContent=diagnostics();show("health");};
+  };
+})();
