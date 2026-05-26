@@ -1,0 +1,96 @@
+{
+  "manifest_type": "APEX_CODE_MIGRATION_MANIFEST",
+  "version": "0.1",
+  "status": "CANONICALIZED_BY_REFERENCE_NOT_PHYSICALLY_MOVED",
+  "principle": "Do not break working hosted prototype URLs while creating the APEX canonical repository layer.",
+  "canonical_repository_layer": "APEX/",
+  "migration_strategy": [
+    "Identify every APEX-related prototype and tool.",
+    "Register each source path under APEX/03_APPLICATION.",
+    "Create canonical source pointers and documentation.",
+    "Only physically move source files after replacement hosted URLs and tests pass.",
+    "Delete or archive root-level originals only after redirect/replacement paths prove stable."
+  ],
+  "applications": [
+    {
+      "id": "APP-001",
+      "name": "APEX Meta Studio Console",
+      "current_path": "apex-meta-studio-console/",
+      "canonical_target": "APEX/03_APPLICATION/consoles/meta-studio/",
+      "move_status": "REGISTERED_NOT_MOVED",
+      "reason_not_moved_yet": "Current hosted RawGithack/jsDelivr URLs depend on root-level path."
+    },
+    {
+      "id": "APP-002",
+      "name": "APEX Meta Studio Self-Test",
+      "current_path": "apex-meta-studio-console/tests/",
+      "canonical_target": "APEX/07_TESTING/browser-self-tests/meta-studio/",
+      "move_status": "REGISTERED_NOT_MOVED",
+      "reason_not_moved_yet": "Must preserve current test URL until replacement path is verified."
+    },
+    {
+      "id": "APP-003",
+      "name": "APEX Python Intent Console v0.1",
+      "current_path": "apex-python-intent-console/",
+      "canonical_target": "APEX/03_APPLICATION/consoles/python-intent/v0.1/",
+      "move_status": "REGISTERED_SUPERSEDED",
+      "reason_not_moved_yet": "Superseded by v0.2; keep for historical comparison."
+    },
+    {
+      "id": "APP-004",
+      "name": "APEX Python Intent Console v0.2",
+      "current_path": "apex-python-intent-console-v02/",
+      "canonical_target": "APEX/03_APPLICATION/consoles/python-intent/v0.2/",
+      "move_status": "REGISTERED_NOT_MOVED",
+      "reason_not_moved_yet": "Active prototype URL depends on root-level path."
+    },
+    {
+      "id": "APP-005",
+      "name": "APEX RightsChain Manifest Builder",
+      "current_path": "apex-rightschain-manifest-builder/",
+      "canonical_target": "APEX/05_GOVERNANCE/rightschain/manifest-builder/",
+      "move_status": "REGISTERED_NOT_MOVED",
+      "reason_not_moved_yet": "Active prototype URL depends on root-level path."
+    },
+    {
+      "id": "APP-006",
+      "name": "APEX Mobile Python Console v1.6.1",
+      "current_path": "apex-mobile-python-console-v161/",
+      "canonical_target": "APEX/03_APPLICATION/consoles/mobile-python/v1.6.1/",
+      "move_status": "REGISTERED_NOT_MOVED",
+      "reason_not_moved_yet": "Active prototype URL depends on root-level path and requires iPhone runtime confirmation."
+    },
+    {
+      "id": "APP-007",
+      "name": "Content Scan Preflight",
+      "current_path": "tools/content-scan-preflight.mjs",
+      "canonical_target": "APEX/04_ENGINEERING/tools/content-scan-preflight.mjs",
+      "move_status": "REGISTERED_NOT_MOVED",
+      "reason_not_moved_yet": "Should be copied after CI path conventions are finalized."
+    }
+  ],
+  "truth_status": {
+    "VERIFIED": [
+      "APEX/README.md created",
+      "APEX/APEX_REPOSITORY_MANIFEST.json created",
+      "APEX/00_INDEX/00_APEX_MASTER_INDEX.md created",
+      "APEX/03_APPLICATION/03_APEX_APPLICATION_REGISTRY.md created"
+    ],
+    "INFERRED": [
+      "Listed prototypes represent the current APEX-related code family"
+    ],
+    "ASSUMED": [
+      "Current hosted paths should not be broken without replacement testing"
+    ],
+    "UNKNOWN": [
+      "Whether a dedicated APEX repository can be created later by a different GitHub permission path",
+      "Whether all runtime tests pass on iPhone and desktop after migration"
+    ]
+  },
+  "next_3_plus_1": {
+    "next_1": "Create canonical source pointer README files under each APEX target folder.",
+    "next_2": "Create replacement hosted APEX-path URLs for one prototype at a time.",
+    "next_3": "Run browser self-tests on old and new paths before deleting root-level originals.",
+    "plus_1_control": "Add a Migration Gate: never delete a working prototype path until the replacement path has a passing evidence record."
+  }
+}
