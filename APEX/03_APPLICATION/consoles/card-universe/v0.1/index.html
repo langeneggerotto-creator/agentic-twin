@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>APEX Card Universe Console v0.1</title>
+<style>
+:root{--bg:#080b12;--panel:#111827;--panel2:#172033;--text:#eef5ff;--muted:#9fb0c8;--gold:#ffd166;--cyan:#38bdf8;--green:#22c55e;--red:#ef4444;--line:#334155}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#122033,#080b12 55%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}header{padding:24px 18px;border-bottom:1px solid var(--line);background:rgba(8,11,18,.84);position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}h1{margin:0;font-size:24px;letter-spacing:.5px}.sub{color:var(--muted);margin-top:6px;font-size:13px}.wrap{max-width:1180px;margin:0 auto;padding:18px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:700}.tab.active{background:linear-gradient(135deg,#0ea5e9,#22c55e);color:#031018}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}.card,.box{background:rgba(17,24,39,.86);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,.22)}.card h3,.box h3{margin:0 0 8px;color:var(--gold)}.small{font-size:13px;color:var(--muted);line-height:1.45}.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 8px;margin:3px;font-size:12px;color:var(--muted)}.id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--cyan);font-size:12px}.section{display:none}.section.active{display:block}textarea,input,select{width:100%;background:#07111f;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font:14px ui-monospace,SFMono-Regular,Menlo,monospace}button.action{background:var(--gold);color:#171000;border:0;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer;margin-top:10px}.out{white-space:pre-wrap;background:#050914;border:1px solid var(--line);border-radius:14px;padding:14px;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;overflow:auto;max-height:460px}.stage{height:420px;perspective:900px;background:linear-gradient(#08111f,#030712);border:1px solid var(--line);border-radius:18px;position:relative;overflow:hidden}.plane{position:absolute;left:50%;top:50%;transform-style:preserve-3d;transform:translate(-50%,-50%) rotateX(60deg) rotateZ(-25deg)}.miniCard{position:absolute;width:88px;height:88px;border:2px solid var(--gold);border-radius:8px;background:linear-gradient(135deg,#f7f1df,#e5d3a3);display:flex;align-items:center;justify-content:center;color:#111;font-weight:900;box-shadow:0 10px 25px rgba(0,0,0,.45);transform-style:preserve-3d}.canvas{width:100%;height:360px;background:#030712;border:1px solid var(--line);border-radius:18px}.warn{border-left:4px solid var(--gold)}.pass{color:var(--green)}.hold{color:var(--gold)}.fail{color:var(--red)}table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(--line);padding:8px;text-align:left}th{color:var(--gold)}
+</style>
+</head>
+<body>
+<header><h1>APEX Card Universe Console v0.1</h1><div class="sub">Rights-safe card-to-game, card-to-structure, card-to-story, card-to-RAS2 evaluation cockpit.</div></header>
+<div class="wrap">
+<div class="tabs">
+<button class="tab active" data-tab="catalog">Catalog</button><button class="tab" data-tab="uses">Uses</button><button class="tab" data-tab="build">Build Lab</button><button class="tab" data-tab="game">Game Lab</button><button class="tab" data-tab="physics">Physics</button><button class="tab" data-tab="ras2">RAS2 Score</button><button class="tab" data-tab="rights">RightsChain</button>
+</div>
+
+<section id="catalog" class="section active"><div class="box warn"><h3>Boundary</h3><div class="small">This repository version does not embed the uploaded copyrighted photos or protected puzzle answers. It catalogs roles, use modes, coordinates, and release gates so the system can generate original APEX-safe cards later.</div></div><br><div class="grid" id="cardGrid"></div></section>
+
+<section id="uses" class="section"><div class="grid" id="useGrid"></div></section>
+
+<section id="build" class="section"><div class="box"><h3>3D Structure Viewer</h3><div class="small">Choose a structure. Coordinates use normalized unit C = one card width. The displayed cards are abstract proxies, not copyrighted scans.</div><select id="structurePick"></select><button class="action" onclick="renderStructure()">Render Structure</button><div class="stage"><div class="plane" id="plane"></div></div><div class="out" id="structureOut"></div></div></section>
+
+<section id="game" class="section"><div class="grid"><div class="box"><h3>Knowing One / Inquisitors Game Builder</h3><div class="small">Create an original lateral-thinking card from a theme. The console produces safe rules and a reusable prompt, not copied puzzle content.</div><textarea id="gameTheme" rows="5">A child-safe mystery about a confusing photo where what people feel is different from what they show.</textarea><button class="action" onclick="makeGameCard()">Generate Original Card</button></div><div class="box"><h3>Output</h3><div class="out" id="gameOut"></div></div></div></section>
+
+<section id="physics" class="section"><div class="grid"><div class="box"><h3>Card Throw Simulator</h3><label class="small">Speed m/s</label><input id="speed" type="range" min="3" max="25" value="12" oninput="drawPhysics()"><label class="small">Angle degrees</label><input id="angle" type="range" min="5" max="45" value="18" oninput="drawPhysics()"><label class="small">Target</label><select id="target" onchange="drawPhysics()"><option>candle</option><option>card stack</option><option>domino chain</option><option>memory target</option></select><button class="action" onclick="drawPhysics()">Simulate</button></div><canvas id="phys" class="canvas" width="760" height="360"></canvas></div><div class="out" id="physOut"></div></section>
+
+<section id="ras2" class="section"><div class="grid"><div class="box"><h3>RAS2 Evaluator</h3><div class="small">Paste a card idea, game plan, or APEX module description. RAS2 scores completeness, risk, evidence, rights, and next step.</div><textarea id="ras2Text" rows="7">Build an original card game from physical story cards. Include objective, risks, implementation, evidence, owner, next step, rights, Heart Core, and Foresight.</textarea><button class="action" onclick="runRas2()">Score With RAS2</button></div><div class="box"><h3>RAS2 Output</h3><div class="out" id="ras2Out"></div></div></div></section>
+
+<section id="rights" class="section"><div class="grid"><div class="box"><h3>RightsChain Release Gate</h3><table><tr><th>Gate</th><th>Status</th></tr><tr><td>Uploaded images embedded?</td><td class="pass">NO</td></tr><tr><td>Protected answers published?</td><td class="pass">NO</td></tr><tr><td>Original APEX-safe cards required for public use?</td><td class="pass">YES</td></tr><tr><td>Permission required for original scans?</td><td class="hold">YES</td></tr></table></div><div class="box"><h3>Release Decision</h3><div class="out">{
+  "rights_chain_status": "PRIVATE_STUDY_OK_PUBLIC_RELEASE_HOLD",
+  "allowed_now": ["metadata", "analysis", "original derivative prompts", "abstract structure models"],
+  "blocked_without_permission": ["publishing full copyrighted card scans", "publishing protected puzzle answers as substitute product"],
+  "next_smallest_control_improvement": "Create 10 original APEX puzzle cards with clean provenance."
+}</div></div></div></section>
+</div>
+
+<script>
+const manifest={
+  cards:[
+    ['C01','Credit / bio page','provenance_and_credit_anchor',['rights_chain','creator_credit','ethics_gate']],
+    ['C02','Red trailer puzzle front','mystery_prompt_card',['lateral_thinking','question_game','assumption_test']],
+    ['C03','Copyright page','legal_boundary_anchor',['copyright_lesson','release_gate','permission_review']],
+    ['C04','Orange illustration','visual_interpretation_card',['symbol_analysis','emotion_mapping','art_prompt_seed']],
+    ['C05','Looks out puzzle front','typographic_mystery_card',['layout_analysis','reading_order','cinematic_scene_seed']],
+    ['C06','Bottle / lightbulb illustration','contained_insight_symbol',['foresight','inner_state_metaphor','constraint_design']],
+    ['C07',"What's the Story cover",'game_title_and_identity_card',['cover_design','brand_anchor','story_prompt']],
+    ['C08','Three / One / Two puzzle front','social_signal_reversal_card',['emotion_vs_reality','perspective_shift','empathy_training']],
+    ['C09','Top-down evidence illustration','forensic_scene_card',['clue_scan','evidence_board','memory_palace','spatial_reasoning']],
+    ['C10','Rules of play page','protocol_card',['rules_engine','game_design','moderator_script','age_mode_adapter']]
+  ],
+  useFamilies:['lateral thinking game','children story generator','adult discussion game','memory palace','visual forensics lab','rights and credit lesson','physical card structure lab','card throw physics lab','photo/video prompt engine','music/sound design prompt engine','RAS2 evaluator dataset','APEX foresight training set'],
+  structures:[
+    {name:'Two-card A-frame',cards:['C02','C05'],placements:[['C02',-0.55,0,0,-28,62,0],['C05',0.55,0,0,28,62,0]],purpose:'Basic stability and dependency demonstration.'},
+    {name:'Narrative triangle',cards:['C07','C02','C08'],placements:[['C07',0,0,0,0,0,0],['C02',-1.15,0,.45,-30,0,0],['C08',1.15,0,.45,30,0,0]],purpose:'Title plus contradiction prompts.'},
+    {name:'RightsChain spine',cards:['C01','C03','C10'],placements:[['C01',-1.1,0,0,0,0,0],['C03',0,0,0,0,0,0],['C10',1.1,0,0,0,0,0]],purpose:'Credit, copyright, and rules as governance chain.'},
+    {name:'Ten-card memory palace',cards:['C01','C02','C03','C04','C05','C06','C07','C08','C09','C10'],placements:[],purpose:'2x5 grid for recall and clue mapping.'}
+  ]
+};
+function $(id){return document.getElementById(id)}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active');if(b.dataset.tab==='physics')drawPhysics();});
+function init(){
+  $('cardGrid').innerHTML=manifest.cards.map(c=>`<div class="card"><div class="id">${c[0]}</div><h3>${c[1]}</h3><div class="small"><b>Role:</b> ${c[2]}</div><div>${c[3].map(x=>`<span class="pill">${x}</span>`).join('')}</div></div>`).join('');
+  $('useGrid').innerHTML=manifest.useFamilies.map((u,i)=>`<div class="card"><div class="id">USE-${String(i+1).padStart(2,'0')}</div><h3>${u}</h3><div class="small">Can be turned into: rules, prompt, UI panel, test case, story beat, video shot, lesson, or RAS2 evaluation artifact.</div></div>`).join('');
+  $('structurePick').innerHTML=manifest.structures.map((s,i)=>`<option value="${i}">${s.name}</option>`).join('');renderStructure();drawPhysics();
+}
+function renderStructure(){const s=manifest.structures[$('structurePick').value];let ps=s.placements;if(!ps.length){ps=manifest.cards.map((c,i)=>[c[0],(i%5-2)*1.1,0,Math.floor(i/5)*1.1,0,0,0]);}
+$('plane').innerHTML=ps.map(p=>`<div class="miniCard" style="transform:translate3d(${p[1]*95}px,${p[3]*70}px,${-p[2]*20}px) rotateZ(${p[4]}deg) rotateX(${p[5]}deg) rotateY(${p[6]}deg)">${p[0]}</div>`).join('');
+$('structureOut').textContent=JSON.stringify({name:s.name,card_count:s.cards.length,cards:s.cards,purpose:s.purpose,placements:ps.map(p=>({card:p[0],x_C:p[1],y_C:p[2],z_C:p[3],yaw_deg:p[4],pitch_deg:p[5],roll_deg:p[6]}))},null,2);}
+function makeGameCard(){const t=$('gameTheme').value.trim();const out={artifact_type:'original_apex_lateral_card',theme:t,age_modes:['child-safe','teen','adult discussion','family'],rules:['One player is the Knowing One.','Others ask yes/no/irrelevant questions.','No shame, no diagnosis, no public claims without evidence.','Reveal answer only after three useful questions.'],card_prompt:'Create an original mystery where the visible emotion or object arrangement misleads the first interpretation, but the answer is kind, logical, and rights-safe.',heart_core:{status:'PASS',dignity_preserved:true,next_small_step:'Write one original puzzle answer, then test with 3 questions.'},rights_chain:{status:'ORIGINAL_REQUIRED',use_uploaded_cards_as:'inspiration only'}};$('gameOut').textContent=JSON.stringify(out,null,2);}
+function drawPhysics(){const c=$('phys'),ctx=c.getContext('2d'),W=c.width,H=c.height;ctx.clearRect(0,0,W,H);ctx.fillStyle='#030712';ctx.fillRect(0,0,W,H);ctx.strokeStyle='#334155';ctx.beginPath();ctx.moveTo(0,H-55);ctx.lineTo(W,H-55);ctx.stroke();const speed=+$('speed').value,ang=+$('angle').value*Math.PI/180,g=9.81,scale=45;let x=0,y=0,vx=speed*Math.cos(ang),vy=speed*Math.sin(ang),pts=[];for(let t=0;t<3;t+=.035){let px=x+vx*t,py=vy*t-.5*g*t*t;if(py<0&&t>.1)break;pts.push([px,py,t]);}ctx.strokeStyle='#38bdf8';ctx.lineWidth=2;ctx.beginPath();pts.forEach((p,i)=>{let sx=40+p[0]*scale,sy=H-55-p[1]*scale;if(i)ctx.lineTo(sx,sy);else ctx.moveTo(sx,sy)});ctx.stroke();for(let i=0;i<pts.length;i+=8){let p=pts[i],sx=40+p[0]*scale,sy=H-55-p[1]*scale;ctx.save();ctx.translate(sx,sy);ctx.rotate(i*.25);ctx.fillStyle='#f7f1df';ctx.fillRect(-14,-9,28,18);ctx.strokeStyle='#ffd166';ctx.strokeRect(-14,-9,28,18);ctx.restore()}let tx=W-115;ctx.fillStyle='#ef4444';ctx.fillRect(tx,H-115,40,60);ctx.fillStyle='#ffd166';ctx.font='14px monospace';ctx.fillText($('target').value,tx-25,H-125);let r=pts.length?pts[pts.length-1][0]:0;$('physOut').textContent=JSON.stringify({speed_mps:speed,angle_deg:+$('angle').value,target:$('target').value,estimated_range_m:+r.toFixed(2),note:'Simplified ballistic model. Real cards need lift, drag, spin, and edge orientation.'},null,2);}
+function runRas2(){const t=$('ras2Text').value.toLowerCase();const required=['objective','risks','implementation','evidence','owner','next step'];const missing=required.filter(x=>!t.includes(x));const rights=['copyright','rights','license','source','permission'].some(x=>t.includes(x));const heart=t.includes('heart core')||t.includes('dignity');const foresight=t.includes('foresight')||t.includes('future')||t.includes('rollback');const score=Math.max(0,Math.min(1,(required.length-missing.length)/required.length + (rights?0.08:0)+(heart?0.08:0)+(foresight?0.08:0)));const out={artifact_type:'ras2_card_universe_evaluation',score:+score.toFixed(3),status:score>=.85?'PASS':score>=.6?'HOLD':'REPAIR',missing_fields:missing,detected:{rights,heart_core:heart,foresight},next_3_plus_1:{next_1:'Complete missing fields.',next_2:'Add RightsChain release status.',next_3:'Add one playable test.',plus_1_control:'Do not publish protected scans or answers without permission.'},truth_status:{VERIFIED:['text scanned locally'],INFERRED:['score and gaps'],UNKNOWN:['real-world rights and physical stability until reviewed/tested']}};$('ras2Out').textContent=JSON.stringify(out,null,2);}
+init();
+</script>
+</body>
+</html>
