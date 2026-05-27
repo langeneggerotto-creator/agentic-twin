@@ -1,0 +1,151 @@
+{
+  "artifact_type": "apex_card_universe_manifest",
+  "version": "0.1",
+  "rights_mode": "metadata_and_transformative_private_study_only",
+  "source_boundary": {
+    "uploaded_user_photos_used_in_local_sandbox": true,
+    "copyrighted_images_embedded_in_repository": false,
+    "copyrighted_game_answers_embedded_in_repository": false,
+    "public_release_rule": "Use original APEX-created cards or obtain permission before publishing protected images or puzzle text."
+  },
+  "card_set": [
+    {
+      "id": "C01",
+      "label": "Credit / bio page",
+      "role": "provenance_and_credit_anchor",
+      "orientation": "portrait",
+      "use_modes": ["rights_chain", "creator_credit", "authorship_discussion", "ethics_gate"]
+    },
+    {
+      "id": "C02",
+      "label": "Red trailer puzzle front",
+      "role": "mystery_prompt_card",
+      "orientation": "square",
+      "use_modes": ["lateral_thinking", "question_game", "story_seed", "assumption_test"]
+    },
+    {
+      "id": "C03",
+      "label": "Copyright page",
+      "role": "legal_boundary_anchor",
+      "orientation": "portrait",
+      "use_modes": ["copyright_lesson", "release_gate", "permission_review", "rights_manifest"]
+    },
+    {
+      "id": "C04",
+      "label": "Orange illustration",
+      "role": "visual_interpretation_card",
+      "orientation": "square",
+      "use_modes": ["symbol_analysis", "emotion_mapping", "art_prompt_seed", "visual_story"]
+    },
+    {
+      "id": "C05",
+      "label": "Looks out puzzle front",
+      "role": "typographic_mystery_card",
+      "orientation": "square",
+      "use_modes": ["layout_analysis", "reading_order", "cinematic_scene_seed", "cause_effect_game"]
+    },
+    {
+      "id": "C06",
+      "label": "Bottle / lightbulb illustration",
+      "role": "contained_insight_symbol",
+      "orientation": "square",
+      "use_modes": ["foresight", "inner_state_metaphor", "idea_bottle", "constraint_design"]
+    },
+    {
+      "id": "C07",
+      "label": "What's the Story cover",
+      "role": "game_title_and_identity_card",
+      "orientation": "square",
+      "use_modes": ["cover_design", "brand_anchor", "question_mark_game", "story_prompt"]
+    },
+    {
+      "id": "C08",
+      "label": "Three / One / Two puzzle front",
+      "role": "social_signal_reversal_card",
+      "orientation": "square",
+      "use_modes": ["emotion_vs_reality", "social_inference", "perspective_shift", "empathy_training"]
+    },
+    {
+      "id": "C09",
+      "label": "Top-down evidence illustration",
+      "role": "forensic_scene_card",
+      "orientation": "square",
+      "use_modes": ["clue_scan", "evidence_board", "memory_palace", "spatial_reasoning"]
+    },
+    {
+      "id": "C10",
+      "label": "Rules of play page",
+      "role": "protocol_card",
+      "orientation": "landscape",
+      "use_modes": ["rules_engine", "game_design", "moderator_script", "age_mode_adapter"]
+    }
+  ],
+  "structure_library": [
+    {
+      "name": "Two-card A-frame",
+      "card_count": 2,
+      "cards": ["C02", "C05"],
+      "coordinates_unit": "C = one card width",
+      "placements": [
+        {"card": "C02", "x": -0.5, "y": 0, "z": 0, "yaw_deg": 0, "pitch_deg": 60, "roll_deg": 0},
+        {"card": "C05", "x": 0.5, "y": 0, "z": 0, "yaw_deg": 180, "pitch_deg": 60, "roll_deg": 0}
+      ],
+      "purpose": "Basic physical stability demonstration."
+    },
+    {
+      "name": "Three-card narrative triangle",
+      "card_count": 3,
+      "cards": ["C07", "C02", "C08"],
+      "placements": [
+        {"card": "C07", "x": 0, "y": 0, "z": 0, "yaw_deg": 0, "pitch_deg": 0, "roll_deg": 0},
+        {"card": "C02", "x": -1.1, "y": 0, "z": 0.4, "yaw_deg": -30, "pitch_deg": 0, "roll_deg": 0},
+        {"card": "C08", "x": 1.1, "y": 0, "z": 0.4, "yaw_deg": 30, "pitch_deg": 0, "roll_deg": 0}
+      ],
+      "purpose": "Title card plus two mystery cards for story generation."
+    },
+    {
+      "name": "RightsChain spine",
+      "card_count": 3,
+      "cards": ["C01", "C03", "C10"],
+      "placements": [
+        {"card": "C01", "x": -1, "y": 0, "z": 0, "yaw_deg": 0, "pitch_deg": 0, "roll_deg": 0},
+        {"card": "C03", "x": 0, "y": 0, "z": 0, "yaw_deg": 0, "pitch_deg": 0, "roll_deg": 0},
+        {"card": "C10", "x": 1, "y": 0, "z": 0, "yaw_deg": 0, "pitch_deg": 0, "roll_deg": 0}
+      ],
+      "purpose": "Credit, copyright, and rules as one governance chain."
+    },
+    {
+      "name": "Ten-card memory palace",
+      "card_count": 10,
+      "cards": ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10"],
+      "layout": "2 rows x 5 columns",
+      "purpose": "Visual ordering system for recall, story, and clue-mapping."
+    }
+  ],
+  "use_case_families": [
+    "lateral_thinking_game",
+    "children_story_generator",
+    "adult_discussion_game",
+    "memory_palace_training",
+    "visual_forensics_lab",
+    "rights_and_credit_lesson",
+    "physical_card_structure_lab",
+    "card_throw_physics_lab",
+    "photo_video_prompt_engine",
+    "music_and_sound_design_prompt_engine",
+    "RAS2_evaluator_dataset",
+    "APEX_foresight_training_set"
+  ],
+  "apex_gates": {
+    "heart_core": "Required before public release or youth-oriented use.",
+    "foresight": "Required for future-facing product recommendations.",
+    "rights_chain": "Required before publishing protected images, names, or puzzle text.",
+    "ras2": "Use to score completeness, drift risk, evidence quality, and launch readiness."
+  },
+  "truth_status": {
+    "VERIFIED": ["manifest created", "rights-safe repository boundary defined"],
+    "INFERRED": ["card roles", "expanded use cases", "structure purposes"],
+    "ASSUMED": ["all physical cards can be represented with normalized unit C"],
+    "UNKNOWN": ["real physical stability until tested", "publication rights until reviewed"]
+  }
+}
