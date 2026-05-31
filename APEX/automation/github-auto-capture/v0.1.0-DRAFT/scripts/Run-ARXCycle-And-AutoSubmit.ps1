@@ -24,7 +24,12 @@ foreach ($Relative in @('reports','manifests','data\exports','dashboard')) {
     }
 }
 
+$Preflight = Join-Path $PSScriptRoot 'Test-ARXAutoCapturePayload.ps1'
 $Submitter = Join-Path $PSScriptRoot 'Invoke-ARXGitHubAutoSubmit.ps1'
+if (-not (Test-Path -LiteralPath $Preflight)) { throw "Preflight gate missing: $Preflight" }
+if (-not (Test-Path -LiteralPath $Submitter)) { throw "Submitter missing: $Submitter" }
+
+& $Preflight -SourcePath $CaptureSource
 & $Submitter -SourcePath $CaptureSource -SessionId $SessionId -ControlCenterRoot $ControlCenterRoot
 Remove-Item -LiteralPath $CaptureSource -Recurse -Force -ErrorAction SilentlyContinue
-Write-Host 'ARX cycle complete; approved safe artifacts submitted; proceed to recalculated next target.' -ForegroundColor Green
+Write-Host 'ARX cycle complete; preflight passed; approved safe artifacts submitted; proceed to recalculated next target.' -ForegroundColor Green
