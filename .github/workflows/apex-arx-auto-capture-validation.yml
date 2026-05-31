@@ -1,0 +1,28 @@
+name: APEX ARX Automatic Capture Validation
+
+on:
+  push:
+    branches:
+      - arx-autonomous-capture
+    paths:
+      - 'APEX/runtime-captures/**'
+      - 'APEX/automation/github-auto-capture/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-capture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout captured artifacts
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate APEX ARX captured artifacts
+        run: python APEX/automation/github-auto-capture/v0.1.0-DRAFT/scripts/validate_capture.py
