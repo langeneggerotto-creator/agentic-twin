@@ -15,7 +15,8 @@ if (-not (Test-Path -LiteralPath $SourcePath)) { throw 'Capture source does not 
 
 $Allowed = @('.md','.json','.jsonl','.yaml','.yml','.csv','.txt','.html','.py','.ps1','.toml')
 $Blocked = @('.env','.pem','.key','.pfx','.p12','.sqlite','.db','.kdbx')
-$BlockedNames = @('credentials','private','passwords','local-secrets')
+$BlockedNames = @('credentials','private-key','password-file','local-secrets')
+$SensitiveMarkers = @('BEGIN PRIVATE KEY','BEGIN RSA PRIVATE KEY','ACCESS_TOKEN=','API_KEY=','PASSWORD=','CLIENT_SECRET=','AUTHORIZATION: BEARER')
 
 & git -C $RepoRoot fetch origin --prune
 & git -C $RepoRoot checkout $CaptureBranch
@@ -39,6 +40,13 @@ foreach ($File in (Get-ChildItem -LiteralPath $SourcePath -File -Recurse)) {
         $Held += [pscustomobject]@{ file=$Relative; reason='HELD_FOR_GOVERNED_MEDIA_OR_LARGE_FILE_PIPELINE' }
         continue
     }
+    $Text = (Get-Content -LiteralPath $File.FullName -Raw -ErrorAction Stop).ToUpperInvariant()
+    $ContentBlocked = $false
+    foreach ($Marker in $SensitiveMarkers) { if ($Text.Contains($Marker)) { $ContentBlocked = $true } }
+    if ($ContentBlocked) {
+        $Rejected += [pscustomobject]@{ file=$Relative; reason='SENSITIVE_CONTENT_MARKER_FOUND' }
+        continue
+    }
     $Destination = Join-Path $Target $Relative
     New-Item -ItemType Directory -Path (Split-Path $Destination -Parent) -Force | Out-Null
     Copy-Item -LiteralPath $File.FullName -Destination $Destination -Force
@@ -51,7 +59,7 @@ if ($Rejected.Count -gt 0) {
     New-Item -ItemType Directory -Path (Split-Path $BlockedReport -Parent) -Force | Out-Null
     @{ session_id=$SessionId; rejected=$Rejected; held=$Held; status='BLOCKED_NO_PUSH' } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $BlockedReport -Encoding UTF8
     Remove-Item -LiteralPath $Target -Force -Recurse -ErrorAction SilentlyContinue
-    throw 'Automatic capture blocked: prohibited automatic-capture file detected.'
+    throw 'Automatic capture blocked: prohibited or sensitive automatic-capture file detected.'
 }
 if ($Approved.Count -eq 0) {
     Remove-Item -LiteralPath $Target -Force -Recurse -ErrorAction SilentlyContinue
@@ -69,6 +77,9 @@ New-Item -ItemType Directory -Path (Split-Path $Ledger -Parent) -Force | Out-Nul
 $Pending = (& git -C $RepoRoot status --porcelain -- 'APEX/runtime-captures') -join ''
 if ([string]::IsNullOrWhiteSpace($Pending)) { Write-Host 'No new capture changes to commit.'; exit 0 }
 & git -C $RepoRoot commit -m ('capture(arx): preserve execution cycle ' + $SessionId)
+if ($LASTEXITCODE -ne 0) { throw 'Commit failed. Capture remains local only.' }
 & git -C $RepoRoot push origin $CaptureBranch
+if ($LASTEXITCODE -ne 0) { throw 'Push failed. Do not claim repository preservation.' }
 $CommitSha = (& git -C $RepoRoot rev-parse HEAD).Trim()
 Write-Host ('AUTO CAPTURE PUSHED: ' + $CommitSha) -ForegroundColor Green
+Write-Host ('Approved files: ' + $Approved.Count + '; held files: ' + $Held.Count) -ForegroundColor Green
