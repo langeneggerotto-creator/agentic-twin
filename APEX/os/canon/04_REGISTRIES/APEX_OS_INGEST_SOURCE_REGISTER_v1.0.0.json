@@ -1,0 +1,32 @@
+{
+  "artifact_id": "APEX-OS-INGEST-001-SOURCES",
+  "version": "v1.0.0-ACTIVE-CANDIDATE",
+  "truth_boundary": "This repository record preserves safe ingest disposition only. Detailed local source hashes and restricted source inventories remain in the controlled ingest package.",
+  "ingest_policy": {
+    "safe_text_policy": "Incorporate readable policy, architecture, schemas and testable rules into OS canon.",
+    "restricted_media_policy": "Exclude raw consent-gated media and sensitive source material from automatic repository publication.",
+    "external_pointer_policy": "Register unresolved references as pending until content is retrievable and grounded."
+  },
+  "source_classes": [
+    {
+      "source_class": "SAFE_AUTONOMY_GOVERNANCE_SOURCE",
+      "status": "INGESTED_AS_GOVERNING_SOURCE"
+    },
+    {
+      "source_class": "GENESIS_BOOTSTRAP_SOURCES",
+      "status": "INGESTED_AS_GOVERNING_SOURCE"
+    },
+    {
+      "source_class": "CONTROLLED_CONCURRENCY_AND_DIRECTION_RULES",
+      "status": "INGESTED_AS_GOVERNING_SOURCE"
+    },
+    {
+      "source_class": "CONSENT_GATED_VISUAL_POLICY_PACKAGE",
+      "status": "POLICY_ONLY_IMPORTED_RAW_MEDIA_QUARANTINED"
+    },
+    {
+      "source_class": "EXTERNAL_POINTERS_WITHOUT_GROUNDED_CONTENT",
+      "status": "REGISTERED_PENDING_CONTENT_RETRIEVAL"
+    }
+  ]
+}
