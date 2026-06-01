@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "APEX_OS_MODULE_STATUS_RECORD.schema.json",
+  "title": "APEX OS Module Status Record",
+  "type": "object",
+  "required": [
+    "module_id",
+    "truth_state",
+    "autonomy_level",
+    "evidence_state",
+    "current_activity",
+    "gates",
+    "next_proof_gate"
+  ],
+  "properties": {
+    "module_id": {"type": "string"},
+    "symbol": {"type": "string"},
+    "truth_state": {
+      "enum": ["OBSERVED", "MEASURED", "VERIFIED", "INFERRED", "SIMULATED", "PROPOSED", "UNKNOWN", "BLOCKED"]
+    },
+    "autonomy_level": {"enum": ["SA0", "SA1", "SA2", "SA3"]},
+    "evidence_state": {"type": "string"},
+    "current_activity": {"type": "string"},
+    "gates": {"type": "array", "items": {"type": "string"}},
+    "next_proof_gate": {"type": "string"},
+    "repository_status": {"type": "string"},
+    "convergence_status": {"type": "string"}
+  }
+}
