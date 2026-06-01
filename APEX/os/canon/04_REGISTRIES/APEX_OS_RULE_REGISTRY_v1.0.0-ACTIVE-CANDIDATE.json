@@ -1,0 +1,67 @@
+{
+  "registry_id": "APEX-OS-RULE-REGISTRY-001",
+  "version": "v1.0.0-ACTIVE-CANDIDATE",
+  "truth_boundary": "This registry records adopted operating rules and their scope; it does not by itself prove runtime enforcement or outcome benefit.",
+  "rules": [
+    {
+      "id": "GENESIS-BOOTSTRAP-001",
+      "status": "IMPORTED",
+      "scope": "GLOBAL",
+      "description": "Construct and govern knowledge under uncertainty through observation, modeling, testing, measurement, learning and evidence preservation."
+    },
+    {
+      "id": "SAFE-AUTONOMY-001",
+      "status": "IMPORTED",
+      "scope": "GLOBAL",
+      "description": "Bounded autonomy under human authority with audit, rollback, safety gates and escalation controls."
+    },
+    {
+      "id": "MIRROR-FIRST-001",
+      "status": "ACTIVE",
+      "scope": "GLOBAL",
+      "description": "APEX Mirror is the primary human-facing truth and control surface; automation remains visible through it."
+    },
+    {
+      "id": "APEX-SELECTION-ALL-001",
+      "status": "ACTIVE",
+      "scope": "GLOBAL",
+      "description": "Any unlisted number in a displayed numbered menu selects all displayed directions under controlled concurrency and gates."
+    },
+    {
+      "id": "APEX-GLOBAL-CLOSE-001",
+      "status": "ACTIVE",
+      "scope": "GLOBAL",
+      "description": "Qualifying module conclusions provide three ranked directions plus one sandboxed innovation direction."
+    },
+    {
+      "id": "C-INFINITY-001",
+      "status": "ACTIVE",
+      "scope": "GLOBAL",
+      "description": "Bounded build convergence option toward declared MSE <= 0.0001 with honest metric and stop gates."
+    },
+    {
+      "id": "GITHUB-AUTO-CAPTURE-001",
+      "status": "ACTIVE",
+      "scope": "SAFE_TEXT_CODE_EVIDENCE_ARTIFACTS",
+      "description": "Automatically preserve eligible screened artifacts on arx-autonomous-capture and record verification state."
+    },
+    {
+      "id": "C8-CONSENT-AND-TRUTH",
+      "status": "IMPORTED_SCOPED",
+      "scope": "IDENTITY_VISUAL_ANATOMICAL_MODULES",
+      "description": "Apply truth labels, consent/provenance constraints and inference boundaries in identity and visual-anatomy work."
+    },
+    {
+      "id": "C8-PRIVATE-MEDIA",
+      "status": "QUARANTINED",
+      "scope": "PRIVATE_SOURCE_MEDIA",
+      "description": "Consent-gated real-person media is not automatically submitted to the global OS repository lane."
+    },
+    {
+      "id": "EXTERNAL-POINTER-INGEST",
+      "status": "PENDING_CONTENT_RETRIEVAL",
+      "scope": "EXTERNAL_LINK_SHORTCUTS",
+      "description": "External pointers are not treated as learned content until retrievable and grounded."
+    }
+  ]
+}
