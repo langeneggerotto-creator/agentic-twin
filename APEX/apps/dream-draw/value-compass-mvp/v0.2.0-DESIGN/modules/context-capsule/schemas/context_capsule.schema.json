@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "context_capsule.schema.json",
+  "title": "Dream Draw Context Capsule",
+  "type": "object",
+  "required": ["capsule_id", "created_utc", "module", "version", "truth_status", "kernel", "delta", "retrieval", "held_or_excluded", "metric", "optimized_prompt"],
+  "properties": {
+    "capsule_id": {"type": "string"},
+    "created_utc": {"type": "string", "format": "date-time"},
+    "module": {"const": "Dream Draw / 🅾️♾️ Value Compass"},
+    "version": {"const": "v0.2.0-PROTOTYPE"},
+    "truth_status": {"const": "CONTEXT_COMPRESSION_PROTOTYPE_NOT_TOKEN_OR_QUALITY_VALIDATED"},
+    "kernel": {"type": "object", "required": ["purpose", "rules"]},
+    "delta": {"type": "object"},
+    "retrieval": {"type": "array"},
+    "held_or_excluded": {"type": "array", "items": {"type": "string"}},
+    "metric": {"type": "object", "required": ["measurement_type", "full_prompt_proxy_tokens", "capsule_prompt_proxy_tokens", "estimated_reduction_percent"]},
+    "optimized_prompt": {"type": "string"},
+    "reconstruction_note": {"type": "string"}
+  }
+}
