@@ -1,0 +1,27 @@
+{
+  "artifact_id": "APEX-20260603-001-APP-DREAM_DRAW-VALUE_COMPASS_MVP-v0.1.0-DRAFT",
+  "created_utc": "2026-06-03T00:00:00Z",
+  "module": "Dream Draw / 🅾️♾️ Value Compass",
+  "build_status": "RUNNABLE_LOCAL_PROTOTYPE_CREATED",
+  "evidence_maturity": "E3_PROTOTYPE_ARTIFACT",
+  "truth_boundary": "This artifact proves a local browser prototype was built. It does not prove recommendation quality, behavioral impact, learning acceleration, production readiness, or live AI capability.",
+  "included_capabilities": [
+    "dream intake",
+    "rule-based direction selection",
+    "guide mode selection",
+    "H0-H5 pathway bridge",
+    "micro-navigation card specification",
+    "motion-story prompt outline",
+    "local feedback capture",
+    "JSON evidence export"
+  ],
+  "not_included": [
+    "live AI inference",
+    "cloud storage",
+    "authentication",
+    "avatar rendering",
+    "automated GitHub submission from the browser",
+    "validated outcomes"
+  ],
+  "next_proof_gate": "Run PILOT-DD-001 with one real user intake and export evidence record."
+}
