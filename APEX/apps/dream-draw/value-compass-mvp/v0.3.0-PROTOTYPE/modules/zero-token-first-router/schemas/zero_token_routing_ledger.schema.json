@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "zero_token_routing_ledger.schema.json",
+  "title": "Dream Draw Zero-Token-First Routing Ledger Entry",
+  "type": "object",
+  "required": [
+    "action_id",
+    "timestamp_utc",
+    "app_version",
+    "user_task_class",
+    "selected_control_mode",
+    "route_selected",
+    "route_reason",
+    "ai_called",
+    "token_measurement_method",
+    "truth_boundary_preserved",
+    "human_override_available",
+    "evidence_status",
+    "next_gate"
+  ],
+  "properties": {
+    "action_id": {"type": "string"},
+    "timestamp_utc": {"type": "string", "format": "date-time"},
+    "app_version": {"const": "v0.3.0-PROTOTYPE"},
+    "user_task_class": {"type": "string"},
+    "selected_control_mode": {"enum": ["local_only", "lowest_cost", "balanced", "visible_ai", "deep_review"]},
+    "route_selected": {"enum": ["TIER_0_LOCAL", "TIER_1_REUSE", "TIER_2_CAPSULE_PREPARED", "TIER_2_CAPSULE_AI", "TIER_3_DEEP_AI", "HELD"]},
+    "proposed_next_route": {"type": ["string", "null"]},
+    "route_reason": {"type": "string"},
+    "ai_called": {"type": "boolean"},
+    "token_measurement_method": {"enum": ["NONE", "PROXY", "EXACT"]},
+    "input_tokens": {"type": "integer", "minimum": 0},
+    "output_tokens": {"type": "integer", "minimum": 0},
+    "cached_input_tokens": {"type": "integer", "minimum": 0},
+    "estimated_cost": {"type": "number", "minimum": 0},
+    "cost_currency": {"const": "USD"},
+    "truth_boundary_preserved": {"type": "boolean"},
+    "human_override_available": {"type": "boolean"},
+    "source_pointers": {"type": "array", "items": {"type": "string"}},
+    "evidence_status": {"type": "string"},
+    "next_gate": {"type": "string"}
+  }
+}
