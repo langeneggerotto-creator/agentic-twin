@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#061624">
+  <title>Dream Draw · 🅾️♾️ Value Compass</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="sigil">🅾️♾️</div>
+      <div>
+        <p class="kicker">DREAM DRAW · MVP v0.1</p>
+        <h1>Value Compass</h1>
+      </div>
+    </div>
+    <div class="truth-pill">PROTOTYPE · USER CONTROLLED · LOCAL ONLY</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel intake-panel">
+      <div class="panel-head">
+        <div>
+          <p class="step">01 · DREAM INTAKE</p>
+          <h2>Draw the direction you want to move toward.</h2>
+        </div>
+      </div>
+
+      <form id="dreamForm" autocomplete="off">
+        <label class="full">
+          What dream, challenge, or direction matters now?
+          <textarea id="dream" maxlength="360" required placeholder="Example: I want to confidently build and govern my AI application so my ideas become useful tools."></textarea>
+        </label>
+        <label class="full">
+          Why does this matter to you?
+          <textarea id="why" maxlength="260" placeholder="The meaning or outcome behind the dream."></textarea>
+        </label>
+        <div class="grid two">
+          <label>
+            Time horizon
+            <select id="horizon">
+              <option value="today">Today / next move</option>
+              <option value="days">Days / short sprint</option>
+              <option value="quarter">Quarter / build arc</option>
+              <option value="years">Years / life path</option>
+            </select>
+          </label>
+          <label>
+            Current energy
+            <select id="energy">
+              <option value="low">Low — keep it light</option>
+              <option value="steady" selected>Steady — balanced step</option>
+              <option value="strong">Strong — ready to build</option>
+            </select>
+          </label>
+        </div>
+        <label class="full">
+          Where are you now?
+          <textarea id="state" maxlength="260" placeholder="Example: I have a strong vision but need a runnable first product."></textarea>
+        </label>
+        <div class="grid two">
+          <label>
+            Usable capability now
+            <input id="capability" maxlength="140" placeholder="What you can already do">
+          </label>
+          <label>
+            Main constraint
+            <input id="constraint" maxlength="140" placeholder="Time, uncertainty, skill, cost…">
+          </label>
+        </div>
+        <label class="full">
+          Challenge preference
+          <select id="challenge">
+            <option value="gentle">Gentle pull — easy first win</option>
+            <option value="balanced" selected>Balanced pull — useful stretch</option>
+            <option value="stretch">Stretch pull — harder, supported step</option>
+          </select>
+        </label>
+        <div class="actions">
+          <button class="primary" type="submit">Draw My Next Direction</button>
+          <button class="secondary" type="button" id="demoBtn">Load Demo Dream</button>
+        </div>
+      </form>
+
+      <div class="local-note">
+        <strong>Privacy boundary:</strong> Data stays in this browser through local storage until you choose export.
+        No account, cloud upload, or AI inference is active in this MVP.
+      </div>
+    </section>
+
+    <section class="panel result-panel" id="resultPanel">
+      <div class="empty-state" id="emptyState">
+        <div class="compass-orb">✦</div>
+        <p class="step">02 · VALUE COMPASS</p>
+        <h2>Your next true step appears here.</h2>
+        <p>Capture one dream. This prototype will produce a direction, a guide mode, a micro-navigation card, and an evidence record.</p>
+      </div>
+
+      <div id="resultContent" class="hidden">
+        <div class="result-top">
+          <div>
+            <p class="step">02 · VALUE COMPASS RESULT</p>
+            <h2 id="reflectionTitle"></h2>
+          </div>
+          <div class="score-box">
+            <span>Compass Value*</span>
+            <strong id="score"></strong>
+            <small>design score</small>
+          </div>
+        </div>
+        <p class="disclaimer">* Direction-ranking heuristic for prototype use; not a validated prediction of personal outcomes.</p>
+
+        <div class="answer-grid">
+          <article class="answer">
+            <h3>Best move</h3>
+            <p id="bestMove"></p>
+          </article>
+          <article class="answer">
+            <h3>Why now</h3>
+            <p id="whyNow"></p>
+          </article>
+          <article class="answer caution">
+            <h3>Watch out</h3>
+            <p id="watchOut"></p>
+          </article>
+        </div>
+
+        <div class="guide-row">
+          <div class="guide-chip">
+            <span class="guide-icon" id="guideIcon"></span>
+            <div>
+              <p class="minor">GUIDE MODE</p>
+              <strong id="guide"></strong>
+              <span id="guideRole"></span>
+            </div>
+          </div>
+          <div class="mode-chip">
+            <p class="minor">MESSAGE MODE</p>
+            <strong id="mode"></strong>
+          </div>
+          <div class="mode-chip">
+            <p class="minor">STATUS</p>
+            <strong>PROPOSED STEP</strong>
+          </div>
+        </div>
+
+        <section class="bridge">
+          <div class="subhead">
+            <p class="step">03 · HORIZON BRIDGE</p>
+            <h3>Five steps visible. One step requested.</h3>
+          </div>
+          <div class="horizons" id="horizons"></div>
+        </section>
+
+        <section class="card-output">
+          <div class="subhead">
+            <p class="step">04 · MICRO-NAVIGATION CARD</p>
+            <h3>Emotional force + direction + structural truth</h3>
+          </div>
+          <div class="card-and-spec">
+            <div class="visual-card" id="visualCard">
+              <div class="card-series">TODAY'S COMPASS</div>
+              <div class="card-symbol">⌖</div>
+              <blockquote id="headline"></blockquote>
+              <p id="bridgeLine"></p>
+              <div class="card-footer">🅾️♾️ VALUE COMPASS · DREAM DRAW</div>
+            </div>
+            <div class="spec">
+              <h4>Visual metaphor</h4>
+              <p id="metaphor"></p>
+              <h4>Image prompt</h4>
+              <p id="imagePrompt"></p>
+              <details>
+                <summary>Motion story · 3 × 10 seconds</summary>
+                <ol id="motionSegments"></ol>
+              </details>
+            </div>
+          </div>
+        </section>
+
+        <section class="evidence">
+          <div class="subhead">
+            <p class="step">05 · EVIDENCE</p>
+            <h3>Was this direction useful?</h3>
+          </div>
+          <div class="feedback-buttons">
+            <button type="button" data-feedback="helped">Helped me move</button>
+            <button type="button" data-feedback="reframe">Changed my direction</button>
+            <button type="button" data-feedback="not_useful">Not useful yet</button>
+          </div>
+          <p class="feedback-status" id="feedbackStatus">No outcome claim recorded. Your response becomes the first evidence signal.</p>
+        </section>
+      </div>
+    </section>
+
+    <aside class="panel dashboard">
+      <p class="step">LOCAL EVIDENCE DASHBOARD</p>
+      <h2>Prototype status</h2>
+      <div class="stat-grid">
+        <div class="stat"><span>Dreams captured</span><strong id="countDreams">0</strong></div>
+        <div class="stat"><span>Feedback records</span><strong id="countFeedback">0</strong></div>
+        <div class="stat"><span>Helpful signals</span><strong id="countHelpful">0</strong></div>
+        <div class="stat"><span>Redirect signals</span><strong id="countRedirect">0</strong></div>
+      </div>
+
+      <div class="truth-map">
+        <h3>Truth State</h3>
+        <div><span class="dot built"></span><b>Built:</b> local browser prototype</div>
+        <div><span class="dot proposed"></span><b>Proposed:</b> recommendation heuristic</div>
+        <div><span class="dot blocked"></span><b>Not proven:</b> learning/outcome benefit</div>
+      </div>
+
+      <div class="export-box">
+        <h3>Evidence control</h3>
+        <button id="exportBtn" type="button" class="secondary full-btn">Export JSON Record</button>
+        <button id="resetBtn" type="button" class="text-button">Clear local records</button>
+      </div>
+
+      <div class="principles">
+        <h3>Operating laws</h3>
+        <p>Guide without coercing.</p>
+        <p>Reduce the interface, not the reasoning.</p>
+        <p>Direction that can survive reality.</p>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <span>Built foundation: Dream Draw application surface · 🅾️♾️ Value Compass engine</span>
+    <span>Evidence state: runnable prototype, not validated benefit</span>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
