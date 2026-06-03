@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "feedback_record.schema.json",
+  "title": "Dream Draw User Feedback Signal",
+  "type": "object",
+  "required": [
+    "signal",
+    "captured_utc",
+    "interpretation"
+  ],
+  "properties": {
+    "signal": {
+      "enum": [
+        "helped",
+        "reframe",
+        "not_useful"
+      ]
+    },
+    "captured_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "interpretation": {
+      "const": "USER_REPORTED_SIGNAL_NOT_VALIDATED_OUTCOME"
+    }
+  }
+}
