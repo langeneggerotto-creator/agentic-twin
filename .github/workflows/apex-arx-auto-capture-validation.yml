@@ -9,6 +9,7 @@ on:
       - 'APEX/automation/github-auto-capture/**'
       - 'APEX/os/canon/**'
       - 'APEX/governance/project-rules/**'
+      - 'APEX/apps/dream-draw/**'
       - '.github/workflows/apex-arx-auto-capture-validation.yml'
   workflow_dispatch:
 
@@ -32,3 +33,6 @@ jobs:
 
       - name: Validate APEX governed canon and global rules
         run: python APEX/automation/github-auto-capture/v0.2.0-DRAFT/scripts/validate_governed_canon_v2.py
+
+      - name: Validate Dream Draw MVP application source and truth boundaries
+        run: python APEX/apps/dream-draw/value-compass-mvp/v0.1.0-DRAFT/validation/validate_dream_draw_mvp.py
