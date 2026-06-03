@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dream_record.schema.json",
+  "title": "Dream Draw Value Compass Record",
+  "type": "object",
+  "required": [
+    "record_id",
+    "created_utc",
+    "app_version",
+    "engine",
+    "truth_status",
+    "intake",
+    "result"
+  ],
+  "properties": {
+    "record_id": {"type": "string"},
+    "created_utc": {"type": "string", "format": "date-time"},
+    "app_version": {"const": "v0.1.0-DRAFT"},
+    "engine": {"const": "🅾️♾️ Value Compass"},
+    "truth_status": {"const": "PROTOTYPE_RECOMMENDATION_NOT_OUTCOME_PROOF"},
+    "intake": {
+      "type": "object",
+      "required": ["dream", "horizon", "energy", "state", "capability", "constraint", "challenge"],
+      "properties": {
+        "dream": {"type": "string", "minLength": 1, "maxLength": 360},
+        "why": {"type": "string", "maxLength": 260},
+        "horizon": {"enum": ["today", "days", "quarter", "years"]},
+        "energy": {"enum": ["low", "steady", "strong"]},
+        "state": {"type": "string", "maxLength": 260},
+        "capability": {"type": "string", "maxLength": 140},
+        "constraint": {"type": "string", "maxLength": 140},
+        "challenge": {"enum": ["gentle", "balanced", "stretch"]}
+      }
+    },
+    "result": {"type": "object"},
+    "feedback": {"type": ["object", "null"]}
+  }
+}
