@@ -1,0 +1,29 @@
+{
+  "module_id": "APEX_TASTE_RUBRIC_CONSOLE_v0.1",
+  "module_version": "0.1",
+  "module_name": "APEX T.A.S.T.E. Rubric Console",
+  "current_maturity": "TESTED",
+  "target_maturity": "DEPLOYMENT_CANDIDATE",
+  "purpose_lock": {
+    "real_job": "Provide a repeatable scoring console for evaluating APEX artifacts before promotion.",
+    "human_benefit": "Helps reviewers understand whether an artifact is useful, testable, safe, and ready for the next stage.",
+    "whole_system_usefulness": "Makes quality judgment reusable, traceable, and evidence-aware across APEX modules.",
+    "apex_governing_law_alignment": "Prevents artifacts from advancing because they are impressive and requires purpose, evidence, scope, dignity, and system usefulness.",
+    "truth_status": "TESTED"
+  },
+  "scope_boundary": {
+    "may_do": ["score artifacts", "record verdicts", "create local evaluation records"],
+    "may_not_do": ["merge to main", "deploy production", "claim universal taste truth"],
+    "human_approval_required_for": ["merge", "release", "production use"]
+  },
+  "truth_boundary": "Local deterministic evaluator tested in sandbox; not yet integrated into repository CI.",
+  "evidence_ledger": [{"evidence_id": "EVD-001", "claim": "Unit tests passed locally", "truth_label": "TESTED", "artifact_ref": "evidence/QA_REPORT.md"}],
+  "risk_register": [
+    "Risk: scoring may not match human preference. Mitigation: require review and learning ledger.",
+    "Risk: false promotion. Mitigation: validator blocks production-ready claims and requires rollback/reseed path."
+  ],
+  "test_plan": ["Validate pass contract.", "Validate failing contract.", "Test blocked physical action.", "Learn from reviewer feedback in next run."],
+  "promotion_gate": {"requested_decision": "PROMOTE_WITH_CONDITIONS", "blockers": [], "approval_status": "pending"},
+  "physical_action_requested": false,
+  "production_ready_claimed": false
+}
