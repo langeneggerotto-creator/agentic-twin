@@ -1,0 +1,12 @@
+{
+  "result_id": "PGR-001",
+  "module_id": "APEX_SAMPLE_MODULE",
+  "validator_version": "v1.2",
+  "decision": "PROMOTE_WITH_CONDITIONS",
+  "truth_boundary": "Local validation only.",
+  "mse_to_target": 0.0,
+  "target_mse": 0.0000001,
+  "failures": [],
+  "warnings": ["approval pending for merge"],
+  "approval_required": true
+}
