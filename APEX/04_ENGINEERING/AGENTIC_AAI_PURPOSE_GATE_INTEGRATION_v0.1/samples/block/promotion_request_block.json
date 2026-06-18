@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-002",
+  "module_id": "APEX_BAD_MODULE",
+  "requested_actions": ["merge_to_main", "production_deploy"],
+  "approval_status": "pending",
+  "evidence_refs": [],
+  "purpose_gate_result_ref": "samples/block/purpose_gate_result_block.json"
+}
