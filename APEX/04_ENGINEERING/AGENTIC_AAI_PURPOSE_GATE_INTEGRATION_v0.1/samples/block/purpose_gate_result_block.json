@@ -1,0 +1,12 @@
+{
+  "result_id": "PGR-002",
+  "module_id": "APEX_BAD_MODULE",
+  "validator_version": "v1.2",
+  "decision": "BLOCK",
+  "truth_boundary": "Local validation only.",
+  "mse_to_target": 0.55,
+  "target_mse": 0.0000001,
+  "failures": ["missing_purpose_lock"],
+  "warnings": [],
+  "approval_required": true
+}
