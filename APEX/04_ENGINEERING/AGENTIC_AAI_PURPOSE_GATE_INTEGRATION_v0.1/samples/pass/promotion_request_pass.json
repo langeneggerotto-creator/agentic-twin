@@ -1,0 +1,8 @@
+{
+  "request_id": "REQ-001",
+  "module_id": "APEX_SAMPLE_MODULE",
+  "requested_actions": ["draft_pr_stage"],
+  "approval_status": "not_required",
+  "evidence_refs": ["QA_REPORT.md", "PURPOSE_GATE_RESULT.json"],
+  "purpose_gate_result_ref": "samples/pass/purpose_gate_result_pass.json"
+}
