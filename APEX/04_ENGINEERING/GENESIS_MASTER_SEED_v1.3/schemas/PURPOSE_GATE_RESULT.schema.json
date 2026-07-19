@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "APEX Purpose Gate Result Schema v1.3",
+  "type": "object",
+  "required": [
+    "result_id",
+    "module_id",
+    "validator_version",
+    "decision",
+    "truth_boundary",
+    "mse_to_target",
+    "target_mse",
+    "failures",
+    "warnings",
+    "approval_required"
+  ],
+  "properties": {
+    "result_id": {"type": "string"},
+    "module_id": {"type": "string"},
+    "validator_version": {"type": "string"},
+    "decision": {"enum": ["PROMOTE", "PROMOTE_WITH_CONDITIONS", "REPAIR", "HOLD", "BLOCK", "ROLLBACK", "RESEED"]},
+    "truth_boundary": {"type": "string"},
+    "mse_to_target": {"type": "number"},
+    "target_mse": {"type": "number"},
+    "failures": {"type": "array", "items": {"type": "string"}},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "approval_required": {"type": "boolean"},
+    "approval_reason": {"type": "string"},
+    "next_task": {"type": "string"}
+  }
+}
