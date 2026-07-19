@@ -1,0 +1,16 @@
+name: APEX Purpose Gate CI
+
+on: [pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  purpose-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python APEX/04_ENGINEERING/GENESIS_MASTER_SEED_v1.2/runtime/purpose_gate_validator.py APEX/04_ENGINEERING/GENESIS_MASTER_SEED_v1.2/samples/pass/module_contract_pass.json

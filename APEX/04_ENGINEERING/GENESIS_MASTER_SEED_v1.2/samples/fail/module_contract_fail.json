@@ -1,0 +1,22 @@
+{
+  "module_id": "bad",
+  "module_version": "0.1",
+  "module_name": "APEX T.A.S.T.E. Rubric Console",
+  "current_maturity": "TESTED",
+  "target_maturity": "PRODUCTION_READY",
+  "purpose_lock": {
+    "real_job": "",
+    "human_benefit": "",
+    "whole_system_usefulness": "",
+    "apex_governing_law_alignment": "",
+    "truth_status": "DESIGNED"
+  },
+  "scope_boundary": {"may_do": [], "may_not_do": [], "human_approval_required_for": []},
+  "truth_boundary": "",
+  "evidence_ledger": [],
+  "risk_register": [],
+  "test_plan": [],
+  "promotion_gate": {"requested_decision": "PROMOTE", "blockers": [], "approval_status": "pending"},
+  "physical_action_requested": true,
+  "production_ready_claimed": true
+}

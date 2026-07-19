@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "APEX Purpose-Enforced Module Contract v1.2",
+  "type": "object",
+  "required": [
+    "module_id",
+    "module_version",
+    "module_name",
+    "current_maturity",
+    "target_maturity",
+    "purpose_lock",
+    "scope_boundary",
+    "truth_boundary",
+    "evidence_ledger",
+    "risk_register",
+    "test_plan",
+    "promotion_gate"
+  ],
+  "properties": {
+    "module_id": {"type": "string"},
+    "module_version": {"type": "string"},
+    "module_name": {"type": "string"},
+    "current_maturity": {"enum": ["IDEA", "PURPOSE_DRAFTED", "PURPOSE_LOCKED", "DESIGNED", "PROTOTYPED", "TESTED", "EVIDENCE_SUPPORTED", "DEPLOYMENT_CANDIDATE", "PRODUCTION_READY", "REPAIR_REQUIRED", "BLOCKED"]},
+    "target_maturity": {"type": "string"},
+    "purpose_lock": {
+      "type": "object",
+      "required": ["real_job", "human_benefit", "whole_system_usefulness", "apex_governing_law_alignment", "truth_status"],
+      "properties": {
+        "real_job": {"type": "string"},
+        "human_benefit": {"type": "string"},
+        "whole_system_usefulness": {"type": "string"},
+        "apex_governing_law_alignment": {"type": "string"},
+        "truth_status": {"enum": ["PROVEN", "TESTED", "PROTOTYPED", "DESIGNED", "ASSUMED", "UNKNOWN", "BLOCKED", "NOT_YET_BUILT"]}
+      }
+    },
+    "scope_boundary": {"type": "object", "required": ["may_do", "may_not_do", "human_approval_required_for"]},
+    "truth_boundary": {"type": "string"},
+    "evidence_ledger": {"type": "array"},
+    "risk_register": {"type": "array"},
+    "test_plan": {"type": "array"},
+    "promotion_gate": {"type": "object", "required": ["requested_decision", "blockers", "approval_status"]},
+    "physical_action_requested": {"type": "boolean"},
+    "production_ready_claimed": {"type": "boolean"}
+  }
+}
