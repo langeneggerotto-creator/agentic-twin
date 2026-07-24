@@ -23,7 +23,9 @@
     "apex-python-intent-console",
     "apex-python-intent-console-v02",
     "apex-rightschain-manifest-builder",
-    "apex-mobile-python-console-v161"
+    "apex-mobile-python-console-v161",
+    "apex-dream-builder-v0.1",
+    "apex-dream-builder-v0.2.1"
   ],
   "non_goals_now": [
     "Do not claim production readiness without tests.",

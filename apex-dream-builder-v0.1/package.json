@@ -1,0 +1,10 @@
+{
+  "name": "apex-dream-builder-v0.1",
+  "version": "0.1.0",
+  "private": true,
+  "description": "APEX Dream Builder \u2014 Dream Capture & Clarity Engine",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/smoke.test.js"
+  }
+}

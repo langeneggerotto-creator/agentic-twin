@@ -1,0 +1,1196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#071326" />
+  <meta name="description" content="APEX Dream Builder v0.1 — Dream Capture & Clarity Engine" />
+  <title>APEX Dream Builder</title>
+  
+  
+  
+  <style>
+* { box-sizing: border-box; }
+
+:root {
+  color-scheme: dark;
+  --bg: #03101f;
+  --panel: rgba(8, 24, 44, 0.86);
+  --panel-strong: #091a31;
+  --line: rgba(103, 199, 255, 0.22);
+  --text: #f7fbff;
+  --muted: #98abc2;
+  --cyan: #37d9ff;
+  --blue: #2588ff;
+  --purple: #8b5cf6;
+  --pink: #ff3cab;
+  --success: #4ce3a1;
+  --danger: #ff6d86;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+  min-height: 100%;
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(37, 136, 255, 0.18), transparent 30%),
+    radial-gradient(circle at 100% 20%, rgba(255, 60, 171, 0.12), transparent 28%),
+    linear-gradient(180deg, #020a14 0%, #03101f 45%, #020915 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  overflow-x: hidden;
+}
+
+button, textarea, input { font: inherit; }
+
+button { -webkit-tap-highlight-color: transparent; }
+
+.ambient {
+  position: fixed;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.ambient-one { top: -120px; left: -120px; background: var(--cyan); }
+.ambient-two { right: -140px; top: 38%; background: var(--pink); }
+
+.app-shell {
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 16px calc(28px + var(--safe-bottom));
+  position: relative;
+  z-index: 1;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 46px 1fr 44px;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.brand-mark {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(55, 217, 255, 0.5);
+  border-radius: 15px;
+  color: var(--cyan);
+  font-size: 31px;
+  background: linear-gradient(145deg, rgba(55,217,255,.12), rgba(139,92,246,.1));
+  box-shadow: 0 0 24px rgba(55, 217, 255, 0.12);
+}
+
+.eyebrow, .section-label, .step-kicker, .muted-label {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  font-weight: 750;
+}
+
+.topbar h1 {
+  margin: 2px 0 0;
+  font-size: 22px;
+  letter-spacing: .02em;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: rgba(9, 26, 49, .7);
+  font-size: 23px;
+}
+
+.progress-card, .panel, .system-strip {
+  border: 1px solid var(--line);
+  background: linear-gradient(165deg, rgba(10, 29, 54, .92), rgba(4, 16, 31, .94));
+  box-shadow: 0 16px 52px rgba(0, 0, 0, .26);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.progress-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px;
+  border-radius: 22px;
+  margin-bottom: 14px;
+}
+
+.progress-card h2 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+
+.progress-ring {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #071426 56%, transparent 58%),
+    conic-gradient(var(--cyan) 0 10%, rgba(255,255,255,.08) 10% 100%);
+  color: var(--text);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.panel {
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.panel-heading h2 {
+  margin: 4px 0 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.number-badge {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(55,217,255,.65);
+  color: var(--cyan);
+  background: rgba(55,217,255,.09);
+  font-weight: 850;
+  box-shadow: 0 0 18px rgba(55,217,255,.16);
+}
+
+.number-badge.success {
+  color: #04160e;
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.support-copy {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 16px 0;
+}
+
+.mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-bottom: 16px;
+  padding: 5px;
+  border-radius: 16px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.mode-tab {
+  min-height: 42px;
+  padding: 8px 5px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mode-tab.active {
+  color: white;
+  background: linear-gradient(135deg, rgba(37,136,255,.7), rgba(139,92,246,.65));
+  box-shadow: 0 8px 22px rgba(37, 136, 255, .2);
+}
+
+label {
+  display: block;
+  margin: 0 0 8px;
+  color: #d8e7f6;
+  font-size: 14px;
+  font-weight: 720;
+}
+
+textarea {
+  width: 100%;
+  border: 1px solid rgba(129, 190, 239, .23);
+  border-radius: 17px;
+  padding: 15px;
+  resize: vertical;
+  min-height: 132px;
+  color: white;
+  background: rgba(1, 10, 20, .62);
+  outline: none;
+  line-height: 1.5;
+}
+
+textarea:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(55, 217, 255, .1);
+}
+
+textarea::placeholder { color: #6f8299; }
+
+.field-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 2px 0;
+  color: #71859e;
+  font-size: 11px;
+}
+
+.primary-button, .secondary-button, .locked-button {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 16px;
+  padding: 13px 17px;
+  font-weight: 800;
+  border: 0;
+}
+
+.primary-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  background: linear-gradient(100deg, var(--blue), var(--purple) 58%, var(--pink));
+  box-shadow: 0 13px 28px rgba(87, 66, 226, .28);
+}
+
+.primary-button:active { transform: scale(.99); }
+
+.secondary-button {
+  color: #d8e8fa;
+  border: 1px solid var(--line);
+  background: rgba(11, 29, 52, .85);
+}
+
+.truth-note {
+  margin-top: 14px;
+  padding: 12px 13px;
+  border-left: 3px solid var(--cyan);
+  border-radius: 8px 14px 14px 8px;
+  color: #91a6be;
+  background: rgba(55,217,255,.05);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.voice-box {
+  text-align: center;
+  padding: 26px 18px;
+  border-radius: 18px;
+  border: 1px dashed rgba(55,217,255,.35);
+  background: rgba(3,14,28,.45);
+  margin-bottom: 16px;
+}
+
+.voice-button {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,60,171,.65);
+  color: white;
+  background: radial-gradient(circle at 40% 30%, #ff78cb, var(--pink) 38%, #7137c9 100%);
+  box-shadow: 0 0 30px rgba(255,60,171,.25);
+  font-size: 28px;
+}
+
+.voice-box h3 { margin: 14px 0 6px; }
+.voice-box p { margin: 0; color: var(--muted); line-height: 1.45; }
+
+.upload-box {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 7px;
+  padding: 28px 18px;
+  border: 1px dashed rgba(55,217,255,.36);
+  border-radius: 18px;
+  background: rgba(3,14,28,.46);
+  cursor: pointer;
+}
+
+.upload-box span:last-child { color: var(--muted); font-weight: 500; }
+.upload-icon { color: var(--cyan); font-size: 36px; }
+
+.image-preview-wrap {
+  margin: 14px 0 18px;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #020b14;
+}
+
+.image-preview-wrap img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+}
+
+.image-preview-wrap p {
+  margin: 0;
+  padding: 9px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status-message {
+  min-height: 22px;
+  color: var(--danger);
+  font-size: 13px;
+  margin: 8px 2px 10px;
+}
+
+.question-progress {
+  margin: 22px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mini-progress {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,.07);
+  margin-top: 9px;
+}
+
+.mini-progress div {
+  height: 100%;
+  width: 33%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), var(--pink));
+  transition: width .3s ease;
+}
+
+.question-text {
+  margin: 0 0 14px;
+  font-size: 23px;
+  font-weight: 760;
+  line-height: 1.28;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: .72fr 1.28fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.dream-card {
+  border-color: rgba(155, 94, 246, .42);
+}
+
+.card-glow {
+  position: absolute;
+  top: -90px;
+  right: -90px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: var(--pink);
+  filter: blur(100px);
+  opacity: .15;
+  pointer-events: none;
+}
+
+.dream-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 23px 0 14px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.dream-score-row strong {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 34px;
+}
+
+.score-out-of { color: var(--muted); }
+
+.evidence-label {
+  max-width: 150px;
+  border: 1px solid rgba(76,227,161,.35);
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: var(--success);
+  background: rgba(76,227,161,.06);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-align: center;
+}
+
+.dream-statement, .next-step-card, .insight-grid article {
+  border: 1px solid rgba(129,190,239,.15);
+  border-radius: 17px;
+  background: rgba(1,10,20,.48);
+}
+
+.dream-statement {
+  padding: 17px;
+  margin-bottom: 12px;
+}
+
+.dream-statement p {
+  margin: 8px 0 0;
+  font-size: 19px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.insight-grid article, .next-step-card {
+  padding: 14px;
+}
+
+.insight-grid p, .next-step-card p {
+  margin: 7px 0 0;
+  color: #d2e2f3;
+  line-height: 1.45;
+}
+
+.next-step-card {
+  margin-top: 10px;
+  border-color: rgba(255,60,171,.25);
+  background: linear-gradient(135deg, rgba(37,136,255,.08), rgba(255,60,171,.08));
+}
+
+.button-stack {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.locked-button {
+  display: flex;
+  justify-content: space-between;
+  color: #74879d;
+  background: rgba(255,255,255,.04);
+  border: 1px dashed rgba(255,255,255,.12);
+}
+
+.locked-button span {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.system-strip {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.system-strip div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--success);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 12px rgba(76,227,161,.7);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + var(--safe-bottom));
+  z-index: 20;
+  width: min(calc(100% - 32px), 460px);
+  padding: 13px 16px;
+  border: 1px solid rgba(76,227,161,.28);
+  border-radius: 15px;
+  background: rgba(5, 22, 38, .96);
+  color: var(--text);
+  text-align: center;
+  transform: translate(-50%, 130%);
+  opacity: 0;
+  transition: transform .25s ease, opacity .25s ease;
+  box-shadow: 0 15px 40px rgba(0,0,0,.35);
+}
+
+.toast.show {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+[hidden] { display: none !important; }
+
+@media (min-width: 430px) {
+  .insight-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+</style>
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">△</div>
+      <div>
+        <p class="eyebrow">APEX · DREAM · BUILD · EMPOWER</p>
+        <h1>Dream Builder</h1>
+      </div>
+      <button class="icon-button" id="resetButton" aria-label="Reset dream builder" title="Reset">↻</button>
+    </header>
+
+    <section class="progress-card" aria-label="Dream Builder progress">
+      <div>
+        <span class="step-kicker">STEP 1 OF 10</span>
+        <h2>Dream Capture & Clarity</h2>
+      </div>
+      <div class="progress-ring" aria-label="10 percent complete">
+        <span>10%</span>
+      </div>
+    </section>
+
+    <section class="panel intro-panel" id="capturePanel">
+      <div class="panel-heading">
+        <div class="number-badge">1</div>
+        <div>
+          <p class="section-label">CAPTURE YOUR DREAM</p>
+          <h2>What do you want to make real?</h2>
+        </div>
+      </div>
+
+      <p class="support-copy">
+        Start rough. APEX will guide you through one short question at a time and turn your idea into a clear Dream Card.
+      </p>
+
+      <div class="mode-tabs" role="tablist" aria-label="Dream input mode">
+        <button class="mode-tab active" data-mode="text" role="tab" aria-selected="true">Text</button>
+        <button class="mode-tab" data-mode="voice" role="tab" aria-selected="false">Voice</button>
+        <button class="mode-tab" data-mode="image" role="tab" aria-selected="false">Image</button>
+        <button class="mode-tab" data-mode="brain" role="tab" aria-selected="false">Brain dump</button>
+      </div>
+
+      <div class="mode-pane active" id="mode-text">
+        <label for="dreamInput">Describe your dream</label>
+        <textarea id="dreamInput" rows="7" maxlength="1200"
+          placeholder="Example: I want to build an app that helps people make better decisions with AI guidance."></textarea>
+        <div class="field-meta">
+          <span id="characterCount">0 / 1200</span>
+          <span>Saved privately on this device</span>
+        </div>
+      </div>
+
+      <div class="mode-pane" id="mode-voice" hidden>
+        <div class="voice-box">
+          <button class="voice-button" id="voiceButton" type="button" aria-label="Start voice capture">●</button>
+          <h3>Speak your dream</h3>
+          <p id="voiceStatus">Tap the microphone and speak naturally. Browser support varies on iPhone.</p>
+        </div>
+      </div>
+
+      <div class="mode-pane" id="mode-image" hidden>
+        <label class="upload-box" for="imageInput">
+          <span class="upload-icon">▧</span>
+          <strong>Choose or take a photo</strong>
+          <span>Use a sketch, book cover, screenshot, note, or inspiration image.</span>
+        </label>
+        <input id="imageInput" class="visually-hidden" type="file" accept="image/*" capture="environment" />
+        <div id="imagePreviewWrap" class="image-preview-wrap" hidden>
+          <img id="imagePreview" alt="Selected dream inspiration" />
+          <p id="imageName"></p>
+        </div>
+        <label for="imageDescription">Tell APEX what the image means to you</label>
+        <textarea id="imageDescription" rows="5" maxlength="1200"
+          placeholder="What dream, possibility, or problem does this image represent?"></textarea>
+      </div>
+
+      <div class="mode-pane" id="mode-brain" hidden>
+        <label for="brainDumpInput">Empty your thoughts without organizing them</label>
+        <textarea id="brainDumpInput" rows="10" maxlength="2000"
+          placeholder="Write anything that is in your head: ideas, worries, goals, constraints, people, money, time, and what success would feel like."></textarea>
+      </div>
+
+      <div class="status-message" id="captureStatus" role="status" aria-live="polite"></div>
+
+      <button class="primary-button" id="clarifyButton" type="button">
+        Clarify My Dream
+        <span aria-hidden="true">→</span>
+      </button>
+
+      <div class="truth-note">
+        <strong>Truth boundary:</strong> this first release uses a transparent local clarity engine. It does not claim external research, deployment, or hidden autonomous execution.
+      </div>
+    </section>
+
+    <section class="panel question-panel" id="questionPanel" hidden>
+      <div class="panel-heading">
+        <div class="number-badge">?</div>
+        <div>
+          <p class="section-label">GUIDED CLARIFICATION</p>
+          <h2 id="questionTitle">One question at a time</h2>
+        </div>
+      </div>
+
+      <div class="question-progress">
+        <span id="questionCounter">Question 1 of 3</span>
+        <div class="mini-progress"><div id="questionProgressBar"></div></div>
+      </div>
+
+      <p class="question-text" id="questionText"></p>
+      <label class="visually-hidden" for="questionAnswer">Your answer</label>
+      <textarea id="questionAnswer" rows="5" maxlength="800"
+        placeholder="Answer in your own words. A short answer is enough."></textarea>
+
+      <div class="button-row">
+        <button class="secondary-button" id="skipQuestionButton" type="button">Skip</button>
+        <button class="primary-button" id="nextQuestionButton" type="button">
+          Continue <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel dream-card" id="dreamCardPanel" hidden>
+      <div class="card-glow" aria-hidden="true"></div>
+      <div class="panel-heading">
+        <div class="number-badge success">✓</div>
+        <div>
+          <p class="section-label">YOUR DREAM CARD</p>
+          <h2>Clear enough to move forward</h2>
+        </div>
+      </div>
+
+      <div class="dream-score-row">
+        <div>
+          <span class="muted-label">CLARITY SCORE</span>
+          <strong id="clarityScore">0.0</strong><span class="score-out-of"> / 10</span>
+        </div>
+        <span class="evidence-label" id="evidenceLabel">LOCAL · USER-GROUNDED</span>
+      </div>
+
+      <article class="dream-statement">
+        <span class="muted-label">CLEAR DREAM STATEMENT</span>
+        <p id="clearDreamStatement"></p>
+      </article>
+
+      <div class="insight-grid">
+        <article>
+          <span class="muted-label">WHO IT IS FOR</span>
+          <p id="audienceOutput"></p>
+        </article>
+        <article>
+          <span class="muted-label">DESIRED RESULT</span>
+          <p id="outcomeOutput"></p>
+        </article>
+        <article>
+          <span class="muted-label">BIGGEST CONSTRAINT</span>
+          <p id="constraintOutput"></p>
+        </article>
+        <article>
+          <span class="muted-label">SUCCESS EVIDENCE</span>
+          <p id="evidenceOutput"></p>
+        </article>
+      </div>
+
+      <article class="next-step-card">
+        <span class="muted-label">NEXT BEST STEP</span>
+        <p id="nextStepOutput"></p>
+      </article>
+
+      <div class="button-stack">
+        <button class="primary-button" id="shareButton" type="button">Share Dream Card</button>
+        <button class="secondary-button" id="editButton" type="button">Edit My Dream</button>
+        <button class="locked-button" type="button" disabled>
+          Dream Analysis & Intelligence Core
+          <span>Next release</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="system-strip" aria-label="Current build status">
+      <div>
+        <span class="status-dot"></span>
+        <strong>v0.1 operational</strong>
+      </div>
+      <span>Dream Capture + Guided Clarity + Local Save + Share</span>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  root.DreamCore = api;
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  function clean(value) {
+    return String(value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function sentence(value, fallback) {
+    const text = clean(value);
+    if (!text) return fallback;
+    return /[.!?]$/.test(text) ? text : text + ".";
+  }
+
+  function normalizeDream(raw) {
+    let dream = clean(raw);
+    if (!dream) return "";
+    dream = dream.replace(/^(i\s+)?(really\s+)?(want|would like|hope|dream)\s+to\s+/i, "");
+    dream = dream.charAt(0).toLowerCase() + dream.slice(1);
+    return dream.replace(/[.!?]+$/, "");
+  }
+
+  function calculateScore(input) {
+    const fields = [
+      clean(input.original),
+      clean(input.audience),
+      clean(input.outcome),
+      clean(input.constraint),
+      clean(input.evidence)
+    ];
+
+    let score = 4.6;
+    fields.forEach(function (field, index) {
+      if (!field) return;
+      score += index === 0 ? Math.min(1.2, field.length / 120) : 0.8;
+    });
+
+    if (clean(input.original).length > 120) score += 0.25;
+    return Math.max(4.6, Math.min(9.4, Math.round(score * 10) / 10));
+  }
+
+  function buildDreamCard(input) {
+    const original = sentence(input.original, "A dream has not been described yet.");
+    const normalized = normalizeDream(input.original) || "make this dream real";
+    const audience = clean(input.audience) || "the people who would benefit most";
+    const outcome = clean(input.outcome) || "create a meaningful and measurable improvement";
+    const constraint = clean(input.constraint) || "available time, resources, and evidence";
+    const evidence = clean(input.evidence) || "real people confirm the problem and value the proposed result";
+
+    const statement =
+      "Build a practical pathway to " + normalized +
+      " for " + audience +
+      ", so they can " + outcome.replace(/[.!?]+$/, "") +
+      ", while respecting " + constraint.replace(/[.!?]+$/, "") + ".";
+
+    const nextStep =
+      "Speak with 3 people who match “" + audience.replace(/[.!?]+$/, "") +
+      "” and ask them to describe the problem in their own words. Record the exact evidence before choosing a solution.";
+
+    return {
+      original: original,
+      statement: statement,
+      audience: sentence(audience, "Needs clarification."),
+      outcome: sentence(outcome, "Needs clarification."),
+      constraint: sentence(constraint, "Needs clarification."),
+      evidence: sentence(evidence, "Needs clarification."),
+      nextStep: nextStep,
+      score: calculateScore(input),
+      createdAt: new Date().toISOString(),
+      evidenceLabel: "LOCAL · USER-GROUNDED"
+    };
+  }
+
+  function validateDream(raw) {
+    const value = clean(raw);
+    if (!value) return { ok: false, message: "Describe the dream before continuing." };
+    if (value.length < 18) return { ok: false, message: "Add a little more detail so the clarity engine has enough to work with." };
+    return { ok: true, value: value };
+  }
+
+  function exportText(card) {
+    return [
+      "APEX DREAM CARD",
+      "================",
+      "",
+      "Clear Dream Statement",
+      card.statement,
+      "",
+      "Who It Is For",
+      card.audience,
+      "",
+      "Desired Result",
+      card.outcome,
+      "",
+      "Biggest Constraint",
+      card.constraint,
+      "",
+      "Success Evidence",
+      card.evidence,
+      "",
+      "Next Best Step",
+      card.nextStep,
+      "",
+      "Clarity Score: " + card.score + " / 10",
+      "Evidence Label: " + card.evidenceLabel
+    ].join("\n");
+  }
+
+  return {
+    clean: clean,
+    validateDream: validateDream,
+    buildDreamCard: buildDreamCard,
+    calculateScore: calculateScore,
+    exportText: exportText
+  };
+});
+
+</script>
+  <script>
+(() => {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const STORAGE_KEY = "apexDreamBuilderV01";
+
+  const state = {
+    mode: "text",
+    original: "",
+    answers: {
+      audience: "",
+      outcome: "",
+      constraint: "",
+      evidence: ""
+    },
+    questionIndex: 0,
+    card: null,
+    imageName: ""
+  };
+
+  const questions = [
+    {
+      key: "audience",
+      text: "Who should benefit most from this dream?",
+      placeholder: "Example: independent professionals who feel overwhelmed by important decisions."
+    },
+    {
+      key: "outcome",
+      text: "What meaningful result should they experience?",
+      placeholder: "Example: make confident decisions faster and understand why each option fits."
+    },
+    {
+      key: "constraint",
+      text: "What is the biggest real-world constraint we must respect?",
+      placeholder: "Example: I can spend no more than four hours per week and need a mobile-first approach."
+    },
+    {
+      key: "evidence",
+      text: "What observable evidence would prove this dream is helping?",
+      placeholder: "Example: users complete a decision and report greater confidence without needing live support."
+    }
+  ];
+
+  function persist() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        mode: state.mode,
+        original: state.original,
+        answers: state.answers,
+        card: state.card,
+        imageName: state.imageName
+      }));
+    } catch (_) {}
+  }
+
+  function restore() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (!saved) return;
+      Object.assign(state, saved);
+      if (saved.original) {
+        $("dreamInput").value = saved.original;
+        $("brainDumpInput").value = saved.original;
+        $("characterCount").textContent = saved.original.length + " / 1200";
+      }
+      if (saved.card) renderCard(saved.card);
+    } catch (_) {}
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    document.querySelectorAll(".mode-tab").forEach((button) => {
+      const active = button.dataset.mode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-selected", String(active));
+    });
+    document.querySelectorAll(".mode-pane").forEach((pane) => {
+      const active = pane.id === "mode-" + mode;
+      pane.classList.toggle("active", active);
+      pane.hidden = !active;
+    });
+    $("captureStatus").textContent = "";
+    persist();
+  }
+
+  function getCurrentDream() {
+    if (state.mode === "brain") return $("brainDumpInput").value;
+    if (state.mode === "image") return $("imageDescription").value;
+    return $("dreamInput").value;
+  }
+
+  function startClarification() {
+    const validation = DreamCore.validateDream(getCurrentDream());
+    if (!validation.ok) {
+      $("captureStatus").textContent = validation.message;
+      return;
+    }
+
+    state.original = validation.value;
+    state.questionIndex = 0;
+    $("captureStatus").textContent = "";
+    $("capturePanel").hidden = true;
+    $("dreamCardPanel").hidden = true;
+    $("questionPanel").hidden = false;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    persist();
+  }
+
+  function renderQuestion() {
+    const question = questions[state.questionIndex];
+    $("questionCounter").textContent = "Question " + (state.questionIndex + 1) + " of " + questions.length;
+    $("questionProgressBar").style.width = (((state.questionIndex + 1) / questions.length) * 100) + "%";
+    $("questionText").textContent = question.text;
+    $("questionAnswer").placeholder = question.placeholder;
+    $("questionAnswer").value = state.answers[question.key] || "";
+    $("questionAnswer").focus();
+    $("nextQuestionButton").innerHTML =
+      state.questionIndex === questions.length - 1
+        ? 'Create My Dream Card <span aria-hidden="true">→</span>'
+        : 'Continue <span aria-hidden="true">→</span>';
+  }
+
+  function advanceQuestion(skip) {
+    const question = questions[state.questionIndex];
+    state.answers[question.key] = skip ? "" : $("questionAnswer").value.trim();
+
+    if (state.questionIndex < questions.length - 1) {
+      state.questionIndex += 1;
+      renderQuestion();
+      persist();
+      return;
+    }
+
+    state.card = DreamCore.buildDreamCard({
+      original: state.original,
+      audience: state.answers.audience,
+      outcome: state.answers.outcome,
+      constraint: state.answers.constraint,
+      evidence: state.answers.evidence
+    });
+    persist();
+    renderCard(state.card);
+  }
+
+  function renderCard(card) {
+    state.card = card;
+    $("clearDreamStatement").textContent = card.statement;
+    $("audienceOutput").textContent = card.audience;
+    $("outcomeOutput").textContent = card.outcome;
+    $("constraintOutput").textContent = card.constraint;
+    $("evidenceOutput").textContent = card.evidence;
+    $("nextStepOutput").textContent = card.nextStep;
+    $("clarityScore").textContent = Number(card.score).toFixed(1);
+    $("evidenceLabel").textContent = card.evidenceLabel;
+
+    $("capturePanel").hidden = true;
+    $("questionPanel").hidden = true;
+    $("dreamCardPanel").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function editDream() {
+    $("dreamCardPanel").hidden = true;
+    $("questionPanel").hidden = true;
+    $("capturePanel").hidden = false;
+    $("dreamInput").value = state.original;
+    $("brainDumpInput").value = state.original;
+    $("characterCount").textContent = state.original.length + " / 1200";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function showToast(message) {
+    const toast = $("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove("show"), 2400);
+  }
+
+  async function shareCard() {
+    if (!state.card) return;
+    const text = DreamCore.exportText(state.card);
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "My APEX Dream Card", text: text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      showToast("Dream Card copied to clipboard.");
+    } catch (error) {
+      if (error && error.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Dream Card copied to clipboard.");
+      } catch (_) {
+        showToast("Sharing is unavailable in this browser.");
+      }
+    }
+  }
+
+  function resetApp() {
+    if (!confirm("Reset this Dream Card and start again?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+
+  function setupVoice() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      $("voiceStatus").textContent =
+        "Voice transcription is not available in this browser. Use iPhone Dictation in the Text tab instead.";
+      $("voiceButton").disabled = true;
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+      $("voiceStatus").textContent = "Listening… speak your dream.";
+      $("voiceButton").textContent = "■";
+    };
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        transcript += event.results[i][0].transcript;
+      }
+      $("dreamInput").value = transcript.trim();
+      $("characterCount").textContent = $("dreamInput").value.length + " / 1200";
+    };
+
+    recognition.onerror = () => {
+      $("voiceStatus").textContent = "Voice capture did not complete. Use iPhone Dictation in the Text tab.";
+    };
+
+    recognition.onend = () => {
+      $("voiceButton").textContent = "●";
+      if ($("dreamInput").value.trim()) {
+        $("voiceStatus").textContent = "Captured. Review it in the Text tab.";
+        setMode("text");
+      }
+    };
+
+    $("voiceButton").addEventListener("click", () => recognition.start());
+  }
+
+  document.querySelectorAll(".mode-tab").forEach((button) => {
+    button.addEventListener("click", () => setMode(button.dataset.mode));
+  });
+
+  $("dreamInput").addEventListener("input", (event) => {
+    $("characterCount").textContent = event.target.value.length + " / 1200";
+    state.original = event.target.value;
+    persist();
+  });
+
+  $("imageInput").addEventListener("change", (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    state.imageName = file.name;
+    $("imageName").textContent = file.name;
+    $("imagePreview").src = URL.createObjectURL(file);
+    $("imagePreviewWrap").hidden = false;
+    persist();
+  });
+
+  $("clarifyButton").addEventListener("click", startClarification);
+  $("nextQuestionButton").addEventListener("click", () => advanceQuestion(false));
+  $("skipQuestionButton").addEventListener("click", () => advanceQuestion(true));
+  $("editButton").addEventListener("click", editDream);
+  $("shareButton").addEventListener("click", shareCard);
+  $("resetButton").addEventListener("click", resetApp);
+
+  setupVoice();
+  restore();
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+})();
+
+</script>
+</body>
+</html>

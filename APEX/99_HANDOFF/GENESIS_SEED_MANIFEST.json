@@ -1,0 +1,32 @@
+{
+  "artifact": "APEX Dream Builder Master Genesis Seed",
+  "version": "1.0",
+  "date": "2026-07-24",
+  "primary_file": "APEX_Dream_Builder_Master_Genesis_Seed_v1.0.md",
+  "truth_status": "CANONICAL_BOOTSTRAP_ARTIFACT",
+  "current_implementation": {
+    "release": "v0.1",
+    "status": "BUILT_AND_TESTED_LOCALLY_IN_SANDBOX",
+    "next_default_increment": "v0.2.1 Analysis Data Contract + Deterministic Local Analysis"
+  },
+  "governing_laws": [
+    "BTL-001 Buildability Truth, Feasibility Gate, and No-False-Build Law",
+    "Smallest-Verifiable-Increment Law",
+    "APEX Dream Realization Feasibility and Readiness Law",
+    "Capability and Accessibility Law",
+    "Consent and Representation Law",
+    "Evidence Before Promotion Law"
+  ],
+  "files": [
+    {
+      "name": "APEX_Dream_Builder_Master_Genesis_Seed_v1.0.md",
+      "sha256": "4bb6c70b09f47975304db136b506cd2b46b9992561441232804d2c546031b00d",
+      "bytes": 47548
+    },
+    {
+      "name": "APEX_Dream_Builder_Master_Genesis_Seed_v1.0.txt",
+      "sha256": "4bb6c70b09f47975304db136b506cd2b46b9992561441232804d2c546031b00d",
+      "bytes": 47548
+    }
+  ]
+}

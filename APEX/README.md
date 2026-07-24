@@ -39,6 +39,8 @@ APEX is not just a chatbot replacement. It is a human-governed **Vision-to-Reali
 | `apex-python-intent-console-v02/` | Improved video/YouTube/media routing | v0.2 prototype |
 | `apex-rightschain-manifest-builder/` | Provenance/rights manifest builder | Prototype-live |
 | `apex-mobile-python-console-v161/` | Mobile notebook / Python-style console | Prototype-live |
+| `apex-dream-builder-v0.1/` | Dream Capture & Clarity Engine (iPhone-first PWA) | v0.1 built and locally tested in sandbox |
+| `apex-dream-builder-v0.2.1/` | + Analysis Data Contract / Deterministic Local Analysis | v0.2.1 built, smoke-tested, and browser-verified in sandbox |
 
 ---
 
