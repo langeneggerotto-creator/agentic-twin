@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#071326" />
+  <meta name="description" content="APEX Dream Builder v0.1 — Dream Capture & Clarity Engine" />
+  <title>APEX Dream Builder</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">△</div>
+      <div>
+        <p class="eyebrow">APEX · DREAM · BUILD · EMPOWER</p>
+        <h1>Dream Builder</h1>
+      </div>
+      <button class="icon-button" id="resetButton" aria-label="Reset dream builder" title="Reset">↻</button>
+    </header>
+
+    <section class="progress-card" aria-label="Dream Builder progress">
+      <div>
+        <span class="step-kicker">STEP 1 OF 10</span>
+        <h2>Dream Capture & Clarity</h2>
+      </div>
+      <div class="progress-ring" aria-label="10 percent complete">
+        <span>10%</span>
+      </div>
+    </section>
+
+    <section class="panel intro-panel" id="capturePanel">
+      <div class="panel-heading">
+        <div class="number-badge">1</div>
+        <div>
+          <p class="section-label">CAPTURE YOUR DREAM</p>
+          <h2>What do you want to make real?</h2>
+        </div>
+      </div>
+
+      <p class="support-copy">
+        Start rough. APEX will guide you through one short question at a time and turn your idea into a clear Dream Card.
+      </p>
+
+      <div class="mode-tabs" role="tablist" aria-label="Dream input mode">
+        <button class="mode-tab active" data-mode="text" role="tab" aria-selected="true">Text</button>
+        <button class="mode-tab" data-mode="voice" role="tab" aria-selected="false">Voice</button>
+        <button class="mode-tab" data-mode="image" role="tab" aria-selected="false">Image</button>
+        <button class="mode-tab" data-mode="brain" role="tab" aria-selected="false">Brain dump</button>
+      </div>
+
+      <div class="mode-pane active" id="mode-text">
+        <label for="dreamInput">Describe your dream</label>
+        <textarea id="dreamInput" rows="7" maxlength="1200"
+          placeholder="Example: I want to build an app that helps people make better decisions with AI guidance."></textarea>
+        <div class="field-meta">
+          <span id="characterCount">0 / 1200</span>
+          <span>Saved privately on this device</span>
+        </div>
+      </div>
+
+      <div class="mode-pane" id="mode-voice" hidden>
+        <div class="voice-box">
+          <button class="voice-button" id="voiceButton" type="button" aria-label="Start voice capture">●</button>
+          <h3>Speak your dream</h3>
+          <p id="voiceStatus">Tap the microphone and speak naturally. Browser support varies on iPhone.</p>
+        </div>
+      </div>
+
+      <div class="mode-pane" id="mode-image" hidden>
+        <label class="upload-box" for="imageInput">
+          <span class="upload-icon">▧</span>
+          <strong>Choose or take a photo</strong>
+          <span>Use a sketch, book cover, screenshot, note, or inspiration image.</span>
+        </label>
+        <input id="imageInput" class="visually-hidden" type="file" accept="image/*" capture="environment" />
+        <div id="imagePreviewWrap" class="image-preview-wrap" hidden>
+          <img id="imagePreview" alt="Selected dream inspiration" />
+          <p id="imageName"></p>
+        </div>
+        <label for="imageDescription">Tell APEX what the image means to you</label>
+        <textarea id="imageDescription" rows="5" maxlength="1200"
+          placeholder="What dream, possibility, or problem does this image represent?"></textarea>
+      </div>
+
+      <div class="mode-pane" id="mode-brain" hidden>
+        <label for="brainDumpInput">Empty your thoughts without organizing them</label>
+        <textarea id="brainDumpInput" rows="10" maxlength="2000"
+          placeholder="Write anything that is in your head: ideas, worries, goals, constraints, people, money, time, and what success would feel like."></textarea>
+      </div>
+
+      <div class="status-message" id="captureStatus" role="status" aria-live="polite"></div>
+
+      <button class="primary-button" id="clarifyButton" type="button">
+        Clarify My Dream
+        <span aria-hidden="true">→</span>
+      </button>
+
+      <div class="truth-note">
+        <strong>Truth boundary:</strong> this first release uses a transparent local clarity engine. It does not claim external research, deployment, or hidden autonomous execution.
+      </div>
+    </section>
+
+    <section class="panel question-panel" id="questionPanel" hidden>
+      <div class="panel-heading">
+        <div class="number-badge">?</div>
+        <div>
+          <p class="section-label">GUIDED CLARIFICATION</p>
+          <h2 id="questionTitle">One question at a time</h2>
+        </div>
+      </div>
+
+      <div class="question-progress">
+        <span id="questionCounter">Question 1 of 3</span>
+        <div class="mini-progress"><div id="questionProgressBar"></div></div>
+      </div>
+
+      <p class="question-text" id="questionText"></p>
+      <label class="visually-hidden" for="questionAnswer">Your answer</label>
+      <textarea id="questionAnswer" rows="5" maxlength="800"
+        placeholder="Answer in your own words. A short answer is enough."></textarea>
+
+      <div class="button-row">
+        <button class="secondary-button" id="skipQuestionButton" type="button">Skip</button>
+        <button class="primary-button" id="nextQuestionButton" type="button">
+          Continue <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel dream-card" id="dreamCardPanel" hidden>
+      <div class="card-glow" aria-hidden="true"></div>
+      <div class="panel-heading">
+        <div class="number-badge success">✓</div>
+        <div>
+          <p class="section-label">YOUR DREAM CARD</p>
+          <h2>Clear enough to move forward</h2>
+        </div>
+      </div>
+
+      <div class="dream-score-row">
+        <div>
+          <span class="muted-label">CLARITY SCORE</span>
+          <strong id="clarityScore">0.0</strong><span class="score-out-of"> / 10</span>
+        </div>
+        <span class="evidence-label" id="evidenceLabel">LOCAL · USER-GROUNDED</span>
+      </div>
+
+      <article class="dream-statement">
+        <span class="muted-label">CLEAR DREAM STATEMENT</span>
+        <p id="clearDreamStatement"></p>
+      </article>
+
+      <div class="insight-grid">
+        <article>
+          <span class="muted-label">WHO IT IS FOR</span>
+          <p id="audienceOutput"></p>
+        </article>
+        <article>
+          <span class="muted-label">DESIRED RESULT</span>
+          <p id="outcomeOutput"></p>
+        </article>
+        <article>
+          <span class="muted-label">BIGGEST CONSTRAINT</span>
+          <p id="constraintOutput"></p>
+        </article>
+        <article>
+          <span class="muted-label">SUCCESS EVIDENCE</span>
+          <p id="evidenceOutput"></p>
+        </article>
+      </div>
+
+      <article class="next-step-card">
+        <span class="muted-label">NEXT BEST STEP</span>
+        <p id="nextStepOutput"></p>
+      </article>
+
+      <div class="button-stack">
+        <button class="primary-button" id="shareButton" type="button">Share Dream Card</button>
+        <button class="secondary-button" id="editButton" type="button">Edit My Dream</button>
+        <button class="primary-button" id="analyzeButton" type="button">
+          Analyze This Dream
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel analysis-question-panel" id="analysisQuestionPanel" hidden>
+      <div class="panel-heading">
+        <div class="number-badge">?</div>
+        <div>
+          <p class="section-label">DREAM ANALYSIS</p>
+          <h2 id="analysisQuestionTitle">A few grounding questions</h2>
+        </div>
+      </div>
+
+      <div class="question-progress">
+        <span id="analysisQuestionCounter">Question 1 of 5</span>
+        <div class="mini-progress"><div id="analysisQuestionProgressBar"></div></div>
+      </div>
+
+      <p class="question-text" id="analysisQuestionText"></p>
+      <label class="visually-hidden" for="analysisQuestionAnswer">Your answer</label>
+      <textarea id="analysisQuestionAnswer" rows="4" maxlength="600"
+        placeholder="Answer in your own words. It is fine to say you do not know yet."></textarea>
+      <div class="choice-row" id="analysisChoiceRow" hidden>
+        <button class="secondary-button" data-choice="yes" type="button">Yes</button>
+        <button class="secondary-button" data-choice="partial" type="button">Partially</button>
+        <button class="secondary-button" data-choice="no" type="button">No</button>
+      </div>
+
+      <div class="button-row">
+        <button class="secondary-button" id="skipAnalysisQuestionButton" type="button">Skip</button>
+        <button class="primary-button" id="nextAnalysisQuestionButton" type="button">
+          Continue <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel dream-analysis" id="dreamAnalysisPanel" hidden>
+      <div class="panel-heading">
+        <div class="number-badge success">✓</div>
+        <div>
+          <p class="section-label">DREAM ANALYSIS</p>
+          <h2>Where this dream stands</h2>
+        </div>
+      </div>
+
+      <div class="dream-score-row">
+        <div>
+          <span class="muted-label">DREAM SCORE</span>
+          <strong id="dreamScoreOutput">0.0</strong><span class="score-out-of"> / 10</span>
+        </div>
+        <span class="evidence-label" id="analysisTruthLabel">LOCAL · DETERMINISTIC · USER-GROUNDED</span>
+      </div>
+      <p class="support-copy" id="scoreBasisOutput"></p>
+
+      <div class="insight-grid" id="dimensionGrid"></div>
+
+      <article class="next-step-card">
+        <span class="muted-label">BARRIER MAP</span>
+        <ul id="barrierMapOutput"></ul>
+      </article>
+
+      <article class="next-step-card">
+        <span class="muted-label">EVIDENCE REQUIRED</span>
+        <ul id="evidenceRequiredOutput"></ul>
+      </article>
+
+      <article class="next-step-card">
+        <span class="muted-label">UNKNOWNS</span>
+        <p id="unknownsOutput"></p>
+      </article>
+
+      <article class="next-step-card">
+        <span class="muted-label">RECOMMENDED NEXT STEP</span>
+        <p id="recommendedNextStepOutput"></p>
+      </article>
+
+      <div class="button-stack">
+        <button class="primary-button" id="shareAnalysisButton" type="button">Share Dream Analysis</button>
+        <button class="secondary-button" id="editAnalysisButton" type="button">Redo Analysis Answers</button>
+        <button class="locked-button" type="button" disabled>
+          Dream Blueprint Generator
+          <span>Next release</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="system-strip" aria-label="Current build status">
+      <div>
+        <span class="status-dot"></span>
+        <strong>v0.2.1 operational</strong>
+      </div>
+      <span>Dream Capture + Guided Clarity + Deterministic Local Analysis + Local Save + Share</span>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="core.js"></script>
+  <script src="analysis.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

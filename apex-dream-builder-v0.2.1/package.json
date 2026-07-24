@@ -1,0 +1,10 @@
+{
+  "name": "apex-dream-builder-v0.2.1",
+  "version": "0.2.1",
+  "private": true,
+  "description": "APEX Dream Builder — Dream Capture & Clarity Engine + Analysis Data Contract / Deterministic Local Analysis",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/smoke.test.js"
+  }
+}
