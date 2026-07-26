@@ -24,15 +24,17 @@ from typing import Any, Dict, List, Optional, Protocol
 import requests
 
 try:
-    from youtube_transcript_api import YouTubeTranscriptApi
-    from youtube_transcript_api._errors import (
+    from youtube_transcript_api import (
         NoTranscriptFound,
         TranscriptsDisabled,
         VideoUnavailable,
+        YouTubeTranscriptApi,
     )
 except ImportError:  # pragma: no cover - exercised only when dependency is missing
     YouTubeTranscriptApi = None
     NoTranscriptFound = TranscriptsDisabled = VideoUnavailable = Exception
+
+PREFERRED_TRANSCRIPT_LANGUAGES = ("en", "en-US", "en-GB")
 
 OEMBED_URL = "https://www.youtube.com/oembed"
 PRINCIPLE_CATEGORIES = [
@@ -111,10 +113,18 @@ class TranscriptResult:
 
 
 def fetch_transcript(video_id: str) -> TranscriptResult:
+    """Fetch the official transcript, preferring English but falling back to
+    whatever language is actually available (this is a 'full analysis on any
+    video' pipeline, not an English-only one)."""
     if YouTubeTranscriptApi is None:
         return TranscriptResult(status="error", error="youtube_transcript_api is not installed.")
     try:
-        segments = YouTubeTranscriptApi.get_transcript(video_id)
+        transcript_list = YouTubeTranscriptApi().list(video_id)
+        try:
+            transcript = transcript_list.find_transcript(PREFERRED_TRANSCRIPT_LANGUAGES)
+        except NoTranscriptFound:
+            transcript = next(iter(transcript_list))
+        segments = transcript.fetch().to_raw_data()
         return TranscriptResult(status="ok", segments=segments)
     except TranscriptsDisabled:
         return TranscriptResult(status="disabled", error="Captions are disabled for this video.")
