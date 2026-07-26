@@ -31,6 +31,7 @@ Perfect AI exists to make the entire system more truthful, just, coherent, flour
 | apex-python-intent-console-v02 | Improved video/media routing | v0.2 prototype |
 | apex-rightschain-manifest-builder | Provenance and rights manifest builder | Prototype live |
 | apex-mobile-python-console-v161 | Mobile notebook / Python-style console | Prototype live |
+| APEX/03_APPLICATION/consoles/youtube-principles/v0.1 | Paste YouTube URLs, extract core principles/laws/theories from the official transcript via LLM | v0.1 prototype |
 
 ## Current Truth Status
 

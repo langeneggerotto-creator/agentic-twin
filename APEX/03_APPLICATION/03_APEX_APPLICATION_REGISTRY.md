@@ -17,6 +17,7 @@ All APEX-related code must be discoverable from this folder, even when the live 
 | APP-005 | APEX RightsChain Manifest Builder | `apex-rightschain-manifest-builder/` | `05_GOVERNANCE/rightschain` | Prototype-live | Provenance, attribution, source, license, and release records |
 | APP-006 | APEX Mobile Python Console v1.6.1 | `apex-mobile-python-console-v161/` | `03_APPLICATION/consoles/mobile-python` | Prototype-live | Mobile browser notebook / Python-style console |
 | APP-007 | Content Scan Preflight | `tools/content-scan-preflight.mjs` | `04_ENGINEERING/tools` | Prototype QA tool | Static content/structure scan for browser apps |
+| APP-008 | APEX YouTube Principles Extraction Console v0.1 | `APEX/03_APPLICATION/consoles/youtube-principles/v0.1/` | `03_APPLICATION/consoles/youtube-principles` | Active prototype | Paste YouTube URLs, fetch public metadata/transcript, extract core laws/principles/theories/frameworks via LLM |
 
 ## Migration Decision
 

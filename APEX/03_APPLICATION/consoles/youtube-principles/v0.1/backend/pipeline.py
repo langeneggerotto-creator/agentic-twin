@@ -1,0 +1,392 @@
+#!/usr/bin/env python3
+"""
+APEX YouTube Principles Extraction Pipeline v0.1
+
+Ingests one or more YouTube URLs, fetches only the public oEmbed metadata
+and the official caption/transcript track, then uses an LLM to extract
+every core law, principle, theory, framework, mental model, and heuristic
+taught or referenced in the video.
+
+Truth boundary: this module never downloads video or audio files and
+never bypasses platform login, paywalls, or terms of service. It reads
+only two public endpoints: YouTube's oEmbed metadata endpoint and the
+official caption track YouTube already serves for the video.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, List, Optional, Protocol
+
+import requests
+
+try:
+    from youtube_transcript_api import YouTubeTranscriptApi
+    from youtube_transcript_api._errors import (
+        NoTranscriptFound,
+        TranscriptsDisabled,
+        VideoUnavailable,
+    )
+except ImportError:  # pragma: no cover - exercised only when dependency is missing
+    YouTubeTranscriptApi = None
+    NoTranscriptFound = TranscriptsDisabled = VideoUnavailable = Exception
+
+OEMBED_URL = "https://www.youtube.com/oembed"
+PRINCIPLE_CATEGORIES = [
+    "law", "principle", "theory", "framework",
+    "mental_model", "heuristic", "rule_of_thumb", "key_quote",
+]
+CHUNK_CHAR_LIMIT = 3500
+
+
+# --------------------------------------------------------------------------
+# URL / ID parsing
+# --------------------------------------------------------------------------
+
+_VIDEO_ID_PATTERNS = [
+    re.compile(r"(?:v=|/shorts/|/embed/|/v/)([A-Za-z0-9_-]{6,})"),
+    re.compile(r"youtu\.be/([A-Za-z0-9_-]{6,})"),
+]
+
+
+def parse_video_id(url: str) -> Optional[str]:
+    """Extract a YouTube video ID from common URL shapes, or None."""
+    url = url.strip()
+    if not url:
+        return None
+    for pattern in _VIDEO_ID_PATTERNS:
+        match = pattern.search(url)
+        if match:
+            return match.group(1).split("?")[0].split("&")[0]
+    if re.fullmatch(r"[A-Za-z0-9_-]{11}", url):
+        return url
+    return None
+
+
+def split_urls(raw: str) -> List[str]:
+    """Split a textarea blob of pasted URLs (newline and/or comma separated)."""
+    return [part for part in re.split(r"[\s,]+", raw.strip()) if part]
+
+
+# --------------------------------------------------------------------------
+# Metadata + transcript ingestion (public endpoints only)
+# --------------------------------------------------------------------------
+
+@dataclass
+class VideoMeta:
+    video_id: str
+    url: str
+    title: str = "Unknown title"
+    channel: str = "Unknown channel"
+    thumbnail_url: str = ""
+
+
+def fetch_video_meta(video_id: str, url: str, timeout: float = 8.0) -> VideoMeta:
+    """Fetch public oEmbed metadata. Falls back to placeholders on failure."""
+    meta = VideoMeta(video_id=video_id, url=url)
+    try:
+        resp = requests.get(
+            OEMBED_URL,
+            params={"url": f"https://www.youtube.com/watch?v={video_id}", "format": "json"},
+            timeout=timeout,
+        )
+        if resp.ok:
+            data = resp.json()
+            meta.title = data.get("title", meta.title)
+            meta.channel = data.get("author_name", meta.channel)
+            meta.thumbnail_url = data.get("thumbnail_url", "")
+    except requests.RequestException:
+        pass
+    return meta
+
+
+@dataclass
+class TranscriptResult:
+    status: str  # "ok" | "disabled" | "unavailable" | "error"
+    segments: List[Dict[str, Any]] = field(default_factory=list)
+    error: str = ""
+
+
+def fetch_transcript(video_id: str) -> TranscriptResult:
+    if YouTubeTranscriptApi is None:
+        return TranscriptResult(status="error", error="youtube_transcript_api is not installed.")
+    try:
+        segments = YouTubeTranscriptApi.get_transcript(video_id)
+        return TranscriptResult(status="ok", segments=segments)
+    except TranscriptsDisabled:
+        return TranscriptResult(status="disabled", error="Captions are disabled for this video.")
+    except NoTranscriptFound:
+        return TranscriptResult(status="unavailable", error="No transcript is available for this video.")
+    except VideoUnavailable:
+        return TranscriptResult(status="unavailable", error="Video is unavailable or private.")
+    except Exception as exc:  # noqa: BLE001 - surface any transcript failure as a graceful report field
+        return TranscriptResult(status="error", error=str(exc))
+
+
+# --------------------------------------------------------------------------
+# Transcript chunking
+# --------------------------------------------------------------------------
+
+@dataclass
+class TranscriptChunk:
+    index: int
+    text: str
+    start_seconds: float
+    end_seconds: float
+
+
+def format_timestamp(seconds: float) -> str:
+    seconds = int(seconds)
+    hours, rem = divmod(seconds, 3600)
+    minutes, secs = divmod(rem, 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}" if hours else f"{minutes:02d}:{secs:02d}"
+
+
+def chunk_transcript(segments: List[Dict[str, Any]], char_limit: int = CHUNK_CHAR_LIMIT) -> List[TranscriptChunk]:
+    chunks: List[TranscriptChunk] = []
+    buf_text: List[str] = []
+    buf_len = 0
+    start = segments[0]["start"] if segments else 0.0
+    end = start
+    for seg in segments:
+        text = seg.get("text", "").replace("\n", " ").strip()
+        if not text:
+            continue
+        if buf_len + len(text) + 1 > char_limit and buf_text:
+            chunks.append(TranscriptChunk(len(chunks), " ".join(buf_text), start, end))
+            buf_text, buf_len = [], 0
+            start = seg["start"]
+        buf_text.append(text)
+        buf_len += len(text) + 1
+        end = seg["start"] + seg.get("duration", 0.0)
+    if buf_text:
+        chunks.append(TranscriptChunk(len(chunks), " ".join(buf_text), start, end))
+    return chunks
+
+
+def verify_quote(quote: str, chunk_text: str) -> bool:
+    """Check a returned quote actually appears in the source chunk (or very nearly does)."""
+    if not quote:
+        return False
+
+    def norm(s: str) -> str:
+        return re.sub(r"\s+", " ", s.lower()).strip()
+
+    q, c = norm(quote), norm(chunk_text)
+    if q in c:
+        return True
+    q_words = set(q.split())
+    if not q_words:
+        return False
+    overlap = len(q_words & set(c.split())) / len(q_words)
+    return overlap >= 0.8
+
+
+def merge_candidates(all_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Dedupe principle candidates across chunks by normalized name, preferring verified quotes."""
+    seen: Dict[str, Dict[str, Any]] = {}
+    order: List[str] = []
+    for item in all_items:
+        key = re.sub(r"[^a-z0-9]+", " ", str(item.get("name", "")).lower()).strip()
+        if not key:
+            continue
+        if key not in seen:
+            seen[key] = item
+            order.append(key)
+        elif item.get("quote_verified") and not seen[key].get("quote_verified"):
+            seen[key] = item
+    return [seen[k] for k in order]
+
+
+# --------------------------------------------------------------------------
+# LLM extraction
+# --------------------------------------------------------------------------
+
+class LLMClient(Protocol):
+    def extract_principles(self, chunk_text: str, video_title: str) -> List[Dict[str, Any]]: ...
+    def summarize(self, text: str, video_title: str) -> str: ...
+
+
+EXTRACTION_SYSTEM_PROMPT = (
+    "You study transcripts of educational, business, and self-improvement videos and "
+    "extract every durable, reusable principle taught or referenced: named laws (e.g. "
+    "Parkinson's Law), principles, theories, frameworks, mental models, heuristics, and "
+    "rules of thumb -- both explicitly named and clearly implied. Ignore small talk, "
+    "sponsor reads, and filler. For each item return a JSON object with: name, category "
+    "(one of law, principle, theory, framework, mental_model, heuristic, rule_of_thumb, "
+    "key_quote), description (1-2 sentences, in your own words), application (how to use "
+    "it, 1 sentence), quote (a short snippet copied exactly, verbatim, from the transcript "
+    "segment below that supports this item, or an empty string if none fits cleanly). Only "
+    "use text that actually appears in the provided segment for the quote field -- never "
+    "invent a quote. Respond with a JSON object of the shape {\"items\": [...]}. If nothing "
+    "qualifies in this segment, return {\"items\": []}."
+)
+
+SUMMARY_SYSTEM_PROMPT = (
+    "Summarize the following YouTube video transcript in 3-5 sentences: what it is about, "
+    "who it is for, and what the viewer walks away knowing how to do."
+)
+
+
+class OpenAIClient:
+    """Thin wrapper around the OpenAI Chat Completions API. Imports the SDK lazily so this
+    module loads fine without the package installed or an API key set."""
+
+    def __init__(self, model: str = "gpt-4o-mini", api_key: Optional[str] = None):
+        self.model = model
+        self._api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        self._client = None
+
+    def _get_client(self):
+        if self._client is None:
+            if not self._api_key:
+                raise RuntimeError("OPENAI_API_KEY is not set.")
+            from openai import OpenAI
+
+            self._client = OpenAI(api_key=self._api_key)
+        return self._client
+
+    def extract_principles(self, chunk_text: str, video_title: str) -> List[Dict[str, Any]]:
+        client = self._get_client()
+        response = client.chat.completions.create(
+            model=self.model,
+            response_format={"type": "json_object"},
+            temperature=0.2,
+            messages=[
+                {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
+                {"role": "user", "content": f"Video title: {video_title}\n\nTranscript segment:\n{chunk_text}"},
+            ],
+        )
+        payload = json.loads(response.choices[0].message.content)
+        return payload.get("items", [])
+
+    def summarize(self, text: str, video_title: str) -> str:
+        client = self._get_client()
+        response = client.chat.completions.create(
+            model=self.model,
+            temperature=0.3,
+            messages=[
+                {"role": "system", "content": SUMMARY_SYSTEM_PROMPT},
+                {"role": "user", "content": f"Video title: {video_title}\n\nTranscript:\n{text[:12000]}"},
+            ],
+        )
+        return response.choices[0].message.content.strip()
+
+
+# --------------------------------------------------------------------------
+# Report assembly
+# --------------------------------------------------------------------------
+
+def qa_gates(transcript_status: str, principles: List[Dict[str, Any]]) -> Dict[str, Any]:
+    issues: List[str] = []
+    passes: List[str] = []
+    if transcript_status == "ok":
+        passes.append("transcript_fetched")
+    else:
+        issues.append(f"transcript_{transcript_status}")
+    if principles:
+        passes.append("principles_extracted")
+    else:
+        issues.append("no_principles_extracted")
+    unverified = [p for p in principles if not p.get("quote_verified")]
+    if unverified:
+        issues.append(f"{len(unverified)}_unverified_quotes_review")
+    score = max(0, min(100, 100 - 15 * len(issues) + 5 * len(passes)))
+    return {
+        "score": score,
+        "passes": passes,
+        "issues": issues,
+        "release_status": "HOLD_FOR_REVIEW" if issues else "PROTOTYPE_OK",
+    }
+
+
+def build_report(url: str, video: VideoMeta, transcript: TranscriptResult, llm: LLMClient) -> Dict[str, Any]:
+    principles: List[Dict[str, Any]] = []
+    summary = ""
+    risk_flags = [
+        "quotes_are_excerpts_verify_before_republishing",
+        "verify_named_laws_against_primary_source",
+    ]
+
+    if transcript.status == "ok":
+        chunks = chunk_transcript(transcript.segments)
+        full_text = " ".join(c.text for c in chunks)
+        all_items: List[Dict[str, Any]] = []
+        for chunk in chunks:
+            try:
+                items = llm.extract_principles(chunk.text, video.title)
+            except Exception:  # noqa: BLE001 - one failed chunk should not sink the whole report
+                risk_flags.append(f"llm_extraction_error_chunk_{chunk.index}")
+                continue
+            for item in items:
+                item["quote_verified"] = verify_quote(item.get("quote", ""), chunk.text)
+                item["approx_timestamp"] = format_timestamp(chunk.start_seconds)
+                item["source_chunk_index"] = chunk.index
+                if item.get("category") not in PRINCIPLE_CATEGORIES:
+                    item["category"] = "principle"
+                all_items.append(item)
+        principles = merge_candidates(all_items)
+        try:
+            summary = llm.summarize(full_text, video.title)
+        except Exception:  # noqa: BLE001
+            summary = "Summary unavailable (LLM call failed)."
+            risk_flags.append("llm_summary_error")
+    else:
+        risk_flags.append("no_transcript_available")
+
+    report: Dict[str, Any] = {
+        "artifact_type": "apex_youtube_principles_report_v01",
+        "video": asdict(video),
+        "source_url": url,
+        "transcript_status": transcript.status,
+        "transcript_error": transcript.error,
+        "summary": summary,
+        "principles": principles,
+        "principle_count": len(principles),
+        "risk_flags": sorted(set(risk_flags)),
+        "qa_gates": qa_gates(transcript.status, principles),
+        "truth_status": {
+            "VERIFIED": [
+                "video ID parsed from submitted URL",
+                "metadata fetched from public oEmbed endpoint" if video.title != "Unknown title" else "metadata fetch attempted",
+            ],
+            "INFERRED": ["principle categorization, phrasing, and summary produced by an LLM"],
+            "ASSUMED": ["transcript accurately represents spoken audio (auto-captions may contain errors)"],
+            "UNKNOWN": ["whether extracted quotes are precisely verbatim beyond the automated substring check"],
+        },
+        "next_3_plus_1": {
+            "next_1": "Read the flagged unverified quotes against the original video before quoting publicly.",
+            "next_2": "Cross-check named laws/theories against a primary source before treating them as fact.",
+            "next_3": "Re-run with a stronger model if a video's principles feel thin or generic.",
+            "plus_1_control": "This pipeline never downloads video/audio and never bypasses caption/API permissions.",
+        },
+    }
+    payload = json.dumps(report, sort_keys=True, ensure_ascii=False, default=str)
+    report["manifest_hash_sha256"] = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return report
+
+
+def analyze_url(url: str, llm: Optional[LLMClient] = None) -> Dict[str, Any]:
+    llm = llm or OpenAIClient()
+    video_id = parse_video_id(url)
+    if not video_id:
+        return {
+            "artifact_type": "apex_youtube_principles_report_v01",
+            "source_url": url,
+            "error": "Could not parse a YouTube video ID from this URL.",
+            "transcript_status": "error",
+            "principles": [],
+            "principle_count": 0,
+            "risk_flags": ["invalid_url"],
+        }
+    video = fetch_video_meta(video_id, url)
+    transcript = fetch_transcript(video_id)
+    return build_report(url, video, transcript, llm)
+
+
+def analyze_urls(urls: List[str], llm: Optional[LLMClient] = None) -> List[Dict[str, Any]]:
+    llm = llm or OpenAIClient()
+    return [analyze_url(u, llm) for u in urls]
