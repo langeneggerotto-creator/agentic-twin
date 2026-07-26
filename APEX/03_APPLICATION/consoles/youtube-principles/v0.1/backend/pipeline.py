@@ -40,6 +40,7 @@ OEMBED_URL = "https://www.youtube.com/oembed"
 PRINCIPLE_CATEGORIES = [
     "law", "principle", "theory", "framework",
     "mental_model", "heuristic", "rule_of_thumb", "key_quote",
+    "creative_rationale",
 ]
 
 # Controlled vocabulary for topic tagging. Kept intentionally broad and mirrored in the
@@ -286,19 +287,34 @@ class LLMClient(Protocol):
 
 
 EXTRACTION_SYSTEM_PROMPT = (
-    "You study transcripts of educational, business, and self-improvement videos and "
-    "extract every durable, reusable principle taught or referenced: named laws (e.g. "
-    "Parkinson's Law), principles, theories, frameworks, mental models, heuristics, and "
-    "rules of thumb -- both explicitly named and clearly implied. Ignore small talk, "
-    "sponsor reads, and filler. For each item return a JSON object with: "
-    "name (the canonical, most widely recognized name for it), "
+    "You study video transcripts and extract every durable, reusable idea taught, "
+    "referenced, or reasoned through -- across two different registers of speech, both "
+    "equally valuable: (1) FORMAL knowledge: named laws (e.g. Parkinson's Law), "
+    "principles, theories, frameworks, mental models, heuristics, and rules of thumb, "
+    "explicitly named or clearly implied; (2) CONVERSATIONAL reasoning: the informal, "
+    "off-the-cuff explanations people give for a specific choice they made -- 'we wanted "
+    "it to feel like...', 'the reason we did this was...', 'this represents...', 'I chose "
+    "X because Y'. This second kind is just as important to capture as the first, even "
+    "though it is never phrased as a formal principle -- it is often the most valuable "
+    "content in a commentary, interview, or making-of video, and a narrow reading of "
+    "'principle' will silently miss it. Do not require an idea to be generalizable or "
+    "reusable across contexts to count -- a specific creative rationale ('the staircase "
+    "represents her rising above the story') is worth capturing on its own terms, not "
+    "only when it can be restated as universal advice. Ignore only genuine filler: small "
+    "talk with no substance, sponsor reads, and pure repetition. For each item return a "
+    "JSON object with: "
+    "name (the canonical, most widely recognized name for it, or a short descriptive "
+    "label you invent if it has no established name), "
     "aliases (array of other names or phrasings it is commonly known by, or [] if none), "
     "category (one of law, principle, theory, framework, mental_model, heuristic, "
-    "rule_of_thumb, key_quote), "
+    "rule_of_thumb, key_quote, creative_rationale -- use creative_rationale for the "
+    "conversational-reasoning register described above whenever it doesn't fit an "
+    "established formal category), "
     "domains (array of 1-3 tags chosen ONLY from this fixed list, picking the closest fit "
     "even if imperfect -- never invent a new tag: " + ", ".join(DOMAIN_TAGS) + "), "
     "description (1-2 sentences, in your own words), "
-    "application (how to use it, 1 sentence), "
+    "application (how to use it, or -- for creative_rationale -- what it reveals about "
+    "the maker's intent, 1 sentence), "
     "quote (a short snippet copied exactly, verbatim, from the transcript segment below "
     "that supports this item, or an empty string if none fits cleanly). Only use text "
     "that actually appears in the provided segment for the quote field -- never invent a "

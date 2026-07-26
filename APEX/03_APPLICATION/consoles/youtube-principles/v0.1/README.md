@@ -86,7 +86,13 @@ Every extracted principle carries, in addition to `name`/`description`/
 `application`/`quote`:
 
 - `category` -- one of `law`, `principle`, `theory`, `framework`,
-  `mental_model`, `heuristic`, `rule_of_thumb`, `key_quote`.
+  `mental_model`, `heuristic`, `rule_of_thumb`, `key_quote`,
+  `creative_rationale`. That last one matters for commentary/interview/
+  making-of videos specifically: it captures the informal, conversational
+  reasoning someone gives for a choice they made ("we wanted it to feel
+  like...", "this represents...") -- real conceptual content that a
+  narrower "durable, reusable principle" framing would otherwise miss,
+  since it's rarely phrased as a formal principle at all.
 - `domains` -- 1-3 topic tags chosen by the LLM from a fixed controlled
   vocabulary (`DOMAIN_TAGS` in `backend/pipeline.py`, e.g.
   `productivity-time-management`, `business-strategy`, `psychology-behavior`,

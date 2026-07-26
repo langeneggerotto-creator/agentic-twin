@@ -196,6 +196,38 @@ def test_analyze_url_reports_invalid_url_gracefully():
     assert_true("invalid_url" in report["risk_flags"], "invalid URL should be flagged")
 
 
+def test_creative_rationale_category_is_accepted_not_remapped():
+    assert_true("creative_rationale" in module.PRINCIPLE_CATEGORIES, "creative_rationale must be a recognized category")
+
+    class RationaleLLMClient:
+        def extract_principles(self, chunk_text, video_title):
+            return [{
+                "name": "Staircase as Ascension Metaphor",
+                "category": "creative_rationale",
+                "domains": ["creativity-innovation"],
+                "aliases": [],
+                "description": "The staircase set was chosen to visually represent rising above hardship.",
+                "application": "Reveals the director's intent to literalize the song's central metaphor.",
+                "quote": "we wanted it to feel like she was climbing out of the story",
+            }]
+
+        def summarize(self, text, video_title):
+            return "A behind-the-scenes explanation of creative choices."
+
+    video = module.VideoMeta(video_id="commentaryVid1", url="https://youtu.be/commentaryVid1", title="The Making of the Video")
+    transcript = module.TranscriptResult(
+        status="ok",
+        segments=[{"text": "we wanted it to feel like she was climbing out of the story", "start": 10.0, "duration": 4.0}],
+    )
+    report = module.build_report("https://youtu.be/commentaryVid1", video, transcript, RationaleLLMClient())
+    assert_true(report["principle_count"] == 1, "a conversational creative-rationale item should be extracted")
+    assert_true(
+        report["principles"][0]["category"] == "creative_rationale",
+        "creative_rationale should pass through as-is, not fall back to 'principle'",
+    )
+    assert_true(report["principles"][0]["quote_verified"] is True, "the verbatim quote should still verify")
+
+
 if __name__ == "__main__":
     test_parse_video_id_handles_common_url_shapes()
     test_split_urls_handles_newlines_and_commas()
@@ -208,4 +240,5 @@ if __name__ == "__main__":
     test_build_report_without_transcript_holds_for_review()
     test_build_report_surfaces_llm_errors_instead_of_swallowing_them()
     test_analyze_url_reports_invalid_url_gracefully()
+    test_creative_rationale_category_is_accepted_not_remapped()
     print("PASS: APEX YouTube Principles Extraction Pipeline v0.1 smoke tests")
