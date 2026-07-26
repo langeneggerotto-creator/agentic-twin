@@ -29,21 +29,21 @@ a{color:#38bdf8}
 </style></head>
 <body><main class="wrap">
 <section class="card hero">
-<div class="eyebrow">APEX YouTube Principles Console / v0.1</div>
-<h1>🎥📚 YouTube Principles Extraction Console</h1>
-<p>Paste one or more YouTube URLs (one per line). The pipeline fetches each video's public title/channel and official caption transcript, then asks an LLM to pull out every core law, principle, theory, framework, mental model, and heuristic taught or referenced -- with a supporting quote and timestamp for each.</p>
+<div class="eyebrow">APEX Principles Extraction Console / v0.1</div>
+<h1>🎥📄 Principles Extraction Console</h1>
+<p>Paste one or more YouTube URLs and/or article/webpage URLs (one per line, any mix). Each one is routed automatically -- YouTube videos use the official caption transcript, articles/webpages use their own readable text -- then an LLM pulls out every core law, principle, theory, framework, mental model, and heuristic taught or referenced, with a supporting quote for each.</p>
 <span id="pApi" class="pill warn">API: checking...</span>
 </section>
 <section class="card">
-<h2>Video URLs</h2>
-<textarea id="urls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/..."></textarea>
-<button onclick="analyze()">Analyze videos</button>
+<h2>URLs</h2>
+<textarea id="urls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/...&#10;https://example.com/some-article"></textarea>
+<button onclick="analyze()">Analyze</button>
 <p class="small" id="status">Idle.</p>
 </section>
 <section id="results"></section>
 <section class="card">
 <h2>Truth Boundary</h2>
-<p>This console never downloads video or audio files and never bypasses platform login, paywalls, or terms of service. It reads only the public oEmbed metadata endpoint and the official caption/transcript track YouTube already serves for the video. Extracted quotes are checked against the transcript text automatically; items that fail that check are flagged <b>unverified</b> and should be confirmed against the source video before you rely on or republish them. Auto-generated captions can contain errors, and named laws/theories should be checked against a primary source.</p>
+<p>This console never downloads video or audio files, never logs in, and never bypasses platform terms of service or paywalls. For YouTube it reads only the public oEmbed metadata endpoint and the official caption/transcript track; for articles/webpages it reads only the page's own public HTML. Extracted quotes are checked against the source text automatically; items that fail that check are flagged <b>unverified</b> and should be confirmed against the source before you rely on or republish them. Auto-generated captions can contain errors, article extraction can occasionally include junk on unusual page layouts, and named laws/theories should be checked against a primary source.</p>
 </section>
 </main>
 <script>
@@ -65,8 +65,8 @@ function splitUrls(raw){
 
 async function analyze(){
   const urls = splitUrls($('urls').value);
-  if(!urls.length){ $('status').textContent = 'Paste at least one YouTube URL.'; return; }
-  $('status').textContent = `Analyzing ${urls.length} video(s)... this can take a while for long videos.`;
+  if(!urls.length){ $('status').textContent = 'Paste at least one URL.'; return; }
+  $('status').textContent = `Analyzing ${urls.length} URL(s)... this can take a while for long videos/articles.`;
   $('results').innerHTML = '';
   try{
     const res = await fetch('/api/analyze', {
@@ -95,13 +95,18 @@ function render(reports){
       el.appendChild(card);
       return;
     }
-    const v = r.video || {};
+    const isVideo = (r.source_type||'youtube_video') === 'youtube_video';
+    const meta = r.video || r.article || {};
+    const byLabel = isVideo ? (meta.channel||'') : (meta.author||'');
+    const status = r.transcript_status || r.content_status;
+    const statusLabel = isVideo ? 'transcript' : 'content';
+    const errorText = r.transcript_error || r.content_error;
     const qa = r.qa_gates || {};
-    let html = `<div class="video"><h2>${escapeHtml(v.title||'Untitled')}</h2>
-      <p class="small">${escapeHtml(v.channel||'')} &middot; <a href="${escapeHtml(r.source_url)}" target="_blank" rel="noopener">${escapeHtml(r.source_url)}</a></p>
+    let html = `<div class="video"><h2>${escapeHtml(meta.title||'Untitled')}</h2>
+      <p class="small">${escapeHtml(byLabel)} &middot; <a href="${escapeHtml(r.source_url)}" target="_blank" rel="noopener">${escapeHtml(r.source_url)}</a></p>
       <span class="pill ${qa.release_status==='PROTOTYPE_OK'?'good':'warn'}">QA score ${qa.score ?? '?'} / ${qa.release_status||'?'}</span>
-      <span class="pill ${r.transcript_status==='ok'?'good':'bad'}">transcript: ${escapeHtml(r.transcript_status||'?')}</span></div>`;
-    if(r.transcript_error){ html += `<p class="small">${escapeHtml(r.transcript_error)}</p>`; }
+      <span class="pill ${status==='ok'?'good':'bad'}">${statusLabel}: ${escapeHtml(status||'?')}</span></div>`;
+    if(errorText){ html += `<p class="small">${escapeHtml(errorText)}</p>`; }
     if(r.summary){ html += `<h3>Summary</h3><p>${escapeHtml(r.summary)}</p>`; }
     html += `<h3>Core principles (${r.principle_count||0})</h3>`;
     (r.principles||[]).forEach(p => {

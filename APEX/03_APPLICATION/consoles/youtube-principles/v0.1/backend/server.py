@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-APEX YouTube Principles Extraction Server v0.1
+APEX Principles Extraction Server v0.1
 
 Serves the single-page frontend (web/index.html) and exposes
-POST /api/analyze, which runs the ingestion + extraction pipeline in
-pipeline.py against pasted YouTube URLs.
+POST /api/analyze, which runs pasted URLs through dispatch.py -- routing
+each one to the YouTube pipeline or the article/webpage pipeline as
+appropriate.
 
 Run with:
     uvicorn backend.server:app --reload --app-dir "APEX/03_APPLICATION/consoles/youtube-principles/v0.1"
@@ -20,11 +21,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import pipeline
+from . import dispatch
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
-app = FastAPI(title="APEX YouTube Principles Extraction Console")
+app = FastAPI(title="APEX Principles Extraction Console")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -50,7 +51,7 @@ def health() -> dict:
 @app.post("/api/analyze")
 def analyze(request: AnalyzeRequest) -> dict:
     urls = [u.strip() for u in request.urls if u.strip()]
-    reports = pipeline.analyze_urls(urls)
+    reports = dispatch.analyze_urls(urls)
     return {"reports": reports}
 
 

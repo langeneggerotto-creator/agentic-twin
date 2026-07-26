@@ -430,6 +430,7 @@ def build_report(url: str, video: VideoMeta, transcript: TranscriptResult, llm: 
 
     report: Dict[str, Any] = {
         "artifact_type": "apex_youtube_principles_report_v01",
+        "source_type": "youtube_video",
         "video": asdict(video),
         "source_url": url,
         "transcript_status": transcript.status,

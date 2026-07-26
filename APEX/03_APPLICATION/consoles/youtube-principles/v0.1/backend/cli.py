@@ -1,31 +1,33 @@
 #!/usr/bin/env python3
 """
-APEX YouTube Principles Extraction CLI v0.1
+APEX Principles Extraction CLI v0.1
 
 The easiest way to run the pipeline: no server, no browser, one command.
+Handles both YouTube URLs (transcript-based) and generic article/webpage
+URLs (readable-text-based) -- each URL is routed automatically.
 
-    python3 cli.py "https://www.youtube.com/watch?v=..." [more urls...]
+    python3 cli.py "https://www.youtube.com/watch?v=..." "https://example.com/some-article"
     python3 cli.py --file urls.txt --out-dir reports/
     cat urls.txt | python3 cli.py
 
 Requires OPENAI_API_KEY in the environment for principle extraction and
-summaries; without it, transcripts/metadata still print but principles
-will be empty and each report is flagged with an llm_extraction_error
-risk flag.
+summaries; without it, metadata/content still print but principles will
+be empty and each report is flagged with an llm_extraction_error risk flag.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
 from typing import List, Optional
 
 try:
-    from . import pipeline
+    from . import dispatch, pipeline
 except ImportError:  # allow running directly as `python3 cli.py`, not just `python3 -m backend.cli`
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import pipeline  # type: ignore
+    import dispatch, pipeline  # type: ignore
 
 
 def read_urls(args: argparse.Namespace) -> List[str]:
@@ -43,21 +45,34 @@ def read_urls(args: argparse.Namespace) -> List[str]:
     return deduped
 
 
+def report_slug(report: dict) -> str:
+    """Filesystem-safe identifier for a report, for --out-dir filenames."""
+    video_id = (report.get("video") or {}).get("video_id")
+    if video_id:
+        return video_id
+    return hashlib.sha256(str(report.get("source_url", "")).encode("utf-8")).hexdigest()[:16]
+
+
 def format_report_text(report: dict) -> str:
     if report.get("error"):
         return f"✗ {report.get('source_url')}\n  ERROR: {report['error']}"
 
-    video = report.get("video", {})
+    source_type = report.get("source_type", "youtube_video")
+    meta = report.get("video") or report.get("article") or {}
+    status = report.get("transcript_status") or report.get("content_status")
+    status_label = "transcript" if source_type == "youtube_video" else "content"
+    by_field = "channel" if source_type == "youtube_video" else "author"
     qa = report.get("qa_gates", {})
     lines = [
         "=" * 70,
-        f"{video.get('title', 'Untitled')}  ({video.get('channel', 'Unknown channel')})",
+        f"{meta.get('title', 'Untitled')}  ({meta.get(by_field, 'Unknown')})",
         str(report.get("source_url", "")),
-        f"transcript: {report.get('transcript_status')} | "
+        f"{status_label}: {status} | "
         f"QA score: {qa.get('score', '?')} ({qa.get('release_status', '?')})",
     ]
-    if report.get("transcript_error"):
-        lines.append(f"  note: {report['transcript_error']}")
+    error_text = report.get("transcript_error") or report.get("content_error")
+    if error_text:
+        lines.append(f"  note: {error_text}")
     if report.get("summary"):
         lines += ["", "Summary:", f"  {report['summary']}"]
 
@@ -89,11 +104,11 @@ def format_report_text(report: dict) -> str:
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Extract core laws/principles/theories/frameworks from YouTube videos."
+        description="Extract core laws/principles/theories/frameworks from YouTube videos and articles/webpages."
     )
-    parser.add_argument("urls", nargs="*", help="YouTube URLs to analyze")
+    parser.add_argument("urls", nargs="*", help="YouTube or article/webpage URLs to analyze")
     parser.add_argument("--file", help="Path to a text file with one URL per line")
-    parser.add_argument("--out-dir", help="Directory to write one JSON report per video")
+    parser.add_argument("--out-dir", help="Directory to write one JSON report per URL")
     parser.add_argument("--json", action="store_true", help="Print raw JSON instead of formatted text")
     return parser
 
@@ -105,14 +120,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("No URLs given. Pass them as arguments, --file, or via stdin.", file=sys.stderr)
         return 1
 
-    reports = pipeline.analyze_urls(urls)
+    reports = dispatch.analyze_urls(urls)
 
     if args.out_dir:
         out_dir = Path(args.out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
         for report in reports:
-            video_id = (report.get("video") or {}).get("video_id", "unknown")
-            out_path = out_dir / f"youtube_principles_{video_id}.json"
+            out_path = out_dir / f"principles_{report_slug(report)}.json"
             out_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
             print(f"Wrote {out_path}")
 

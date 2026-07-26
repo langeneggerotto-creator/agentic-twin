@@ -64,9 +64,38 @@ def test_format_report_text_handles_error_reports():
     assert_true("ERROR" in text, "error reports should render an ERROR line instead of crashing")
 
 
+def test_format_report_text_handles_article_shaped_reports():
+    report = {
+        "source_type": "article",
+        "source_url": "https://example.com/post",
+        "article": {"title": "80/20 Rule Explained", "author": "Jane Doe"},
+        "content_status": "ok",
+        "qa_gates": {"score": 100, "release_status": "PROTOTYPE_OK"},
+        "summary": "An article about the Pareto Principle.",
+        "principles": [{"category": "principle", "name": "Pareto Principle", "quote": "", "quote_verified": False}],
+        "risk_flags": [],
+    }
+    text = module.format_report_text(report)
+    assert_true("80/20 Rule Explained" in text, "formatted output should include the article title")
+    assert_true("Jane Doe" in text, "formatted output should include the author for article reports")
+    assert_true("content:" in text, "article reports should use 'content' status wording, not 'transcript'")
+
+
+def test_report_slug_prefers_video_id_then_falls_back_to_url_hash():
+    video_report = {"video": {"video_id": "abc123XYZ_9"}, "source_url": "https://youtu.be/abc123XYZ_9"}
+    assert_true(module.report_slug(video_report) == "abc123XYZ_9", "video reports should slug by video_id")
+
+    article_report = {"source_url": "https://example.com/post"}
+    slug = module.report_slug(article_report)
+    assert_true(slug and slug != "unknown", "article reports should get a stable non-empty slug")
+    assert_true(module.report_slug(article_report) == slug, "the slug should be deterministic for the same URL")
+
+
 if __name__ == "__main__":
     test_cli_imports_pipeline_when_run_as_a_bare_script()
     test_read_urls_merges_args_file_and_dedupes()
     test_format_report_text_includes_title_summary_and_principles()
     test_format_report_text_handles_error_reports()
+    test_format_report_text_handles_article_shaped_reports()
+    test_report_slug_prefers_video_id_then_falls_back_to_url_hash()
     print("PASS: APEX YouTube Principles Extraction CLI v0.1 smoke tests")
