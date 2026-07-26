@@ -14,6 +14,7 @@ apply it, a supporting quote, and an approximate timestamp.
 web/index.html       Single-page frontend: paste URLs, view/download results
 backend/pipeline.py   Ingestion + extraction pipeline (framework-independent)
 backend/server.py     FastAPI app: serves web/index.html and POST /api/analyze
+backend/cli.py        Command-line entry point: no server, no browser required
 ```
 
 Flow for each submitted URL:
@@ -45,6 +46,31 @@ or republish them.
 
 ## Run it
 
+### Easiest: command line
+
+No server, no browser, one command. Only needs `requests`,
+`youtube-transcript-api`, and `openai` (skip `fastapi`/`uvicorn` entirely):
+
+```bash
+pip install requests youtube-transcript-api openai
+export OPENAI_API_KEY=sk-...          # required for extraction/summary
+cd "APEX/03_APPLICATION/consoles/youtube-principles/v0.1/backend"
+python3 cli.py "https://www.youtube.com/watch?v=..." "https://youtu.be/..."
+```
+
+Other ways to feed it URLs:
+
+```bash
+python3 cli.py --file urls.txt             # one URL per line
+cat urls.txt | python3 cli.py              # via stdin
+python3 cli.py URL --out-dir reports/      # also save one JSON report per video
+python3 cli.py URL --json                  # print raw JSON instead of formatted text
+```
+
+### Alternative: web page
+
+If you'd rather paste URLs into a browser page than a terminal:
+
 ```bash
 pip install -r requirements.txt
 export OPENAI_API_KEY=sk-...          # required for extraction/summary
@@ -53,9 +79,10 @@ uvicorn backend.server:app --reload --app-dir "APEX/03_APPLICATION/consoles/yout
 
 Then open http://127.0.0.1:8000/ and paste YouTube URLs, one per line.
 
-Without `OPENAI_API_KEY` set, `/api/analyze` still fetches metadata and
-transcripts, but each report will carry an `llm_extraction_error` /
-`llm_summary_error` risk flag instead of principles.
+In either form, without `OPENAI_API_KEY` set, metadata/transcript
+fetching still works, but each report will carry an
+`llm_extraction_error` / `llm_summary_error` risk flag instead of
+principles.
 
 ## Heart Core
 
