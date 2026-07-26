@@ -66,6 +66,10 @@ def format_report_text(report: dict) -> str:
     for i, p in enumerate(principles, 1):
         verified = "verified" if p.get("quote_verified") else "UNVERIFIED"
         lines.append(f"  {i}. [{p.get('category', 'principle')}] {p.get('name', 'Untitled')}")
+        if p.get("aliases"):
+            lines.append(f"     aka: {', '.join(p['aliases'])}")
+        if p.get("domains"):
+            lines.append(f"     domains: {', '.join(p['domains'])}")
         if p.get("description"):
             lines.append(f"     {p['description']}")
         if p.get("application"):

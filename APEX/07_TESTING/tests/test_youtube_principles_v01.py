@@ -26,6 +26,8 @@ class FakeLLMClient:
             return [{
                 "name": "Parkinson's Law",
                 "category": "law",
+                "domains": ["Productivity Time Management", "productivity-time-management"],
+                "aliases": ["Parkinson's Law of Bureaucracy"],
                 "description": "Work expands to fill the time available for its completion.",
                 "application": "Set shorter deadlines to force focus.",
                 "quote": "work expands so as to fill the time available",
@@ -110,8 +112,40 @@ def test_build_report_with_available_transcript_extracts_principles():
     assert_true(report["transcript_status"] == "ok", "transcript status should be ok")
     assert_true(report["principle_count"] == 1, "expected exactly one extracted principle")
     assert_true(report["principles"][0]["quote_verified"] is True, "quote should verify against source segment")
+    assert_true(report["principles"][0]["domains"] == ["productivity-time-management"], "domain tags should be normalized and deduped")
+    assert_true(report["principles"][0]["aliases"] == ["Parkinson's Law of Bureaucracy"], "aliases should pass through")
     assert_true(report["qa_gates"]["release_status"] == "PROTOTYPE_OK", "clean report should pass QA")
     assert_true(report["manifest_hash_sha256"], "manifest hash must be generated")
+
+
+def test_normalize_domains_and_aliases():
+    assert_true(
+        module.normalize_domains(["Business Strategy", "business-strategy", ""]) == ["business-strategy"],
+        "domains should be kebab-cased and deduped",
+    )
+    assert_true(module.normalize_domains("not a list") == [], "non-list input should return empty")
+    assert_true(
+        module.normalize_aliases(["80/20 Rule", "80/20 Rule", ""]) == ["80/20 Rule"],
+        "aliases should be deduped while preserving original casing",
+    )
+
+
+def test_merge_candidates_unions_domains_and_aliases_across_duplicates():
+    items = [
+        {"name": "Parkinson's Law", "quote_verified": False, "domains": ["productivity-time-management"], "aliases": []},
+        {"name": "parkinson's law", "quote_verified": True, "domains": ["business-strategy"], "aliases": ["Parkinson's Law of Bureaucracy"]},
+    ]
+    merged = module.merge_candidates(items)
+    assert_true(len(merged) == 1, "duplicate names should merge into one entry")
+    entry = merged[0]
+    assert_true(
+        set(entry["domains"]) == {"productivity-time-management", "business-strategy"},
+        "domains should union across duplicate sightings instead of only keeping one chunk's tags",
+    )
+    assert_true(
+        entry["aliases"] == ["Parkinson's Law of Bureaucracy"],
+        "aliases should union across duplicate sightings",
+    )
 
 
 def test_build_report_without_transcript_holds_for_review():
@@ -169,6 +203,8 @@ if __name__ == "__main__":
     test_verify_quote_accepts_exact_and_rejects_unrelated()
     test_merge_candidates_dedupes_by_name_and_prefers_verified()
     test_build_report_with_available_transcript_extracts_principles()
+    test_normalize_domains_and_aliases()
+    test_merge_candidates_unions_domains_and_aliases_across_duplicates()
     test_build_report_without_transcript_holds_for_review()
     test_build_report_surfaces_llm_errors_instead_of_swallowing_them()
     test_analyze_url_reports_invalid_url_gracefully()

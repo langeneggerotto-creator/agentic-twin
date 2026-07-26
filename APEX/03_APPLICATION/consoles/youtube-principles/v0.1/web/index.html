@@ -108,6 +108,8 @@ function render(reports){
       html += `<div class="principle">
         <span class="cat">${escapeHtml(p.category||'principle')}</span>
         <div class="name">${escapeHtml(p.name||'Untitled principle')}</div>
+        ${p.aliases && p.aliases.length ? `<p class="small">aka: ${escapeHtml(p.aliases.join(', '))}</p>` : ''}
+        ${p.domains && p.domains.length ? p.domains.map(d=>`<span class="pill">${escapeHtml(d)}</span>`).join('') : ''}
         <p>${escapeHtml(p.description||'')}</p>
         ${p.application ? `<p class="small"><b>Apply it:</b> ${escapeHtml(p.application)}</p>` : ''}
         ${p.quote ? `<div class="quote">&ldquo;${escapeHtml(p.quote)}&rdquo; &mdash; ${escapeHtml(p.approx_timestamp||'')} ${p.quote_verified ? '<span class="pill good">verified</span>' : '<span class="pill warn">unverified</span>'}</div>` : ''}

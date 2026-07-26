@@ -41,6 +41,33 @@ PRINCIPLE_CATEGORIES = [
     "law", "principle", "theory", "framework",
     "mental_model", "heuristic", "rule_of_thumb", "key_quote",
 ]
+
+# Controlled vocabulary for topic tagging. Kept intentionally broad and mirrored in the
+# youtube-principles-kb repo's schema/domains.json so extraction labels line up with how
+# the knowledge base is organized for cross-project querying.
+DOMAIN_TAGS = [
+    "productivity-time-management",
+    "business-strategy",
+    "marketing-sales",
+    "leadership-management",
+    "psychology-behavior",
+    "decision-making-cognition",
+    "learning-education",
+    "creativity-innovation",
+    "finance-investing",
+    "health-fitness",
+    "relationships-communication",
+    "habits-self-discipline",
+    "career-work",
+    "systems-thinking",
+    "negotiation-influence",
+    "writing-content-creation",
+    "technology-ai",
+    "philosophy-ethics",
+    "science-research",
+    "personal-growth-mindset",
+]
+
 CHUNK_CHAR_LIMIT = 3500
 
 
@@ -195,8 +222,39 @@ def verify_quote(quote: str, chunk_text: str) -> bool:
     return overlap >= 0.8
 
 
+def normalize_domain_tag(tag: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", str(tag).lower()).strip("-")
+
+
+def normalize_domains(domains: Any) -> List[str]:
+    """Kebab-case and dedupe domain tags. Accepts tags outside DOMAIN_TAGS too (the LLM
+    is instructed to only use the fixed list, but this stays permissive rather than
+    silently dropping a real signal if it drifts)."""
+    if not isinstance(domains, list):
+        return []
+    cleaned: List[str] = []
+    for tag in domains:
+        norm = normalize_domain_tag(tag)
+        if norm and norm not in cleaned:
+            cleaned.append(norm)
+    return cleaned
+
+
+def normalize_aliases(aliases: Any) -> List[str]:
+    if not isinstance(aliases, list):
+        return []
+    cleaned: List[str] = []
+    for alias in aliases:
+        text = str(alias).strip()
+        if text and text not in cleaned:
+            cleaned.append(text)
+    return cleaned
+
+
 def merge_candidates(all_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Dedupe principle candidates across chunks by normalized name, preferring verified quotes."""
+    """Dedupe principle candidates across chunks by normalized name. Prefers a verified
+    quote as the representative record, but unions domains/aliases across every duplicate
+    so labeling stays as complete as possible even if only one chunk tagged it well."""
     seen: Dict[str, Dict[str, Any]] = {}
     order: List[str] = []
     for item in all_items:
@@ -206,8 +264,15 @@ def merge_candidates(all_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         if key not in seen:
             seen[key] = item
             order.append(key)
-        elif item.get("quote_verified") and not seen[key].get("quote_verified"):
+            continue
+        existing = seen[key]
+        merged_domains = sorted(set(existing.get("domains", [])) | set(item.get("domains", [])))
+        merged_aliases = sorted(set(existing.get("aliases", [])) | set(item.get("aliases", [])))
+        if item.get("quote_verified") and not existing.get("quote_verified"):
+            item["domains"], item["aliases"] = merged_domains, merged_aliases
             seen[key] = item
+        else:
+            existing["domains"], existing["aliases"] = merged_domains, merged_aliases
     return [seen[k] for k in order]
 
 
@@ -225,13 +290,19 @@ EXTRACTION_SYSTEM_PROMPT = (
     "extract every durable, reusable principle taught or referenced: named laws (e.g. "
     "Parkinson's Law), principles, theories, frameworks, mental models, heuristics, and "
     "rules of thumb -- both explicitly named and clearly implied. Ignore small talk, "
-    "sponsor reads, and filler. For each item return a JSON object with: name, category "
-    "(one of law, principle, theory, framework, mental_model, heuristic, rule_of_thumb, "
-    "key_quote), description (1-2 sentences, in your own words), application (how to use "
-    "it, 1 sentence), quote (a short snippet copied exactly, verbatim, from the transcript "
-    "segment below that supports this item, or an empty string if none fits cleanly). Only "
-    "use text that actually appears in the provided segment for the quote field -- never "
-    "invent a quote. Respond with a JSON object of the shape {\"items\": [...]}. If nothing "
+    "sponsor reads, and filler. For each item return a JSON object with: "
+    "name (the canonical, most widely recognized name for it), "
+    "aliases (array of other names or phrasings it is commonly known by, or [] if none), "
+    "category (one of law, principle, theory, framework, mental_model, heuristic, "
+    "rule_of_thumb, key_quote), "
+    "domains (array of 1-3 tags chosen ONLY from this fixed list, picking the closest fit "
+    "even if imperfect -- never invent a new tag: " + ", ".join(DOMAIN_TAGS) + "), "
+    "description (1-2 sentences, in your own words), "
+    "application (how to use it, 1 sentence), "
+    "quote (a short snippet copied exactly, verbatim, from the transcript segment below "
+    "that supports this item, or an empty string if none fits cleanly). Only use text "
+    "that actually appears in the provided segment for the quote field -- never invent a "
+    "quote. Respond with a JSON object of the shape {\"items\": [...]}. If nothing "
     "qualifies in this segment, return {\"items\": []}."
 )
 
@@ -342,6 +413,8 @@ def build_report(url: str, video: VideoMeta, transcript: TranscriptResult, llm: 
                 item["source_chunk_index"] = chunk.index
                 if item.get("category") not in PRINCIPLE_CATEGORIES:
                     item["category"] = "principle"
+                item["domains"] = normalize_domains(item.get("domains"))
+                item["aliases"] = normalize_aliases(item.get("aliases"))
                 all_items.append(item)
         if failed_chunk_count:
             risk_flags.append("llm_extraction_error")
@@ -373,7 +446,7 @@ def build_report(url: str, video: VideoMeta, transcript: TranscriptResult, llm: 
                 "video ID parsed from submitted URL",
                 "metadata fetched from public oEmbed endpoint" if video.title != "Unknown title" else "metadata fetch attempted",
             ],
-            "INFERRED": ["principle categorization, phrasing, and summary produced by an LLM"],
+            "INFERRED": ["principle categorization, domain tags, aliases, phrasing, and summary produced by an LLM"],
             "ASSUMED": ["transcript accurately represents spoken audio (auto-captions may contain errors)"],
             "UNKNOWN": ["whether extracted quotes are precisely verbatim beyond the automated substring check"],
         },

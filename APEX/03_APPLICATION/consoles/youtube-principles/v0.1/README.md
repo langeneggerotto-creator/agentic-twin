@@ -29,9 +29,31 @@ Flow for each submitted URL:
 5. Every returned quote is automatically checked against the transcript
    chunk text; quotes that do not match are flagged `unverified` rather
    than silently trusted.
-6. Duplicate principles across chunks are merged, an overall summary is
+6. Duplicate principles across chunks are merged (unioning any domains
+   and aliases found in each duplicate sighting), an overall summary is
    generated, and the result is returned as one JSON report per video
    with QA gates and a Truth Status block.
+
+## Principle labeling
+
+Every extracted principle carries, in addition to `name`/`description`/
+`application`/`quote`:
+
+- `category` -- one of `law`, `principle`, `theory`, `framework`,
+  `mental_model`, `heuristic`, `rule_of_thumb`, `key_quote`.
+- `domains` -- 1-3 topic tags chosen by the LLM from a fixed controlled
+  vocabulary (`DOMAIN_TAGS` in `backend/pipeline.py`, e.g.
+  `productivity-time-management`, `business-strategy`, `psychology-behavior`,
+  `decision-making-cognition`, `finance-investing`...), kept in sync with
+  `schema/domains.json` in the companion `youtube-principles-kb` repo so
+  labels line up for cross-project querying.
+- `aliases` -- other names the same principle is commonly known by (e.g.
+  "80/20 Rule" as an alias of "Pareto Principle"), unioned across every
+  chunk/video it's seen in.
+
+This category+domain+alias labeling is what makes reports from this
+pipeline directly ingestible into a categorized knowledge base (see
+`youtube-principles-kb`) instead of just a flat list per video.
 
 ## Truth Boundary
 
