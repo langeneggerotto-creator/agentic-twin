@@ -22,8 +22,10 @@ backend/dispatch.py           Routes each URL to the right pipeline by source ty
 backend/server.py             FastAPI app: serves web/index.html and POST /api/analyze
 backend/cli.py                Command-line entry point: no server, no browser required
 
-backend/av_craft_pipeline.py   Separate tool: cinematography/color-grading/tempo analysis (see below)
-backend/av_craft_cli.py        Its command-line entry point
+backend/av_craft_pipeline.py    Separate tool: cinematography/color-grading/tempo analysis (see below)
+backend/av_craft_cli.py         Its command-line entry point
+backend/lyric_scene_pipeline.py  Separate tool: correlates lyrics against scenes from an av_craft report (see below)
+backend/lyric_scene_cli.py      Its command-line entry point
 ```
 
 `pipeline.py` holds both the YouTube-specific ingestion (oEmbed metadata,
@@ -163,6 +165,39 @@ for fast-paced editing); tempo/BPM detection is algorithmic and not
 infallible on complex mixes; the vision LLM describes what's visible in
 low-detail frame previews (`detail: "low"`), not full-resolution frame
 analysis, to keep cost/latency reasonable.
+
+## Lyric-scene correlation (lyric_scene_pipeline.py)
+
+A "making of" commentary video explains *why* a creative choice was
+made; this tool answers a related but different question: *what is the
+song actually saying at the moment a given visual scene happens?* It
+reads the video's real caption track (lyrics + timestamps -- no
+video/audio download) and cross-references it against an existing
+`av_craft_pipeline.py` report's scenes (matched by timestamp overlap),
+then asks an LLM to describe the thematic/emotional relationship --
+literalizing the lyric, contrasting with it, using metaphor, or (often,
+for instrumental passages) no meaningful connection at all, which it's
+explicitly told to say plainly rather than invent.
+
+Run `av_craft_cli.py` first to produce the scene data this needs:
+
+```bash
+python3 av_craft_cli.py "https://youtu.be/VIDEO_ID" --out-dir reports/
+python3 lyric_scene_cli.py "https://youtu.be/VIDEO_ID" --craft-report reports/av_craft_VIDEOID.json --out-dir reports/
+```
+
+Requires `OPENAI_API_KEY` for the correlation commentary; the lyric/
+timestamp data itself needs no API key, only `youtube-transcript-api`
+(already a dependency). The `--craft-report` must be for the *same*
+video (checked by `video_id`) -- a mismatched report is rejected rather
+than silently correlating the wrong video's lyrics against the wrong
+video's scenes.
+
+Known limits: correlation quality depends entirely on caption accuracy
+(auto-generated captions can mis-transcribe lyrics); a scene with no
+lyric segment overlapping its timestamp range is skipped, not guessed
+at; this reads captions only, so it doesn't distinguish sung lyrics from
+spoken interludes or ad-libs beyond what the caption track itself says.
 
 ## Truth Boundary (pipeline.py / article_pipeline.py / dispatch.py / cli.py / server.py)
 
