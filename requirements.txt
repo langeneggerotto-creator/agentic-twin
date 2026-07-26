@@ -4,3 +4,9 @@ uvicorn[standard]
 requests
 youtube-transcript-api>=1.0.0
 trafilatura>=2.0.0
+
+# For av_craft_pipeline.py / av_craft_cli.py only (cinematography/color-grading/
+# audio-tempo analysis). Also requires ffmpeg installed separately and on PATH --
+# not pip-installable. Not needed for the text-based pipelines above.
+yt-dlp>=2024.1.0
+librosa>=0.10.0

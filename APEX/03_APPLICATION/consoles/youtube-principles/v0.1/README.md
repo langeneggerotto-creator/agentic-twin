@@ -21,6 +21,9 @@ backend/article_pipeline.py   Article/webpage ingestion, reusing pipeline.py's s
 backend/dispatch.py           Routes each URL to the right pipeline by source type
 backend/server.py             FastAPI app: serves web/index.html and POST /api/analyze
 backend/cli.py                Command-line entry point: no server, no browser required
+
+backend/av_craft_pipeline.py   Separate tool: cinematography/color-grading/tempo analysis (see below)
+backend/av_craft_cli.py        Its command-line entry point
 ```
 
 `pipeline.py` holds both the YouTube-specific ingestion (oEmbed metadata,
@@ -102,7 +105,66 @@ higher-order pattern, that reconciliation and synthesis work lives in
 `principles-kb`'s ingestion tool, not here -- this pipeline's job stops at
 producing one clean, well-labeled report per source.
 
-## Truth Boundary
+## Audiovisual craft analysis (av_craft_pipeline.py) -- a separate tool with a different Truth Boundary
+
+Everything above only ever reads text (captions/transcripts, article
+HTML). That's fine for a talking-head video or a written piece, but it
+is fundamentally blind to cinematography, editing, color grading,
+lighting, costume/set design, visual effects, choreography, and
+tempo/rhythm -- none of that exists in a caption track. `av_craft_pipeline.py`
+and its CLI (`av_craft_cli.py`) exist specifically to analyze that, and
+they work differently on purpose:
+
+- **It temporarily downloads the video** (via `yt-dlp`, moderate quality)
+  strictly for local frame sampling (via `ffmpeg`) and audio-signal
+  analysis (via `librosa`). The downloaded video, extracted frames, and
+  extracted audio are **deleted immediately after the report is built**
+  (see the `finally` block in `analyze_url`) -- nothing is stored,
+  uploaded, redistributed, or included in the output report itself. This
+  is a deliberate, narrow exception to the "never downloads video/audio"
+  rule the rest of this console follows, made because there is no way to
+  see cinematography or measure tempo from text alone. You are
+  responsible for ensuring your use complies with the source platform's
+  terms of service and applicable law for your situation -- this is built
+  for personal, transient, non-commercial analysis, not for keeping or
+  redistributing the source video.
+- **Two clearly separated kinds of output**: `audio_analysis` (tempo/BPM,
+  duration, beat count, energy) is **measured** via real digital signal
+  processing (`librosa.beat.beat_track`, RMS energy) -- not an LLM guess.
+  `craft_elements` (cinematography, editing, color grading, lighting, set/
+  costume design, visual effects, choreography, narrative devices) is
+  **inferred** by a vision-capable LLM (`gpt-4o-mini` by default) looking
+  at sampled still frames -- qualitative, and only as good as what's
+  visible in the frames actually sampled at the chosen interval. The
+  report's `truth_status` block keeps these two apart explicitly.
+- **Separate category/domain taxonomy**: `CRAFT_CATEGORIES` (`cinematography`,
+  `editing`, `color_grading`, `lighting`, `set_design`, `costume_design`,
+  `visual_effects`, `choreography`, `narrative_device`, `sound_design`,
+  `music_production`) and `CRAFT_DOMAIN_TAGS` are intentionally distinct
+  from the law/principle/theory taxonomy above -- craft technique isn't a
+  "principle" in that sense, and forcing it into the same schema would
+  blur two very different kinds of claims. Not yet wired into
+  `principles-kb`; that would need its own schema extension there first.
+
+Run it:
+
+```bash
+pip install yt-dlp librosa openai
+# ffmpeg must also be installed and on PATH (not pip-installable)
+export OPENAI_API_KEY=sk-...
+python3 av_craft_cli.py "https://youtu.be/VIDEO_ID"
+python3 av_craft_cli.py "https://youtu.be/VIDEO_ID" --frame-interval 4 --max-frames 60  # denser sampling for fast cuts
+python3 av_craft_cli.py "https://youtu.be/VIDEO_ID" --out-dir reports/
+```
+
+Known limits: only the sampled frames are seen (a coarse interval can
+miss fast cuts/transitions between samples -- lower `--frame-interval`
+for fast-paced editing); tempo/BPM detection is algorithmic and not
+infallible on complex mixes; the vision LLM describes what's visible in
+low-detail frame previews (`detail: "low"`), not full-resolution frame
+analysis, to keep cost/latency reasonable.
+
+## Truth Boundary (pipeline.py / article_pipeline.py / dispatch.py / cli.py / server.py)
 
 This pipeline never downloads video or audio files, never logs in, and
 never bypasses YouTube's or any other site's terms of service or
