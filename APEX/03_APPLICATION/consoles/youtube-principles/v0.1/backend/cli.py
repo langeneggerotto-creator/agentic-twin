@@ -73,6 +73,11 @@ def format_report_text(report: dict) -> str:
         if p.get("quote"):
             lines.append(f"     \"{p['quote']}\" ({p.get('approx_timestamp', '?')}, {verified})")
 
+    if report.get("llm_error_samples"):
+        lines += ["", f"LLM call errors ({report.get('llm_failed_chunk_count', 0)} chunk(s) failed), sample:"]
+        for err in report["llm_error_samples"]:
+            lines.append(f"  {err}")
+
     if report.get("risk_flags"):
         lines += ["", "Risk flags: " + ", ".join(report["risk_flags"])]
     return "\n".join(lines)

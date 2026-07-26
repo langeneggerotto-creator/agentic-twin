@@ -123,6 +123,39 @@ def test_build_report_without_transcript_holds_for_review():
     assert_true("no_transcript_available" in report["risk_flags"], "risk flags should note missing transcript")
 
 
+class FailingLLMClient:
+    """Simulates every LLM call failing (e.g. a bad/placeholder API key)."""
+
+    def extract_principles(self, chunk_text, video_title):
+        raise RuntimeError("Error code: 401 - invalid_api_key")
+
+    def summarize(self, text, video_title):
+        raise RuntimeError("Error code: 401 - invalid_api_key")
+
+
+def test_build_report_surfaces_llm_errors_instead_of_swallowing_them():
+    video = module.VideoMeta(video_id="abc123XYZ_9", url="https://youtu.be/abc123XYZ_9")
+    transcript = module.TranscriptResult(
+        status="ok",
+        segments=[
+            {"text": "word " * 800, "start": 0.0, "duration": 5.0},
+            {"text": "word " * 800, "start": 5.0, "duration": 5.0},
+        ],
+    )
+    report = module.build_report("https://youtu.be/abc123XYZ_9", video, transcript, FailingLLMClient())
+    assert_true(report["principle_count"] == 0, "a fully failing LLM should yield zero principles")
+    assert_true(report["llm_failed_chunk_count"] >= 1, "failed chunk count should be tracked")
+    assert_true(len(report["llm_error_samples"]) >= 1, "at least one real error message should be captured")
+    assert_true(
+        "401" in report["llm_error_samples"][0],
+        "the actual exception text should be surfaced, not swallowed",
+    )
+    assert_true(
+        report["risk_flags"].count("llm_extraction_error") == 1,
+        "one llm_extraction_error flag should be set regardless of how many chunks failed",
+    )
+
+
 def test_analyze_url_reports_invalid_url_gracefully():
     report = module.analyze_url("not a youtube url", FakeLLMClient())
     assert_true(report["principle_count"] == 0, "invalid URL should yield zero principles")
@@ -137,5 +170,6 @@ if __name__ == "__main__":
     test_merge_candidates_dedupes_by_name_and_prefers_verified()
     test_build_report_with_available_transcript_extracts_principles()
     test_build_report_without_transcript_holds_for_review()
+    test_build_report_surfaces_llm_errors_instead_of_swallowing_them()
     test_analyze_url_reports_invalid_url_gracefully()
     print("PASS: APEX YouTube Principles Extraction Pipeline v0.1 smoke tests")

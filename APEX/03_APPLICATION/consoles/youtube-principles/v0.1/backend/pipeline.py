@@ -321,6 +321,9 @@ def build_report(url: str, video: VideoMeta, transcript: TranscriptResult, llm: 
         "verify_named_laws_against_primary_source",
     ]
 
+    llm_errors: List[str] = []
+    failed_chunk_count = 0
+
     if transcript.status == "ok":
         chunks = chunk_transcript(transcript.segments)
         full_text = " ".join(c.text for c in chunks)
@@ -328,8 +331,10 @@ def build_report(url: str, video: VideoMeta, transcript: TranscriptResult, llm: 
         for chunk in chunks:
             try:
                 items = llm.extract_principles(chunk.text, video.title)
-            except Exception:  # noqa: BLE001 - one failed chunk should not sink the whole report
-                risk_flags.append(f"llm_extraction_error_chunk_{chunk.index}")
+            except Exception as exc:  # noqa: BLE001 - one failed chunk should not sink the whole report
+                failed_chunk_count += 1
+                if len(llm_errors) < 3:
+                    llm_errors.append(f"chunk {chunk.index}: {type(exc).__name__}: {exc}")
                 continue
             for item in items:
                 item["quote_verified"] = verify_quote(item.get("quote", ""), chunk.text)
@@ -338,12 +343,15 @@ def build_report(url: str, video: VideoMeta, transcript: TranscriptResult, llm: 
                 if item.get("category") not in PRINCIPLE_CATEGORIES:
                     item["category"] = "principle"
                 all_items.append(item)
+        if failed_chunk_count:
+            risk_flags.append("llm_extraction_error")
         principles = merge_candidates(all_items)
         try:
             summary = llm.summarize(full_text, video.title)
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
             summary = "Summary unavailable (LLM call failed)."
             risk_flags.append("llm_summary_error")
+            llm_errors.append(f"summary: {type(exc).__name__}: {exc}")
     else:
         risk_flags.append("no_transcript_available")
 
@@ -356,6 +364,8 @@ def build_report(url: str, video: VideoMeta, transcript: TranscriptResult, llm: 
         "summary": summary,
         "principles": principles,
         "principle_count": len(principles),
+        "llm_failed_chunk_count": failed_chunk_count,
+        "llm_error_samples": llm_errors,
         "risk_flags": sorted(set(risk_flags)),
         "qa_gates": qa_gates(transcript.status, principles),
         "truth_status": {
