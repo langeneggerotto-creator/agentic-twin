@@ -1,13 +1,13 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 DREAMS_PATH = Path(__file__).resolve().parent.parent / "vault" / "dreams.json"
 
 
 def now():
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def load_dreams():

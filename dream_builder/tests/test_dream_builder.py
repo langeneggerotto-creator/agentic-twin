@@ -4,8 +4,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from dream_builder import planner, reflector, resources, store  # noqa: E402
-from dream_builder.util import extract_json_array  # noqa: E402
+from dream_builder import planner, reflector, resources, store
+from dream_builder.util import extract_json_array
 
 
 def test_extract_json_array_parses_embedded_array():

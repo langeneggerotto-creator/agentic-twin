@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest)",
+      "Bash(python -m pytest *)",
+      "Bash(ruff check)",
+      "Bash(ruff check *)",
+      "Bash(python -m dream_builder.cli)",
+      "Bash(python -m dream_builder.cli *)",
+      "Bash(git status)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log)",
+      "Bash(git log *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/dream-builder-verify.sh\"",
+            "timeout": 60,
+            "statusMessage": "Verifying dream_builder tests..."
+          }
+        ]
+      }
+    ]
+  }
+}
