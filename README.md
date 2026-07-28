@@ -32,7 +32,8 @@ export OLLAMA_HOST=http://localhost:11434
 ### Usage
 
 ```bash
-# Add a goal
+# Add a goal (immediately prints a few light, suggestive
+# resource hints to help narrow down the goal's scope)
 python -m dream_builder.cli add "Learn Spanish" "Be conversational within 6 months"
 
 # List your dreams (note the id it prints)
@@ -54,7 +55,21 @@ python -m dream_builder.cli lookup "beginner acoustic guitar under $100"
 
 # Have Claude Code actually implement the plan as a real project
 python -m dream_builder.cli build <id>
+
+# Run the local web UI instead of the CLI
+python -m dream_builder.cli serve
+# -> open http://127.0.0.1:8000
 ```
+
+### Web UI
+
+`serve` runs a local FastAPI app (`dream_builder/webapp/`) that's a thin
+layer over the same store/planner/resources/reflector/executor code the
+CLI uses — no separate logic, no account, no auth (single local user). It
+lets you add dreams, see resource hints, generate plans, mark steps done,
+run the full resource search, get reflections, and trigger `build` (with
+its output streamed to a log you can watch from the page) all from the
+browser instead of the terminal.
 
 Goals are stored locally in `vault/dreams.json`. Nothing leaves your
 machine except the specific web searches a plan or resource lookup needs —

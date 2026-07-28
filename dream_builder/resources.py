@@ -14,6 +14,19 @@ RESOURCE_SYSTEM_PROMPT = (
     '[{"resource": "...", "why": "...", "search_query": "..."}]'
 )
 
+SUGGEST_SYSTEM_PROMPT = (
+    "You help someone think about what could make their goal easier or clearer, "
+    "before any real research has been done. Given a goal (and its plan, if any), "
+    "suggest 2-4 things that could help — tools, communities, learning material, "
+    "people, existing examples. Phrase each as a light, suggestive pitch, not a "
+    "command, e.g. 'This could be handy for your dream: ...' or 'Worth peeking "
+    "at: ...' — never imperative phrasing like 'Get X'. One short sentence each. "
+    "This is a fast hint, not a search result — use general knowledge only, "
+    "don't claim to have looked anything up.\n\n"
+    "Respond with ONLY a JSON array, no other text, in this exact shape:\n"
+    '[{"pitch": "This could be handy for your dream: ..."}]'
+)
+
 RANK_SYSTEM_PROMPT = (
     "You are a frugal, practical resource advisor. Given a resource someone "
     "needs and a list of real search results for it, recommend the option(s) "
@@ -45,6 +58,26 @@ def _rank_options(need, options):
         },
     ]
     return chat(messages)
+
+
+def suggest_resources(dream, max_hints=4):
+    """Fast, single-LLM-call, no-web-search hints meant to help narrow down
+    a dream's scope right when it's stated (or re-planned) — distinct from
+    the heavier, web-search-backed `find_resources` below."""
+    user_content = f"Goal: {dream['title']}\nDetails: {dream['description']}"
+    if dream.get("plan"):
+        plan_summary = "\n".join(f"- {s['step']}" for s in dream["plan"])
+        user_content += f"\n\nCurrent plan:\n{plan_summary}"
+    messages = [
+        {"role": "system", "content": SUGGEST_SYSTEM_PROMPT},
+        {"role": "user", "content": user_content},
+    ]
+    raw = chat(messages)
+    hints = extract_json_array(raw)
+    pitches = [h["pitch"] for h in hints if h.get("pitch")][:max_hints]
+    dream["resource_hints"] = pitches
+    store.update_dream(dream)
+    return pitches
 
 
 def find_resources(dream, max_results=5):

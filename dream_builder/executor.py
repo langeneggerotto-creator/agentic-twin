@@ -48,13 +48,15 @@ def build_prompt(dream):
     )
 
 
-def build_with_claude_code(dream, target_dir, permission_mode="acceptEdits"):
+def build_with_claude_code(dream, target_dir, permission_mode="acceptEdits", log_path=None):
     """Hand the dream's plan to a real `claude` CLI in `target_dir` to
-    implement it. Runs with output streamed live (not captured) since this
-    can take a while. `permission_mode="acceptEdits"` auto-accepts file
-    writes but still gates everything else (e.g. running commands) —
-    intentionally not `bypassPermissions`, since this targets the user's
-    real machine with real internet access."""
+    implement it. By default runs with output streamed live (not captured)
+    since this can take a while. Pass `log_path` to instead redirect output
+    to that file — used by the web UI, which has no terminal to stream to
+    and runs this in a background thread. `permission_mode="acceptEdits"`
+    auto-accepts file writes but still gates everything else (e.g. running
+    commands) — intentionally not `bypassPermissions`, since this targets
+    the user's real machine with real internet access."""
     if shutil.which("claude") is None:
         raise ClaudeCodeError(
             "The `claude` CLI isn't on your PATH. Install Claude Code "
@@ -73,7 +75,15 @@ def build_with_claude_code(dream, target_dir, permission_mode="acceptEdits"):
         permission_mode,
     ]
 
-    result = subprocess.run(cmd, cwd=target_dir, check=False)
+    if log_path is None:
+        result = subprocess.run(cmd, cwd=target_dir, check=False)
+    else:
+        log_path = Path(log_path)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "w", encoding="utf-8") as f:
+            result = subprocess.run(
+                cmd, cwd=target_dir, check=False, stdout=f, stderr=subprocess.STDOUT
+            )
     if result.returncode != 0:
         raise ClaudeCodeError(f"claude exited with code {result.returncode}. See output above.")
     return target_dir

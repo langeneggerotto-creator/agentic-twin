@@ -1,19 +1,14 @@
 import argparse
-import re
 import sys
 from pathlib import Path
 
-from . import store
+from . import service, store
 from .executor import ClaudeCodeError, build_with_claude_code
 from .llm_client import OllamaError
-from .planner import build_plan
 from .reflector import reflect
 from .resources import find_resources
+from .util import slugify
 from .web_lookup import search
-
-
-def _slugify(text):
-    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "project"
 
 
 def _require_dream(dream_id):
@@ -24,9 +19,18 @@ def _require_dream(dream_id):
     return dream
 
 
+def _print_hints(dream):
+    hints = dream.get("resource_hints") or []
+    if hints:
+        print("\nMight be worth a look:")
+        for h in hints:
+            print(f"- {h}")
+
+
 def cmd_add(args):
-    dream = store.create_dream(args.title, args.description)
+    dream = service.create_dream_with_hints(args.title, args.description)
     print(f"Created dream {dream['id']}: {dream['title']}")
+    _print_hints(dream)
 
 
 def cmd_list(args):
@@ -42,11 +46,12 @@ def cmd_list(args):
 
 def cmd_plan(args):
     dream = _require_dream(args.id)
-    build_plan(dream)
+    service.plan_dream(dream)
     print(f"Plan for '{dream['title']}':")
     for i, s in enumerate(dream["plan"], 1):
         tag = " [needs internet]" if s["needs_internet"] else ""
         print(f"{i}. {s['step']}{tag}")
+    _print_hints(dream)
 
 
 def cmd_resources(args):
@@ -64,6 +69,7 @@ def cmd_show(args):
     dream = _require_dream(args.id)
     print(f"{dream['title']} — {dream['status']}")
     print(dream["description"])
+    _print_hints(dream)
     if dream["plan"]:
         print("\nPlan:")
         for i, s in enumerate(dream["plan"], 1):
@@ -98,7 +104,7 @@ def cmd_reflect(args):
 
 def cmd_build(args):
     dream = _require_dream(args.id)
-    target_dir = args.dir or Path("builds") / f"{dream['id']}-{_slugify(dream['title'])}"
+    target_dir = args.dir or Path("builds") / f"{dream['id']}-{slugify(dream['title'])}"
     print(f"Building '{dream['title']}' in {target_dir} using Claude Code "
           f"(permission mode: {args.permission_mode})...")
     build_with_claude_code(dream, target_dir, permission_mode=args.permission_mode)
@@ -108,6 +114,23 @@ def cmd_build(args):
 def cmd_lookup(args):
     for r in search(args.query):
         print(f"- {r['title']}\n  {r['url']}\n  {r['snippet']}\n")
+
+
+def cmd_serve(args):
+    try:
+        import uvicorn
+    except ImportError:
+        print(
+            "Install web UI deps first: pip install fastapi uvicorn httpx",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    uvicorn.run(
+        "dream_builder.webapp.main:app",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+    )
 
 
 def build_parser():
@@ -164,6 +187,12 @@ def build_parser():
              "file edits, everything else still gated)",
     )
     p_build.set_defaults(func=cmd_build)
+
+    p_serve = sub.add_parser("serve", help="Run the local web UI")
+    p_serve.add_argument("--host", default="127.0.0.1")
+    p_serve.add_argument("--port", type=int, default=8000)
+    p_serve.add_argument("--reload", action="store_true")
+    p_serve.set_defaults(func=cmd_serve)
 
     return parser
 

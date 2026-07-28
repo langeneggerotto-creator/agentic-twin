@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dream Builder</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Dream Builder</h1>
+
+      <form id="new-dream-form" class="new-dream-form">
+        <input id="new-title" type="text" placeholder="What's the dream?" required />
+        <textarea id="new-description" placeholder="Any details? (what would 'done' look like?)" required></textarea>
+        <button type="submit">Add dream</button>
+      </form>
+      <div id="new-dream-hints" class="hints hidden"></div>
+
+      <ul id="dream-list" class="dream-list"></ul>
+    </aside>
+
+    <main class="detail" id="detail">
+      <p class="empty-state">Add a dream, or pick one from the list, to get started.</p>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

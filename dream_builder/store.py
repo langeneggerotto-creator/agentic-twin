@@ -33,6 +33,7 @@ def create_dream(title, description):
         "status": "planning",
         "plan": [],
         "resources": [],
+        "resource_hints": [],
         "reflections": [],
     }
     dreams.append(dream)

@@ -3,3 +3,6 @@ requests
 beautifulsoup4
 pytest
 ruff
+fastapi
+uvicorn
+httpx

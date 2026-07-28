@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from dream_builder import executor, planner, reflector, resources, store
+from dream_builder import executor, planner, reflector, resources, service, store
 from dream_builder.util import extract_json_array
 
 
@@ -87,6 +87,78 @@ def test_find_resources_ranks_search_results(tmp_path, monkeypatch):
     assert store.get_dream(dream["id"])["resources"][0]["resource"] == "Beginner guitar"
 
 
+def test_suggest_resources_stores_hints_without_touching_resources(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
+
+    hints_response = json.dumps(
+        [
+            {"pitch": "This could be handy for your dream: a cheap starter guitar."},
+            {"pitch": "Worth peeking at: local community music classes."},
+        ]
+    )
+    monkeypatch.setattr(resources, "chat", lambda messages, **kw: hints_response)
+
+    pitches = resources.suggest_resources(dream)
+
+    assert pitches == [
+        "This could be handy for your dream: a cheap starter guitar.",
+        "Worth peeking at: local community music classes.",
+    ]
+    assert dream["resources"] == []
+    fetched = store.get_dream(dream["id"])
+    assert fetched["resource_hints"] == pitches
+    assert fetched["resources"] == []
+
+
+def test_suggest_resources_includes_plan_context(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
+    dream["plan"] = [{"step": "Buy a cheap acoustic guitar", "needs_internet": True, "done": False, "notes": ""}]
+
+    captured = {}
+
+    def fake_chat(messages, **kw):
+        captured["messages"] = messages
+        return json.dumps([{"pitch": "This could be handy: a tuner app."}])
+
+    monkeypatch.setattr(resources, "chat", fake_chat)
+
+    resources.suggest_resources(dream)
+
+    user_message = captured["messages"][1]["content"]
+    assert "Buy a cheap acoustic guitar" in user_message
+
+
+def test_service_create_dream_with_hints_calls_both(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    monkeypatch.setattr(
+        resources, "chat", lambda messages, **kw: json.dumps([{"pitch": "Could be handy: X."}])
+    )
+
+    dream = service.create_dream_with_hints("Run a 5k", "Finish under 30 minutes")
+
+    assert dream["title"] == "Run a 5k"
+    assert dream["resource_hints"] == ["Could be handy: X."]
+    assert store.get_dream(dream["id"])["resource_hints"] == ["Could be handy: X."]
+
+
+def test_service_plan_dream_calls_both(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Run a 5k", "Finish under 30 minutes")
+
+    plan_response = json.dumps([{"step": "Start a couch-to-5k program", "needs_internet": False}])
+    hints_response = json.dumps([{"pitch": "Could be handy: a running app."}])
+    monkeypatch.setattr(planner, "chat", lambda messages, **kw: plan_response)
+    monkeypatch.setattr(resources, "chat", lambda messages, **kw: hints_response)
+
+    service.plan_dream(dream)
+
+    assert dream["status"] == "in_progress"
+    assert len(dream["plan"]) == 1
+    assert dream["resource_hints"] == ["Could be handy: a running app."]
+
+
 def test_reflect_appends_reflection(tmp_path, monkeypatch):
     monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
     dream = store.create_dream("Write a book", "Finish a first draft")
@@ -161,3 +233,23 @@ def test_build_with_claude_code_raises_on_nonzero_exit(tmp_path, monkeypatch):
         assert False, "expected ClaudeCodeError"
     except executor.ClaudeCodeError as e:
         assert "exited with code 1" in str(e)
+
+
+def test_build_with_claude_code_writes_log_when_log_path_given(tmp_path, monkeypatch):
+    dream = {"title": "Build a thing", "description": "y", "plan": [], "resources": []}
+    monkeypatch.setattr(executor.shutil, "which", lambda name: "/usr/bin/claude")
+
+    class FakeResult:
+        returncode = 0
+
+    def fake_run(cmd, cwd, check, stdout=None, stderr=None):
+        stdout.write("scaffolding project...\ndone.\n")
+        return FakeResult()
+
+    monkeypatch.setattr(executor.subprocess, "run", fake_run)
+
+    log_path = tmp_path / "out" / ".dream_builder_build.log"
+    result = executor.build_with_claude_code(dream, tmp_path / "out", log_path=log_path)
+
+    assert result == tmp_path / "out"
+    assert log_path.read_text() == "scaffolding project...\ndone.\n"
