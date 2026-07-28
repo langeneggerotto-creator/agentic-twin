@@ -168,6 +168,58 @@ def cmd_lookup(args):
         print(f"- {r['title']}\n  {r['url']}\n  {r['snippet']}\n")
 
 
+def cmd_capture(args):
+    dream = _require_dream(args.dream_id)
+    idx = args.index - 1
+    if args.kind == "resource":
+        items = dream.get("resources") or []
+        if idx < 0 or idx >= len(items):
+            print("Resource index out of range.", file=sys.stderr)
+            sys.exit(1)
+        r = items[idx]
+        label, detail = r["resource"], r["recommendation"]
+        url = r["options"][0]["url"] if r.get("options") else None
+    else:
+        items = dream.get("resource_hints") or []
+        if idx < 0 or idx >= len(items):
+            print("Hint index out of range.", file=sys.stderr)
+            sys.exit(1)
+        hint = items[idx]
+        label, detail, url = hint[:60], hint, None
+    item = store.add_to_bucket(
+        label, detail, url=url, source_dream_id=dream["id"], source_dream_title=dream["title"]
+    )
+    print(f"Captured to action bucket: [{item['id']}] {item['label']}")
+
+
+def cmd_bucket(args):
+    items = store.load_bucket()
+    if not items:
+        print("Action bucket is empty. Capture something with `capture <dream_id> resource|hint <n>`.")
+        return
+    for i in items:
+        src = f" (from {i['source_dream_title']})" if i.get("source_dream_title") else ""
+        print(f"[{i['id']}] {i['label']}{src}")
+        print(f"    {i['detail']}")
+        if i.get("url"):
+            print(f"    {i['url']}")
+
+
+def cmd_uncapture(args):
+    store.remove_from_bucket(args.item_id)
+    print(f"Removed {args.item_id} from action bucket.")
+
+
+def cmd_combine(args):
+    try:
+        dream = service.combine_bucket_items(args.item_ids, args.title, args.description or "")
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    print(f"Created combined dream {dream['id']}: {dream['title']}")
+    _print_hints(dream)
+
+
 def cmd_serve(args):
     try:
         import uvicorn
@@ -235,6 +287,29 @@ def build_parser():
     p_lookup = sub.add_parser("lookup", help="Run a one-off web search")
     p_lookup.add_argument("query")
     p_lookup.set_defaults(func=cmd_lookup)
+
+    p_capture = sub.add_parser(
+        "capture", help="Save a resource or hint from a dream into your action bucket"
+    )
+    p_capture.add_argument("dream_id")
+    p_capture.add_argument("kind", choices=["resource", "hint"])
+    p_capture.add_argument("index", type=int)
+    p_capture.set_defaults(func=cmd_capture)
+
+    p_bucket = sub.add_parser("bucket", help="List everything captured in your action bucket")
+    p_bucket.set_defaults(func=cmd_bucket)
+
+    p_uncapture = sub.add_parser("uncapture", help="Remove an item from your action bucket")
+    p_uncapture.add_argument("item_id")
+    p_uncapture.set_defaults(func=cmd_uncapture)
+
+    p_combine = sub.add_parser(
+        "combine", help="Combine one or more captured items into a new dream"
+    )
+    p_combine.add_argument("item_ids", nargs="+")
+    p_combine.add_argument("--title", required=True)
+    p_combine.add_argument("--description", default="")
+    p_combine.set_defaults(func=cmd_combine)
 
     p_build = sub.add_parser(
         "build", help="Have Claude Code implement the plan as a real project"

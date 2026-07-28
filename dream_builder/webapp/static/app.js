@@ -40,7 +40,7 @@ async function api(path, options = {}) {
   return data;
 }
 
-function renderHints(container, hints) {
+function renderHints(container, hints, dream) {
   if (!hints || hints.length === 0) {
     container.classList.add("hidden");
     container.innerHTML = "";
@@ -49,8 +49,26 @@ function renderHints(container, hints) {
   container.classList.remove("hidden");
   container.innerHTML =
     "<strong>Might be worth a look:</strong><ul>" +
-    hints.map((h) => `<li>${esc(h)}</li>`).join("") +
+    hints
+      .map(
+        (h, i) =>
+          `<li>${esc(h)}${
+            dream ? ` <button class="secondary capture-btn" data-hint-index="${i}">Save</button>` : ""
+          }</li>`
+      )
+      .join("") +
     "</ul>";
+  if (dream) {
+    container.querySelectorAll(".capture-btn[data-hint-index]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const hint = hints[Number(btn.dataset.hintIndex)];
+        captureItem(
+          { label: hint.slice(0, 60), detail: hint, source_dream_id: dream.id, source_dream_title: dream.title },
+          btn
+        );
+      });
+    });
+  }
 }
 
 async function loadDreamList() {
@@ -140,7 +158,7 @@ function renderDetail(dream) {
         ${
           resources
             .map(
-              (r) => `
+              (r, i) => `
           <div class="resource-card">
             <strong>${esc(r.resource)}</strong>
             <div class="why">${esc(r.why)}</div>
@@ -148,6 +166,7 @@ function renderDetail(dream) {
             <ul>${(r.options || [])
               .map((o) => `<li><a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.title)}</a></li>`)
               .join("")}</ul>
+            <button class="secondary" data-resource-index="${i}">Save to action bucket</button>
           </div>`
             )
             .join("") || "<p>No resources gathered yet.</p>"
@@ -233,10 +252,25 @@ function renderDetail(dream) {
     </section>
   `;
 
-  renderHints(document.getElementById("hints-section"), hints);
+  renderHints(document.getElementById("hints-section"), hints, dream);
 
   detailEl.querySelectorAll('.plan-list input[type="checkbox"]').forEach((cb) => {
     cb.addEventListener("change", () => toggleStep(dream.id, Number(cb.dataset.step), cb.checked));
+  });
+  detailEl.querySelectorAll("#resources-list [data-resource-index]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const r = resources[Number(btn.dataset.resourceIndex)];
+      captureItem(
+        {
+          label: r.resource,
+          detail: r.recommendation,
+          url: (r.options && r.options[0] && r.options[0].url) || null,
+          source_dream_id: dream.id,
+          source_dream_title: dream.title,
+        },
+        btn
+      );
+    });
   });
   document.getElementById("btn-plan").addEventListener("click", () => generatePlan(dream.id));
   document.getElementById("btn-resources").addEventListener("click", () => findResources(dream.id));
@@ -245,6 +279,98 @@ function renderDetail(dream) {
   document.getElementById("btn-reflect").addEventListener("click", () => getReflection(dream.id));
   document.getElementById("btn-build").addEventListener("click", () => startBuild(dream.id));
 }
+
+async function captureItem(item, btn) {
+  try {
+    await api("/api/bucket", { method: "POST", body: JSON.stringify(item) });
+    if (btn) {
+      btn.textContent = "Saved";
+      btn.disabled = true;
+    }
+    await refreshBucketCount();
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+async function refreshBucketCount() {
+  const items = await api("/api/bucket");
+  document.getElementById("bucket-count").textContent = items.length;
+}
+
+async function renderBucketView() {
+  currentDreamId = null;
+  stopBuildPolling();
+  const items = await api("/api/bucket");
+  detailEl.innerHTML = `
+    <header>
+      <h2 style="border:none;text-transform:none;letter-spacing:normal;font-size:1.4rem;color:inherit;">Action Bucket</h2>
+      <p>Everything you've saved from resources and hints across your dreams. Select two or more and combine them into a new dream — handy for bundling several services (e.g. transportation + companionship) into one combined plan.</p>
+    </header>
+    <section>
+      <ul class="bucket-list">
+        ${
+          items
+            .map(
+              (it) => `
+          <li>
+            <label>
+              <input type="checkbox" class="bucket-select" value="${esc(it.id)}" />
+              <strong>${esc(it.label)}</strong>${
+                it.source_dream_title ? ` <span class="why">(from ${esc(it.source_dream_title)})</span>` : ""
+              }
+            </label>
+            <p>${esc(it.detail)}</p>
+            ${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.url)}</a>` : ""}
+            <button class="secondary" data-remove-id="${esc(it.id)}">Remove</button>
+          </li>`
+            )
+            .join("") || "<li>Nothing captured yet. Save a resource or hint from a dream to get started.</li>"
+        }
+      </ul>
+    </section>
+    <section>
+      <h2>Combine into a new dream</h2>
+      <input id="combine-title" type="text" placeholder="What's the combined concept called?" />
+      <textarea id="combine-description" placeholder="Any extra context? (optional — the selected items are included automatically)"></textarea>
+      <button id="btn-combine">Combine selected into a new dream</button>
+    </section>
+  `;
+
+  detailEl.querySelectorAll("[data-remove-id]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      await api(`/api/bucket/${btn.dataset.removeId}`, { method: "DELETE" });
+      await refreshBucketCount();
+      renderBucketView();
+    });
+  });
+
+  document.getElementById("btn-combine").addEventListener("click", async () => {
+    const selected = Array.from(detailEl.querySelectorAll(".bucket-select:checked")).map((cb) => cb.value);
+    const title = document.getElementById("combine-title").value.trim();
+    const description = document.getElementById("combine-description").value.trim();
+    if (selected.length === 0) {
+      showError("Select at least one item to combine.");
+      return;
+    }
+    if (!title) {
+      showError("Give the combined idea a title.");
+      return;
+    }
+    try {
+      const dream = await api("/api/bucket/combine", {
+        method: "POST",
+        body: JSON.stringify({ item_ids: selected, title, description }),
+      });
+      await loadDreamList();
+      selectDream(dream.id);
+    } catch (err) {
+      showError(err.message);
+    }
+  });
+}
+
+document.getElementById("btn-view-bucket").addEventListener("click", renderBucketView);
 
 async function toggleStep(id, step, done) {
   const dream = await api(`/api/dreams/${id}/steps/${step}`, {
@@ -368,3 +494,4 @@ function pollBuild(jobId, btn, statusEl, logEl) {
 }
 
 loadDreamList();
+refreshBucketCount();

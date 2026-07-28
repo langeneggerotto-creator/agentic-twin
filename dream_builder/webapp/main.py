@@ -56,6 +56,20 @@ class BuildRequest(BaseModel):
     permission_mode: str = "acceptEdits"
 
 
+class BucketItemCreate(BaseModel):
+    label: str
+    detail: str
+    url: str | None = None
+    source_dream_id: str | None = None
+    source_dream_title: str | None = None
+
+
+class CombineRequest(BaseModel):
+    item_ids: list[str]
+    title: str
+    description: str = ""
+
+
 def _require_dream(dream_id):
     dream = store.get_dream(dream_id)
     if dream is None:
@@ -139,6 +153,36 @@ def project_dream_endpoint(dream_id: str):
 def plan_scaling_endpoint(dream_id: str):
     dream = _require_dream(dream_id)
     return {"scaling": plan_scaling(dream)}
+
+
+@app.get("/api/bucket")
+def list_bucket():
+    return store.load_bucket()
+
+
+@app.post("/api/bucket")
+def capture_to_bucket(body: BucketItemCreate):
+    return store.add_to_bucket(
+        body.label,
+        body.detail,
+        url=body.url,
+        source_dream_id=body.source_dream_id,
+        source_dream_title=body.source_dream_title,
+    )
+
+
+@app.delete("/api/bucket/{item_id}")
+def delete_bucket_item(item_id: str):
+    store.remove_from_bucket(item_id)
+    return {"status": "removed"}
+
+
+@app.post("/api/bucket/combine")
+def combine_bucket(body: CombineRequest):
+    try:
+        return service.combine_bucket_items(body.item_ids, body.title, body.description)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @app.post("/api/dreams/{dream_id}/build", status_code=202)

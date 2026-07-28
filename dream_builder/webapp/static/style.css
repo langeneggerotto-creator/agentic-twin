@@ -166,6 +166,25 @@ button.secondary {
 
 .resource-card .why { color: var(--muted); font-size: 0.85rem; }
 .resource-card ul { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+.resource-card button { margin-top: 0.5rem; }
+
+.bucket-nav-btn { width: 100%; }
+
+.bucket-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bucket-list li {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.bucket-list label { display: block; margin-bottom: 0.3rem; }
+.bucket-list p { margin: 0.3rem 0; }
 
 .reflection {
   background: var(--bg-alt);

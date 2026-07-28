@@ -15,6 +15,7 @@ from dream_builder.webapp import jobs, main
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    monkeypatch.setattr(store, "BUCKET_PATH", tmp_path / "action_bucket.json")
     monkeypatch.setattr(jobs, "_jobs", {})
     return TestClient(main.app)
 
@@ -182,6 +183,66 @@ def test_scaling_endpoint(client, monkeypatch):
 def test_scaling_endpoint_unknown_dream_returns_404(client):
     resp = client.post("/api/dreams/doesnotexist/scaling")
     assert resp.status_code == 404
+
+
+def test_bucket_capture_list_and_delete(client, monkeypatch):
+    dream = _make_dream(monkeypatch)
+
+    resp = client.post(
+        "/api/bucket",
+        json={
+            "label": "GoGoGrandparent",
+            "detail": "Phone-based rides for seniors.",
+            "url": "https://www.gogograndparent.com",
+            "source_dream_id": dream["id"],
+            "source_dream_title": dream["title"],
+        },
+    )
+    assert resp.status_code == 200
+    item = resp.json()
+    assert item["label"] == "GoGoGrandparent"
+    assert item["source_dream_title"] == dream["title"]
+
+    resp = client.get("/api/bucket")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 1
+
+    resp = client.delete(f"/api/bucket/{item['id']}")
+    assert resp.status_code == 200
+    assert client.get("/api/bucket").json() == []
+
+
+def test_bucket_combine_creates_new_dream(client, monkeypatch):
+    monkeypatch.setattr(
+        resources, "chat", lambda messages, **kw: json.dumps([{"pitch": "Could be handy: X."}])
+    )
+    item1 = client.post(
+        "/api/bucket", json={"label": "GoGoGrandparent", "detail": "Phone-based rides."}
+    ).json()
+    item2 = client.post(
+        "/api/bucket", json={"label": "Papa", "detail": "In-home companionship."}
+    ).json()
+
+    resp = client.post(
+        "/api/bucket/combine",
+        json={
+            "item_ids": [item1["id"], item2["id"]],
+            "title": "Complete elder care plan",
+            "description": "Bring these together.",
+        },
+    )
+    assert resp.status_code == 200
+    dream = resp.json()
+    assert dream["title"] == "Complete elder care plan"
+    assert "GoGoGrandparent" in dream["description"]
+    assert "Papa" in dream["description"]
+
+
+def test_bucket_combine_unknown_ids_returns_400(client):
+    resp = client.post(
+        "/api/bucket/combine", json={"item_ids": ["doesnotexist"], "title": "Title"}
+    )
+    assert resp.status_code == 400
 
 
 def test_build_endpoint_starts_job_then_polling_reports_done(client, monkeypatch, tmp_path):

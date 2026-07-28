@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DREAMS_PATH = Path(__file__).resolve().parent.parent / "vault" / "dreams.json"
+BUCKET_PATH = Path(__file__).resolve().parent.parent / "vault" / "action_bucket.json"
 
 
 def now():
@@ -57,3 +58,48 @@ def update_dream(dream):
             dreams[i] = dream
             break
     save_dreams(dreams)
+
+
+def load_bucket():
+    if not BUCKET_PATH.exists():
+        return []
+    with open(BUCKET_PATH) as f:
+        return json.load(f)
+
+
+def save_bucket(items):
+    BUCKET_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(BUCKET_PATH, "w") as f:
+        json.dump(items, f, indent=2)
+
+
+def add_to_bucket(label, detail, url=None, source_dream_id=None, source_dream_title=None):
+    """Save a resource or hint (from any dream) into a persistent, cross-dream
+    collection the user can later combine into a new dream — independent of
+    that dream's own resources list, which gets overwritten whenever
+    resources are re-searched."""
+    items = load_bucket()
+    item = {
+        "id": uuid.uuid4().hex[:8],
+        "label": label,
+        "detail": detail,
+        "url": url,
+        "source_dream_id": source_dream_id,
+        "source_dream_title": source_dream_title,
+        "added_at": now(),
+    }
+    items.append(item)
+    save_bucket(items)
+    return item
+
+
+def remove_from_bucket(item_id):
+    items = [i for i in load_bucket() if i["id"] != item_id]
+    save_bucket(items)
+
+
+def get_bucket_item(item_id):
+    for i in load_bucket():
+        if i["id"] == item_id:
+            return i
+    return None

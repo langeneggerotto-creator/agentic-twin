@@ -55,6 +55,14 @@ python -m dream_builder.cli project <id>
 # it says plainly that funding/scaling doesn't apply rather than forcing it
 python -m dream_builder.cli scale <id>
 
+# Save a resource or hint into your cross-dream action bucket, list it,
+# then combine saved items (from one or more dreams) into a new dream —
+# e.g. bundling a transportation service + a companionship service into
+# one combined elder-care plan
+python -m dream_builder.cli capture <id> resource 1
+python -m dream_builder.cli bucket
+python -m dream_builder.cli combine <item_id1> <item_id2> --title "Complete elder care plan"
+
 # Mark a step done, check overall status, get an honest reflection
 python -m dream_builder.cli done <id> 1
 python -m dream_builder.cli show <id>
@@ -80,7 +88,10 @@ lets you add dreams, see resource hints, generate plans, mark steps done,
 run the full resource search, get time/cost projections and lead/lag
 measures, get a funding & scaling plan, get reflections, and trigger
 `build` (with its output streamed to a log you can watch from the page)
-all from the browser instead of the terminal.
+all from the browser instead of the terminal. Any resource or hint can
+also be saved into an "Action Bucket" (persists independently of that
+dream, across dreams) and later combined into a brand-new dream — useful
+for bundling several separate services into one plan.
 
 Goals are stored locally in `vault/dreams.json`. Nothing leaves your
 machine except the specific web searches a plan or resource lookup needs —

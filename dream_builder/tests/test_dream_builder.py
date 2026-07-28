@@ -59,6 +59,30 @@ def test_store_roundtrip(tmp_path, monkeypatch):
     assert store.get_dream(dream["id"])["status"] == "in_progress"
 
 
+def test_bucket_roundtrip(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "BUCKET_PATH", tmp_path / "action_bucket.json")
+
+    assert store.load_bucket() == []
+
+    item = store.add_to_bucket(
+        "GoGoGrandparent",
+        "Phone-based rides for seniors without a smartphone.",
+        url="https://www.gogograndparent.com",
+        source_dream_id="abc123",
+        source_dream_title="Help Mom get to appointments",
+    )
+    assert item["label"] == "GoGoGrandparent"
+    assert item["source_dream_title"] == "Help Mom get to appointments"
+
+    items = store.load_bucket()
+    assert len(items) == 1
+    assert store.get_bucket_item(item["id"])["label"] == "GoGoGrandparent"
+
+    store.remove_from_bucket(item["id"])
+    assert store.load_bucket() == []
+    assert store.get_bucket_item(item["id"]) is None
+
+
 def test_build_plan_uses_llm_output(tmp_path, monkeypatch):
     monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
     dream = store.create_dream("Run a marathon", "Finish a marathon in under 5 hours")
@@ -179,6 +203,42 @@ def test_service_plan_dream_calls_both(tmp_path, monkeypatch):
     assert dream["status"] == "in_progress"
     assert len(dream["plan"]) == 1
     assert dream["resource_hints"] == ["Could be handy: a running app."]
+
+
+def test_combine_bucket_items_creates_dream_from_selected_items(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    monkeypatch.setattr(store, "BUCKET_PATH", tmp_path / "action_bucket.json")
+
+    item1 = store.add_to_bucket(
+        "GoGoGrandparent", "Phone-based rides for seniors.", source_dream_id="d1", source_dream_title="Rides for Mom"
+    )
+    item2 = store.add_to_bucket(
+        "Papa", "In-home companionship and errands.", source_dream_id="d2", source_dream_title="Company for Mom"
+    )
+
+    monkeypatch.setattr(
+        resources, "chat", lambda messages, **kw: json.dumps([{"pitch": "Could be handy: X."}])
+    )
+
+    dream = service.combine_bucket_items(
+        [item1["id"], item2["id"]], "Complete elder care plan for Mom", "Bring these together into one plan."
+    )
+
+    assert dream["title"] == "Complete elder care plan for Mom"
+    assert "GoGoGrandparent" in dream["description"]
+    assert "Papa" in dream["description"]
+    assert "Bring these together into one plan." in dream["description"]
+
+
+def test_combine_bucket_items_raises_for_unknown_ids(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    monkeypatch.setattr(store, "BUCKET_PATH", tmp_path / "action_bucket.json")
+
+    try:
+        service.combine_bucket_items(["doesnotexist"], "Title")
+        assert False, "expected ValueError"
+    except ValueError:
+        pass
 
 
 def test_reflect_appends_reflection(tmp_path, monkeypatch):
