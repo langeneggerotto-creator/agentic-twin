@@ -51,10 +51,21 @@ python -m dream_builder.cli reflect <id>
 
 # One-off web search
 python -m dream_builder.cli lookup "beginner acoustic guitar under $100"
+
+# Have Claude Code actually implement the plan as a real project
+python -m dream_builder.cli build <id>
 ```
 
 Goals are stored locally in `vault/dreams.json`. Nothing leaves your
-machine except the specific web searches a plan or resource lookup needs.
+machine except the specific web searches a plan or resource lookup needs —
+**except `build`**, which is a deliberate exception: it hands your plan and
+resources to a separate `claude` CLI (Claude Code) to actually scaffold and
+write the project, which does call Anthropic's API. Requires Claude Code
+installed and logged in (https://claude.com/code) separately from Ollama.
+It defaults to `--permission-mode acceptEdits` (file writes auto-accepted,
+everything else still gated) rather than bypassing permissions, since this
+runs against your real machine. Output goes to `builds/<id>-<slug>/` unless
+you pass `--dir`.
 
 Run the test suite (no Ollama or network required — the LLM and search
 calls are mocked):

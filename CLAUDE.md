@@ -10,7 +10,11 @@ through `dream_builder/web_lookup.py` for resource lookups.
 
 **IMPORTANT: keep it local-first.** No component outside `web_lookup.py`
 should make network calls. `llm_client.py` only talks to `OLLAMA_HOST`
-(default `http://localhost:11434`), never a cloud API.
+(default `http://localhost:11434`), never a cloud API. `executor.py` is a
+deliberate, explicit exception: `dream_builder.cli build` shells out to a
+separate `claude` CLI (Claude Code) to actually implement a plan as a real
+project — that's an opt-in cloud step the user invokes directly, not
+something the local planning/resources/reflect path does implicitly.
 
 Commands:
 - Test: `python -m pytest dream_builder/tests -q`

@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from dream_builder import planner, reflector, resources, store
+from dream_builder import executor, planner, reflector, resources, store
 from dream_builder.util import extract_json_array
 
 
@@ -99,3 +99,65 @@ def test_reflect_appends_reflection(tmp_path, monkeypatch):
 
     assert text == "Good start — keep drafting daily."
     assert store.get_dream(dream["id"])["reflections"][0]["text"] == text
+
+
+def test_build_with_claude_code_raises_without_binary(tmp_path, monkeypatch):
+    dream = {"title": "x", "description": "y", "plan": [], "resources": []}
+    monkeypatch.setattr(executor.shutil, "which", lambda name: None)
+
+    try:
+        executor.build_with_claude_code(dream, tmp_path / "out")
+        assert False, "expected ClaudeCodeError"
+    except executor.ClaudeCodeError as e:
+        assert "isn't on your PATH" in str(e)
+
+
+def test_build_with_claude_code_invokes_claude(tmp_path, monkeypatch):
+    dream = {
+        "title": "Build a thing",
+        "description": "A useful thing",
+        "plan": [{"step": "Do X", "needs_internet": False, "done": False, "notes": ""}],
+        "resources": [{"resource": "A tool", "recommendation": "Use tool Y"}],
+    }
+    monkeypatch.setattr(executor.shutil, "which", lambda name: "/usr/bin/claude")
+
+    captured = {}
+
+    class FakeResult:
+        returncode = 0
+
+    def fake_run(cmd, cwd, check):
+        captured["cmd"] = cmd
+        captured["cwd"] = cwd
+        return FakeResult()
+
+    monkeypatch.setattr(executor.subprocess, "run", fake_run)
+
+    target = tmp_path / "out"
+    result = executor.build_with_claude_code(dream, target, permission_mode="acceptEdits")
+
+    assert result == target
+    assert target.exists()
+    assert captured["cmd"][0] == "claude"
+    assert "--permission-mode" in captured["cmd"]
+    assert "acceptEdits" in captured["cmd"]
+    assert "Build a thing" in captured["cmd"][2]
+    assert "Do X" in captured["cmd"][2]
+    assert "Use tool Y" in captured["cmd"][2]
+    assert captured["cwd"] == target
+
+
+def test_build_with_claude_code_raises_on_nonzero_exit(tmp_path, monkeypatch):
+    dream = {"title": "x", "description": "y", "plan": [], "resources": []}
+    monkeypatch.setattr(executor.shutil, "which", lambda name: "/usr/bin/claude")
+
+    class FakeResult:
+        returncode = 1
+
+    monkeypatch.setattr(executor.subprocess, "run", lambda cmd, cwd, check: FakeResult())
+
+    try:
+        executor.build_with_claude_code(dream, tmp_path / "out")
+        assert False, "expected ClaudeCodeError"
+    except executor.ClaudeCodeError as e:
+        assert "exited with code 1" in str(e)

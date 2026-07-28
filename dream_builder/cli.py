@@ -1,12 +1,19 @@
 import argparse
+import re
 import sys
+from pathlib import Path
 
 from . import store
+from .executor import ClaudeCodeError, build_with_claude_code
 from .llm_client import OllamaError
 from .planner import build_plan
 from .reflector import reflect
 from .resources import find_resources
 from .web_lookup import search
+
+
+def _slugify(text):
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "project"
 
 
 def _require_dream(dream_id):
@@ -89,6 +96,15 @@ def cmd_reflect(args):
     print(reflect(dream))
 
 
+def cmd_build(args):
+    dream = _require_dream(args.id)
+    target_dir = args.dir or Path("builds") / f"{dream['id']}-{_slugify(dream['title'])}"
+    print(f"Building '{dream['title']}' in {target_dir} using Claude Code "
+          f"(permission mode: {args.permission_mode})...")
+    build_with_claude_code(dream, target_dir, permission_mode=args.permission_mode)
+    print(f"\nDone. Project is in {target_dir}")
+
+
 def cmd_lookup(args):
     for r in search(args.query):
         print(f"- {r['title']}\n  {r['url']}\n  {r['snippet']}\n")
@@ -133,6 +149,22 @@ def build_parser():
     p_lookup.add_argument("query")
     p_lookup.set_defaults(func=cmd_lookup)
 
+    p_build = sub.add_parser(
+        "build", help="Have Claude Code implement the plan as a real project"
+    )
+    p_build.add_argument("id")
+    p_build.add_argument(
+        "--dir", type=Path, default=None,
+        help="Target directory (default: builds/<id>-<slug>/)",
+    )
+    p_build.add_argument(
+        "--permission-mode", default="acceptEdits",
+        choices=["acceptEdits", "auto", "bypassPermissions", "manual", "dontAsk", "plan"],
+        help="Claude Code permission mode (default: acceptEdits — auto-accept "
+             "file edits, everything else still gated)",
+    )
+    p_build.set_defaults(func=cmd_build)
+
     return parser
 
 
@@ -141,7 +173,7 @@ def main():
     args = parser.parse_args()
     try:
         args.func(args)
-    except OllamaError as e:
+    except (OllamaError, ClaudeCodeError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
