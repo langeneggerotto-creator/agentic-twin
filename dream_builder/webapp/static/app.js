@@ -12,6 +12,22 @@ function esc(s) {
   return div.innerHTML;
 }
 
+let errorBannerTimer = null;
+
+function showError(message) {
+  let banner = document.getElementById("error-banner");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "error-banner";
+    banner.className = "error-banner";
+    document.body.appendChild(banner);
+  }
+  banner.textContent = message;
+  banner.classList.add("visible");
+  clearTimeout(errorBannerTimer);
+  errorBannerTimer = setTimeout(() => banner.classList.remove("visible"), 8000);
+}
+
 async function api(path, options = {}) {
   const res = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -70,7 +86,7 @@ newDreamForm.addEventListener("submit", async (e) => {
     await loadDreamList();
     selectDream(dream.id);
   } catch (err) {
-    alert(err.message);
+    showError(err.message);
   } finally {
     submitBtn.disabled = false;
   }
@@ -89,6 +105,7 @@ function renderDetail(dream) {
   const resources = dream.resources || [];
   const reflections = dream.reflections || [];
   const hints = dream.resource_hints || [];
+  const projection = dream.projection || null;
 
   detailEl.innerHTML = `
     <header>
@@ -140,6 +157,26 @@ function renderDetail(dream) {
     </section>
 
     <section>
+      <h2>Projections</h2>
+      <div id="projection-panel">
+        ${
+          projection
+            ? `
+          <p><strong>Time:</strong> ${esc(projection.time_estimate)}</p>
+          <p><strong>Cost:</strong> ${esc(projection.cost_estimate)}</p>
+          <p><strong>Lead measures</strong> <span class="why">(things you control, track weekly)</span></p>
+          <ul>${(projection.lead_measures || []).map((m) => `<li>${esc(m)}</li>`).join("") || "<li>None given.</li>"}</ul>
+          <p><strong>Lag measures</strong> <span class="why">(outcomes that confirm you're getting there)</span></p>
+          <ul>${(projection.lag_measures || []).map((m) => `<li>${esc(m)}</li>`).join("") || "<li>None given.</li>"}</ul>
+        `
+            : "<p>No projection yet.</p>"
+        }
+      </div>
+      <button class="secondary" id="btn-projection">${projection ? "Refresh projection" : "Get projection"}</button>
+      <span id="projection-spinner" class="hidden">Estimating…</span>
+    </section>
+
+    <section>
       <h2>Reflections</h2>
       <div id="reflections-list">
         ${
@@ -180,6 +217,7 @@ function renderDetail(dream) {
   });
   document.getElementById("btn-plan").addEventListener("click", () => generatePlan(dream.id));
   document.getElementById("btn-resources").addEventListener("click", () => findResources(dream.id));
+  document.getElementById("btn-projection").addEventListener("click", () => getProjection(dream.id));
   document.getElementById("btn-reflect").addEventListener("click", () => getReflection(dream.id));
   document.getElementById("btn-build").addEventListener("click", () => startBuild(dream.id));
 }
@@ -209,7 +247,24 @@ async function findResources(id) {
     const dream = await api(`/api/dreams/${id}`);
     renderDetail(dream);
   } catch (err) {
-    alert(err.message);
+    showError(err.message);
+  } finally {
+    spinner.classList.add("hidden");
+    btn.disabled = false;
+  }
+}
+
+async function getProjection(id) {
+  const spinner = document.getElementById("projection-spinner");
+  const btn = document.getElementById("btn-projection");
+  spinner.classList.remove("hidden");
+  btn.disabled = true;
+  try {
+    await api(`/api/dreams/${id}/projection`, { method: "POST" });
+    const dream = await api(`/api/dreams/${id}`);
+    renderDetail(dream);
+  } catch (err) {
+    showError(err.message);
   } finally {
     spinner.classList.add("hidden");
     btn.disabled = false;
@@ -238,7 +293,7 @@ async function startBuild(id) {
     logEl.classList.remove("hidden");
     pollBuild(job.job_id, btn, statusEl, logEl);
   } catch (err) {
-    alert(err.message);
+    showError(err.message);
     btn.disabled = false;
   }
 }

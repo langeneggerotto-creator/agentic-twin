@@ -5,6 +5,7 @@ from pathlib import Path
 from . import service, store
 from .executor import ClaudeCodeError, build_with_claude_code
 from .llm_client import OllamaError
+from .projections import project_dream
 from .reflector import reflect
 from .resources import find_resources
 from .util import slugify
@@ -65,6 +66,21 @@ def cmd_resources(args):
             print(f"    * {o['title']} — {o['url']}")
 
 
+def _print_projection(projection):
+    if not projection:
+        return
+    print(f"\nProjected time: {projection['time_estimate']}")
+    print(f"Projected cost: {projection['cost_estimate']}")
+    if projection["lead_measures"]:
+        print("\nLead measures (things you control, track weekly):")
+        for m in projection["lead_measures"]:
+            print(f"- {m}")
+    if projection["lag_measures"]:
+        print("\nLag measures (outcomes that confirm you're getting there):")
+        for m in projection["lag_measures"]:
+            print(f"- {m}")
+
+
 def cmd_show(args):
     dream = _require_dream(args.id)
     print(f"{dream['title']} — {dream['status']}")
@@ -79,6 +95,7 @@ def cmd_show(args):
         print("\nResources:")
         for r in dream["resources"]:
             print(f"- {r['resource']}: {r['recommendation']}")
+    _print_projection(dream.get("projection"))
     if dream["reflections"]:
         print(f"\nLatest reflection ({dream['reflections'][-1]['date']}):")
         print(dream["reflections"][-1]["text"])
@@ -100,6 +117,13 @@ def cmd_done(args):
 def cmd_reflect(args):
     dream = _require_dream(args.id)
     print(reflect(dream))
+
+
+def cmd_project(args):
+    dream = _require_dream(args.id)
+    projection = project_dream(dream)
+    print(f"Projection for '{dream['title']}':")
+    _print_projection(projection)
 
 
 def cmd_build(args):
@@ -167,6 +191,12 @@ def build_parser():
     p_reflect = sub.add_parser("reflect", help="Get a reflection on progress")
     p_reflect.add_argument("id")
     p_reflect.set_defaults(func=cmd_reflect)
+
+    p_project = sub.add_parser(
+        "project", help="Project time/cost to reach a dream, and lead/lag measures to track"
+    )
+    p_project.add_argument("id")
+    p_project.set_defaults(func=cmd_project)
 
     p_lookup = sub.add_parser("lookup", help="Run a one-off web search")
     p_lookup.add_argument("query")

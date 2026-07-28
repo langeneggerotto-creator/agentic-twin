@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pytest
 from fastapi.testclient import TestClient
 
-from dream_builder import executor, planner, reflector, resources, store
+from dream_builder import executor, planner, projections, reflector, resources, store
 from dream_builder.webapp import jobs, main
 
 
@@ -127,6 +127,33 @@ def test_reflect_endpoint(client, monkeypatch):
     body = resp.json()
     assert body["text"] == "Keep going, you're on track."
     assert body["dream"]["reflections"][-1]["text"] == "Keep going, you're on track."
+
+
+def test_projection_endpoint(client, monkeypatch):
+    dream = _make_dream(monkeypatch)
+    projection_response = json.dumps(
+        {
+            "time_estimate": "2-3 months",
+            "cost_estimate": "$20-40",
+            "lead_measures": ["Minutes practiced per day"],
+            "lag_measures": ["Conversation fluency check-in"],
+        }
+    )
+    monkeypatch.setattr(projections, "chat", lambda messages, **kw: projection_response)
+
+    resp = client.post(f"/api/dreams/{dream['id']}/projection")
+    assert resp.status_code == 200
+    body = resp.json()["projection"]
+    assert body["time_estimate"] == "2-3 months"
+    assert body["lead_measures"] == ["Minutes practiced per day"]
+
+    fetched = client.get(f"/api/dreams/{dream['id']}").json()
+    assert fetched["projection"]["cost_estimate"] == "$20-40"
+
+
+def test_projection_endpoint_unknown_dream_returns_404(client):
+    resp = client.post("/api/dreams/doesnotexist/projection")
+    assert resp.status_code == 404
 
 
 def test_build_endpoint_starts_job_then_polling_reports_done(client, monkeypatch, tmp_path):

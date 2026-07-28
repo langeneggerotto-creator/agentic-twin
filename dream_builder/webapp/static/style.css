@@ -196,3 +196,25 @@ button.secondary {
   font-size: 0.85rem;
   margin-top: 0.6rem;
 }
+
+.error-banner {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  max-width: 360px;
+  background: #7a2b22;
+  color: #fff;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  font-size: 0.9rem;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.error-banner.visible {
+  opacity: 1;
+  pointer-events: auto;
+}

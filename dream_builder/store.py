@@ -35,6 +35,7 @@ def create_dream(title, description):
         "resources": [],
         "resource_hints": [],
         "reflections": [],
+        "projection": None,
     }
     dreams.append(dream)
     save_dreams(dreams)

@@ -4,8 +4,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from dream_builder import executor, planner, reflector, resources, service, store
-from dream_builder.util import extract_json_array
+from dream_builder import executor, planner, projections, reflector, resources, service, store
+from dream_builder.util import extract_json_array, extract_json_object
 
 
 def test_extract_json_array_parses_embedded_array():
@@ -16,6 +16,19 @@ def test_extract_json_array_parses_embedded_array():
 def test_extract_json_array_raises_without_array():
     try:
         extract_json_array("no json here")
+        assert False, "expected ValueError"
+    except ValueError:
+        pass
+
+
+def test_extract_json_object_parses_embedded_object():
+    text = 'Sure, here you go:\n```json\n{"a": 1}\n```\nHope that helps.'
+    assert extract_json_object(text) == {"a": 1}
+
+
+def test_extract_json_object_raises_without_object():
+    try:
+        extract_json_object("no json here")
         assert False, "expected ValueError"
     except ValueError:
         pass
@@ -171,6 +184,101 @@ def test_reflect_appends_reflection(tmp_path, monkeypatch):
 
     assert text == "Good start — keep drafting daily."
     assert store.get_dream(dream["id"])["reflections"][0]["text"] == text
+
+
+def test_project_dream_stores_projection(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Run a marathon", "Finish under 5 hours")
+    dream["plan"] = [{"step": "Follow a couch-to-marathon plan", "needs_internet": False, "done": False, "notes": ""}]
+    store.update_dream(dream)
+
+    projection_response = json.dumps(
+        {
+            "time_estimate": "4-6 months at 4 runs/week",
+            "cost_estimate": "$50-150 for shoes and a race entry fee",
+            "lead_measures": ["Runs completed per week", "Weekly mileage logged"],
+            "lag_measures": ["5k time trial result", "Longest training run distance"],
+        }
+    )
+    monkeypatch.setattr(projections, "chat", lambda messages, **kw: projection_response)
+
+    result = projections.project_dream(dream)
+
+    assert result["time_estimate"] == "4-6 months at 4 runs/week"
+    assert result["cost_estimate"] == "$50-150 for shoes and a race entry fee"
+    assert result["lead_measures"] == ["Runs completed per week", "Weekly mileage logged"]
+    assert result["lag_measures"] == ["5k time trial result", "Longest training run distance"]
+    assert "generated_at" in result
+
+    fetched = store.get_dream(dream["id"])
+    assert fetched["projection"]["time_estimate"] == "4-6 months at 4 runs/week"
+
+
+def test_project_dream_retries_once_on_malformed_json(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Run a marathon", "Finish under 5 hours")
+
+    valid_response = json.dumps(
+        {"time_estimate": "5 months", "cost_estimate": "$100", "lead_measures": [], "lag_measures": []}
+    )
+    calls = {"n": 0}
+
+    def flaky_chat(messages, **kw):
+        calls["n"] += 1
+        return "{not valid json" if calls["n"] == 1 else valid_response
+
+    monkeypatch.setattr(projections, "chat", flaky_chat)
+
+    result = projections.project_dream(dream)
+
+    assert calls["n"] == 2
+    assert result["time_estimate"] == "5 months"
+
+
+def test_project_dream_flattens_non_string_estimates(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Build a side hustle", "Make extra income")
+
+    projection_response = json.dumps(
+        {
+            "time_estimate": {"research phase": "40 hours", "launch phase": "80 hours"},
+            "cost_estimate": {"tools": "$500/year"},
+            "lead_measures": [{"weekly hours": "10 hours/week"}],
+            "lag_measures": ["Monthly revenue"],
+        }
+    )
+    monkeypatch.setattr(projections, "chat", lambda messages, **kw: projection_response)
+
+    result = projections.project_dream(dream)
+
+    assert result["time_estimate"] == "research phase: 40 hours; launch phase: 80 hours"
+    assert result["cost_estimate"] == "tools: $500/year"
+    assert result["lead_measures"] == ["weekly hours: 10 hours/week"]
+    assert result["lag_measures"] == ["Monthly revenue"]
+
+
+def test_project_dream_includes_plan_and_resources_context(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Run a marathon", "Finish under 5 hours")
+    dream["plan"] = [{"step": "Buy running shoes", "needs_internet": True, "done": False, "notes": ""}]
+    dream["resources"] = [{"resource": "Running shoes", "why": "comfort", "recommendation": "Get Brooks Ghost, ~$130."}]
+    store.update_dream(dream)
+
+    captured = {}
+
+    def fake_chat(messages, **kw):
+        captured["messages"] = messages
+        return json.dumps(
+            {"time_estimate": "x", "cost_estimate": "y", "lead_measures": [], "lag_measures": []}
+        )
+
+    monkeypatch.setattr(projections, "chat", fake_chat)
+
+    projections.project_dream(dream)
+
+    user_message = captured["messages"][1]["content"]
+    assert "Buy running shoes" in user_message
+    assert "Brooks Ghost" in user_message
 
 
 def test_build_with_claude_code_raises_without_binary(tmp_path, monkeypatch):

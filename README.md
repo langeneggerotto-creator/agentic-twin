@@ -45,6 +45,11 @@ python -m dream_builder.cli plan <id>
 # Find real resources for it (lowest cost, highest value)
 python -m dream_builder.cli resources <id>
 
+# Project how long it might take and what it might cost, plus lead/lag
+# measures to track progress (lead = behaviors you control that predict
+# progress, lag = outcomes that confirm you're getting there)
+python -m dream_builder.cli project <id>
+
 # Mark a step done, check overall status, get an honest reflection
 python -m dream_builder.cli done <id> 1
 python -m dream_builder.cli show <id>
@@ -67,9 +72,10 @@ python -m dream_builder.cli serve
 layer over the same store/planner/resources/reflector/executor code the
 CLI uses — no separate logic, no account, no auth (single local user). It
 lets you add dreams, see resource hints, generate plans, mark steps done,
-run the full resource search, get reflections, and trigger `build` (with
-its output streamed to a log you can watch from the page) all from the
-browser instead of the terminal.
+run the full resource search, get time/cost projections and lead/lag
+measures, get reflections, and trigger `build` (with its output streamed
+to a log you can watch from the page) all from the browser instead of the
+terminal.
 
 Goals are stored locally in `vault/dreams.json`. Nothing leaves your
 machine except the specific web searches a plan or resource lookup needs —

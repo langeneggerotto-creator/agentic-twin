@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from .. import service, store
 from ..executor import ClaudeCodeError
 from ..llm_client import OllamaError
+from ..projections import project_dream
 from ..reflector import reflect
 from ..resources import find_resources
 from ..util import slugify
@@ -125,6 +126,12 @@ def reflect_on_dream(dream_id: str):
     dream = _require_dream(dream_id)
     text = reflect(dream)
     return {"text": text, "dream": dream}
+
+
+@app.post("/api/dreams/{dream_id}/projection")
+def project_dream_endpoint(dream_id: str):
+    dream = _require_dream(dream_id)
+    return {"projection": project_dream(dream)}
 
 
 @app.post("/api/dreams/{dream_id}/build", status_code=202)
