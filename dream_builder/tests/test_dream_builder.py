@@ -4,7 +4,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from dream_builder import executor, planner, projections, reflector, resources, service, store
+from dream_builder import (
+    executor,
+    planner,
+    projections,
+    reflector,
+    resources,
+    scaling,
+    service,
+    store,
+)
 from dream_builder.util import extract_json_array, extract_json_object
 
 
@@ -279,6 +288,103 @@ def test_project_dream_includes_plan_and_resources_context(tmp_path, monkeypatch
     user_message = captured["messages"][1]["content"]
     assert "Buy running shoes" in user_message
     assert "Brooks Ghost" in user_message
+
+
+def test_plan_scaling_stores_funding_and_scaling_plan(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Build a niche micro-SaaS", "Solve one problem for a paying niche")
+
+    scaling_response = json.dumps(
+        {
+            "funding_strategy": "Bootstrap with pre-sales to 5 committed customers before writing code.",
+            "scaling_strategy": "Grow through the niche's existing communities, then add a second channel once retention is proven.",
+            "funding_milestones": ["$0-500: validate with pre-sales", "$500-2000: cover hosting + tools for 6 months"],
+            "scaling_lead_measures": ["Number of validation conversations per week"],
+            "scaling_lag_measures": ["Paying customers", "Monthly recurring revenue"],
+        }
+    )
+    monkeypatch.setattr(scaling, "chat", lambda messages, **kw: scaling_response)
+
+    result = scaling.plan_scaling(dream)
+
+    assert result["funding_strategy"].startswith("Bootstrap with pre-sales")
+    assert result["funding_milestones"] == [
+        "$0-500: validate with pre-sales",
+        "$500-2000: cover hosting + tools for 6 months",
+    ]
+    assert result["scaling_lead_measures"] == ["Number of validation conversations per week"]
+    assert result["scaling_lag_measures"] == ["Paying customers", "Monthly recurring revenue"]
+    assert "generated_at" in result
+
+    fetched = store.get_dream(dream["id"])
+    assert fetched["scaling"]["scaling_strategy"].startswith("Grow through the niche's")
+
+
+def test_plan_scaling_retries_once_on_malformed_json(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Build a niche micro-SaaS", "Solve one problem for a paying niche")
+
+    valid_response = json.dumps(
+        {
+            "funding_strategy": "x",
+            "scaling_strategy": "y",
+            "funding_milestones": [],
+            "scaling_lead_measures": [],
+            "scaling_lag_measures": [],
+        }
+    )
+    calls = {"n": 0}
+
+    def flaky_chat(messages, **kw):
+        calls["n"] += 1
+        return "{not valid json" if calls["n"] == 1 else valid_response
+
+    monkeypatch.setattr(scaling, "chat", flaky_chat)
+
+    result = scaling.plan_scaling(dream)
+
+    assert calls["n"] == 2
+    assert result["funding_strategy"] == "x"
+
+
+def test_plan_scaling_flattens_non_string_fields(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Build a niche micro-SaaS", "Solve one problem for a paying niche")
+
+    scaling_response = json.dumps(
+        {
+            "funding_strategy": {"phase 1": "bootstrap", "phase 2": "reinvest revenue"},
+            "scaling_strategy": "y",
+            "funding_milestones": [],
+            "scaling_lead_measures": [],
+            "scaling_lag_measures": [],
+        }
+    )
+    monkeypatch.setattr(scaling, "chat", lambda messages, **kw: scaling_response)
+
+    result = scaling.plan_scaling(dream)
+
+    assert result["funding_strategy"] == "phase 1: bootstrap; phase 2: reinvest revenue"
+
+
+def test_plan_scaling_opts_out_for_personal_goals(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn Spanish", "Be conversational within 6 months")
+
+    scaling_response = json.dumps(
+        {
+            "funding_strategy": "This is a personal skill goal — no funding is needed.",
+            "scaling_strategy": "Scaling doesn't apply here; consider tutoring others once fluent, if desired.",
+            "funding_milestones": [],
+            "scaling_lead_measures": [],
+            "scaling_lag_measures": [],
+        }
+    )
+    monkeypatch.setattr(scaling, "chat", lambda messages, **kw: scaling_response)
+
+    result = scaling.plan_scaling(dream)
+
+    assert "no funding is needed" in result["funding_strategy"]
 
 
 def test_build_with_claude_code_raises_without_binary(tmp_path, monkeypatch):

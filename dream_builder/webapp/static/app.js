@@ -106,6 +106,7 @@ function renderDetail(dream) {
   const reflections = dream.reflections || [];
   const hints = dream.resource_hints || [];
   const projection = dream.projection || null;
+  const scaling = dream.scaling || null;
 
   detailEl.innerHTML = `
     <header>
@@ -177,6 +178,28 @@ function renderDetail(dream) {
     </section>
 
     <section>
+      <h2>Funding &amp; Scaling</h2>
+      <div id="scaling-panel">
+        ${
+          scaling
+            ? `
+          <p><strong>Funding strategy:</strong> ${esc(scaling.funding_strategy)}</p>
+          <p><strong>Scaling strategy:</strong> ${esc(scaling.scaling_strategy)}</p>
+          <p><strong>Funding milestones</strong></p>
+          <ul>${(scaling.funding_milestones || []).map((m) => `<li>${esc(m)}</li>`).join("") || "<li>None given.</li>"}</ul>
+          <p><strong>Scaling lead measures</strong> <span class="why">(things you control, track weekly)</span></p>
+          <ul>${(scaling.scaling_lead_measures || []).map((m) => `<li>${esc(m)}</li>`).join("") || "<li>None given.</li>"}</ul>
+          <p><strong>Scaling lag measures</strong> <span class="why">(outcomes that confirm real growth)</span></p>
+          <ul>${(scaling.scaling_lag_measures || []).map((m) => `<li>${esc(m)}</li>`).join("") || "<li>None given.</li>"}</ul>
+        `
+            : "<p>No funding/scaling plan yet.</p>"
+        }
+      </div>
+      <button class="secondary" id="btn-scaling">${scaling ? "Refresh funding &amp; scaling plan" : "Get funding &amp; scaling plan"}</button>
+      <span id="scaling-spinner" class="hidden">Thinking…</span>
+    </section>
+
+    <section>
       <h2>Reflections</h2>
       <div id="reflections-list">
         ${
@@ -218,6 +241,7 @@ function renderDetail(dream) {
   document.getElementById("btn-plan").addEventListener("click", () => generatePlan(dream.id));
   document.getElementById("btn-resources").addEventListener("click", () => findResources(dream.id));
   document.getElementById("btn-projection").addEventListener("click", () => getProjection(dream.id));
+  document.getElementById("btn-scaling").addEventListener("click", () => getScaling(dream.id));
   document.getElementById("btn-reflect").addEventListener("click", () => getReflection(dream.id));
   document.getElementById("btn-build").addEventListener("click", () => startBuild(dream.id));
 }
@@ -261,6 +285,23 @@ async function getProjection(id) {
   btn.disabled = true;
   try {
     await api(`/api/dreams/${id}/projection`, { method: "POST" });
+    const dream = await api(`/api/dreams/${id}`);
+    renderDetail(dream);
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    spinner.classList.add("hidden");
+    btn.disabled = false;
+  }
+}
+
+async function getScaling(id) {
+  const spinner = document.getElementById("scaling-spinner");
+  const btn = document.getElementById("btn-scaling");
+  spinner.classList.remove("hidden");
+  btn.disabled = true;
+  try {
+    await api(`/api/dreams/${id}/scaling`, { method: "POST" });
     const dream = await api(`/api/dreams/${id}`);
     renderDetail(dream);
   } catch (err) {

@@ -1,6 +1,6 @@
 from . import store
 from .llm_client import chat
-from .util import extract_json_object
+from .util import as_text, extract_json_object, plan_summary, resource_summary
 
 PROJECTION_SYSTEM_PROMPT = (
     "You are a practical estimator and metrics coach. Given a person's goal, "
@@ -21,33 +21,6 @@ PROJECTION_SYSTEM_PROMPT = (
 )
 
 
-def _as_text(value):
-    """The model occasionally ignores the "must be a plain string"
-    instruction and returns a nested object/list instead — flatten it into
-    something readable rather than showing raw Python repr."""
-    if isinstance(value, str):
-        return value
-    if isinstance(value, dict):
-        return "; ".join(f"{k}: {_as_text(v)}" for k, v in value.items())
-    if isinstance(value, list):
-        return "; ".join(_as_text(v) for v in value)
-    return str(value)
-
-
-def _plan_summary(dream):
-    plan = dream.get("plan") or []
-    if not plan:
-        return "(no plan yet)"
-    return "\n".join(f"- {s['step']}" for s in plan)
-
-
-def _resource_summary(dream):
-    resources = dream.get("resources") or []
-    if not resources:
-        return "(no resources gathered yet — estimate costs from general knowledge)"
-    return "\n".join(f"- {r['resource']}: {r['recommendation']}" for r in resources)
-
-
 def project_dream(dream):
     messages = [
         {"role": "system", "content": PROJECTION_SYSTEM_PROMPT},
@@ -55,8 +28,8 @@ def project_dream(dream):
             "role": "user",
             "content": (
                 f"Goal: {dream['title']}\nDetails: {dream['description']}\n\n"
-                f"Plan:\n{_plan_summary(dream)}\n\n"
-                f"Resources found so far:\n{_resource_summary(dream)}"
+                f"Plan:\n{plan_summary(dream)}\n\n"
+                f"Resources found so far:\n{resource_summary(dream)}"
             ),
         },
     ]
@@ -69,10 +42,10 @@ def project_dream(dream):
         raw = chat(messages)
         data = extract_json_object(raw)
     projection = {
-        "time_estimate": _as_text(data.get("time_estimate", "")),
-        "cost_estimate": _as_text(data.get("cost_estimate", "")),
-        "lead_measures": [_as_text(m) for m in (data.get("lead_measures") or [])],
-        "lag_measures": [_as_text(m) for m in (data.get("lag_measures") or [])],
+        "time_estimate": as_text(data.get("time_estimate", "")),
+        "cost_estimate": as_text(data.get("cost_estimate", "")),
+        "lead_measures": [as_text(m) for m in (data.get("lead_measures") or [])],
+        "lag_measures": [as_text(m) for m in (data.get("lag_measures") or [])],
         "generated_at": store.now(),
     }
     dream["projection"] = projection

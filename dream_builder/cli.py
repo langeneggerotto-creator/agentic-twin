@@ -8,6 +8,7 @@ from .llm_client import OllamaError
 from .projections import project_dream
 from .reflector import reflect
 from .resources import find_resources
+from .scaling import plan_scaling
 from .util import slugify
 from .web_lookup import search
 
@@ -96,6 +97,7 @@ def cmd_show(args):
         for r in dream["resources"]:
             print(f"- {r['resource']}: {r['recommendation']}")
     _print_projection(dream.get("projection"))
+    _print_scaling(dream.get("scaling"))
     if dream["reflections"]:
         print(f"\nLatest reflection ({dream['reflections'][-1]['date']}):")
         print(dream["reflections"][-1]["text"])
@@ -124,6 +126,32 @@ def cmd_project(args):
     projection = project_dream(dream)
     print(f"Projection for '{dream['title']}':")
     _print_projection(projection)
+
+
+def _print_scaling(scaling):
+    if not scaling:
+        return
+    print(f"\nFunding strategy: {scaling['funding_strategy']}")
+    print(f"\nScaling strategy: {scaling['scaling_strategy']}")
+    if scaling["funding_milestones"]:
+        print("\nFunding milestones:")
+        for m in scaling["funding_milestones"]:
+            print(f"- {m}")
+    if scaling["scaling_lead_measures"]:
+        print("\nScaling lead measures (things you control, track weekly):")
+        for m in scaling["scaling_lead_measures"]:
+            print(f"- {m}")
+    if scaling["scaling_lag_measures"]:
+        print("\nScaling lag measures (outcomes that confirm real growth):")
+        for m in scaling["scaling_lag_measures"]:
+            print(f"- {m}")
+
+
+def cmd_scale(args):
+    dream = _require_dream(args.id)
+    scaling = plan_scaling(dream)
+    print(f"Funding & scaling plan for '{dream['title']}':")
+    _print_scaling(scaling)
 
 
 def cmd_build(args):
@@ -197,6 +225,12 @@ def build_parser():
     )
     p_project.add_argument("id")
     p_project.set_defaults(func=cmd_project)
+
+    p_scale = sub.add_parser(
+        "scale", help="Plan how to fund and scale a dream (works for any kind of goal)"
+    )
+    p_scale.add_argument("id")
+    p_scale.set_defaults(func=cmd_scale)
 
     p_lookup = sub.add_parser("lookup", help="Run a one-off web search")
     p_lookup.add_argument("query")

@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pytest
 from fastapi.testclient import TestClient
 
-from dream_builder import executor, planner, projections, reflector, resources, store
+from dream_builder import executor, planner, projections, reflector, resources, scaling, store
 from dream_builder.webapp import jobs, main
 
 
@@ -153,6 +153,34 @@ def test_projection_endpoint(client, monkeypatch):
 
 def test_projection_endpoint_unknown_dream_returns_404(client):
     resp = client.post("/api/dreams/doesnotexist/projection")
+    assert resp.status_code == 404
+
+
+def test_scaling_endpoint(client, monkeypatch):
+    dream = _make_dream(monkeypatch)
+    scaling_response = json.dumps(
+        {
+            "funding_strategy": "Pre-sell to 5 customers before building anything.",
+            "scaling_strategy": "Expand into the same niche's adjacent communities once retained.",
+            "funding_milestones": ["$0-500 to validate"],
+            "scaling_lead_measures": ["Validation conversations per week"],
+            "scaling_lag_measures": ["Paying customers"],
+        }
+    )
+    monkeypatch.setattr(scaling, "chat", lambda messages, **kw: scaling_response)
+
+    resp = client.post(f"/api/dreams/{dream['id']}/scaling")
+    assert resp.status_code == 200
+    body = resp.json()["scaling"]
+    assert body["funding_strategy"] == "Pre-sell to 5 customers before building anything."
+    assert body["scaling_lead_measures"] == ["Validation conversations per week"]
+
+    fetched = client.get(f"/api/dreams/{dream['id']}").json()
+    assert fetched["scaling"]["scaling_strategy"] == "Expand into the same niche's adjacent communities once retained."
+
+
+def test_scaling_endpoint_unknown_dream_returns_404(client):
+    resp = client.post("/api/dreams/doesnotexist/scaling")
     assert resp.status_code == 404
 
 

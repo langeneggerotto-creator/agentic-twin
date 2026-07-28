@@ -18,6 +18,7 @@ from ..llm_client import OllamaError
 from ..projections import project_dream
 from ..reflector import reflect
 from ..resources import find_resources
+from ..scaling import plan_scaling
 from ..util import slugify
 from . import jobs
 
@@ -132,6 +133,12 @@ def reflect_on_dream(dream_id: str):
 def project_dream_endpoint(dream_id: str):
     dream = _require_dream(dream_id)
     return {"projection": project_dream(dream)}
+
+
+@app.post("/api/dreams/{dream_id}/scaling")
+def plan_scaling_endpoint(dream_id: str):
+    dream = _require_dream(dream_id)
+    return {"scaling": plan_scaling(dream)}
 
 
 @app.post("/api/dreams/{dream_id}/build", status_code=202)
