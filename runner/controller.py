@@ -1,28 +1,53 @@
+import argparse
+import json
+
 from agents import planner, developer, tester, reflector
 from governance.gatekeeper import enforce_canon
 
-# Plan
-plan = planner.plan_from_vision("vault/vision.json", "vault/canon.json")
-with open("outputs/plan.md", "w") as f: f.write(plan)
 
-# Code
-code = developer.generate_code_from_plan(plan)
-with open("outputs/generated_code.py", "w") as f: f.write(code)
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run the Agentic Twin planner -> developer -> tester -> reflector loop against a vision/canon pair."
+    )
+    parser.add_argument("--vision", default="vault/vision.json", help="Path to a vision.json describing the project goal.")
+    parser.add_argument("--canon", default="vault/canon.json", help="Path to a canon.json describing the project rules.")
+    args = parser.parse_args()
 
-# Tests
-test_results = tester.run_tests_on_code()
-with open("outputs/test_results.txt", "w") as f: f.write(test_results)
+    with open(args.vision) as f:
+        vision = json.load(f)
+    with open(args.canon) as f:
+        canon = json.load(f)
 
-# Reflect
-reflections = reflector.reflect_on_results(plan, code, test_results)
-with open("outputs/reflection.txt", "w") as f: f.write(reflections)
+    # Plan
+    plan = planner.plan_from_vision(args.vision, args.canon)
+    with open("outputs/plan.md", "w") as f:
+        f.write(plan)
 
-# Canon
-violations = enforce_canon(code, "vault/canon.json")
-if violations:
-    print("❌ Canon Violations:", violations)
-else:
-    print("✅ Canon Compliance Passed")
+    # Code
+    code = developer.generate_code_from_plan(plan, vision=vision, canon_rules=canon.get("rules"))
+    with open("outputs/generated_code.py", "w") as f:
+        f.write(code)
 
-print("🪞 Reflections:")
-print(reflections)
+    # Tests
+    test_results = tester.run_tests_on_code()
+    with open("outputs/test_results.txt", "w") as f:
+        f.write(test_results)
+
+    # Reflect
+    reflections = reflector.reflect_on_results(plan, code, test_results, vision=vision)
+    with open("outputs/reflection.txt", "w") as f:
+        f.write(reflections)
+
+    # Canon
+    violations = enforce_canon(code, args.canon)
+    if violations:
+        print("❌ Canon Violations:", violations)
+    else:
+        print("✅ Canon Compliance Passed")
+
+    print("🪞 Reflections:")
+    print(reflections)
+
+
+if __name__ == "__main__":
+    main()

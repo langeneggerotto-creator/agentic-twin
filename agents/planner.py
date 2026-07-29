@@ -6,13 +6,15 @@ def plan_from_vision(vision_path: str, canon_path: str) -> str:
     with open(canon_path) as f:
         canon = json.load(f)
 
+    interface = vision.get("constraints", {}).get("interface", "the")
+
     plan = [
         f"# Plan for {vision['project_name']}",
         f"**Goal:** {vision['goal']}",
         "## Tasks:",
-        "1. Design CLI interface.",
-        "2. Implement calculator functions.",
-        "3. Handle CLI I/O.",
+        f"1. Design {interface} interface.",
+        f"2. Implement core logic for: {vision['goal']}",
+        f"3. Handle {interface} I/O.",
         "4. Write unit tests.",
         "5. Validate Canon rules."
     ]

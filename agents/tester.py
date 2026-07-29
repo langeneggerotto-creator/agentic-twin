@@ -1,26 +1,30 @@
 def run_tests_on_code() -> str:
-    from io import StringIO
-    import contextlib
-
     results = []
     try:
         with open("outputs/generated_code.py") as f:
             code = f.read()
-        exec(code, globals())
 
-        def test_add(): assert add(2, 3) == 5
-        def test_subtract(): assert subtract(5, 2) == 3
-        def test_multiply(): assert multiply(3, 4) == 12
-        def test_divide(): assert divide(10, 2) == 5
-        def test_divide_by_zero(): assert divide(10, 0) == "Error: Division by zero"
+        namespace: dict = {}
+        exec(code, namespace)
 
-        test_funcs = [test_add, test_subtract, test_multiply, test_divide, test_divide_by_zero]
-        for test in test_funcs:
+        test_names = sorted(
+            name for name, value in namespace.items()
+            if name.startswith("test_") and callable(value)
+        )
+
+        if not test_names:
+            results.append("⚠️ No test_ functions found in generated code.")
+            return "\n".join(results)
+
+        for name in test_names:
             try:
-                test()
-                results.append(f"{test.__name__}: ✅ PASS")
-            except AssertionError:
-                results.append(f"{test.__name__}: ❌ FAIL")
+                namespace[name]()
+                results.append(f"{name}: ✅ PASS")
+            except AssertionError as e:
+                detail = f" ({e})" if str(e) else ""
+                results.append(f"{name}: ❌ FAIL{detail}")
+            except Exception as e:
+                results.append(f"{name}: ❌ ERROR ({type(e).__name__}: {e})")
 
     except Exception as e:
         results.append(f"❌ Test runner error: {e}")

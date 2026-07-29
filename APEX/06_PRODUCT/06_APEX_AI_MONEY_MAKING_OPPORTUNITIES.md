@@ -16,7 +16,7 @@ High automation ratio = the human's time buys leverage instead of trading hours 
 
 | Asset | Path | Relevant to |
 |---|---|---|
-| Agent pipeline (planner/developer/tester/reflector) | `agents/`, `runner/controller.py` | Selling "AI agent setup" as a repeatable service |
+| Agent pipeline (planner/developer/tester/reflector) — generalized to run against any `vision.json`/`canon.json`, with a real OpenAI call path plus an honest offline scaffold fallback | `agents/`, `runner/controller.py`, `vault/examples/ticket_triage/` | Selling "AI agent setup" as a repeatable service (#1) — no longer calculator-only, so it can be pointed at a real client workflow for a demo |
 | Canon/governance gate | `governance/gatekeeper.py`, `vault/canon.json` | Quality-control selling point for delivered work |
 | Python Intent Console v0.2/v0.3/v0.4 + Foresight Engine | `apex-python-intent-console-v02/`, `APEX/03_APPLICATION/consoles/python-intent/` | Turning prompts into runnable scaffolds — a demoable product |
 | RightsChain Manifest Builder | `apex-rightschain-manifest-builder/` | Niche tool for AI-content creators who need provenance/attribution records |
@@ -57,9 +57,13 @@ Any offer built from this plan must:
 - Register the business/income properly for tax purposes in the owner's jurisdiction before taking payment at scale — this is a legal/tax matter outside APEX's competence and needs a licensed accountant, not this repo.
 - Respect platform terms of service for any marketplace, ad network, or affiliate program used for distribution.
 
+## Progress on #1
+
+The agent pipeline is no longer hardcoded to the calculator demo: `agents/developer.py` now calls OpenAI when `OPENAI_API_KEY` is set, and otherwise falls back to an honestly-labeled offline scaffold (see `CLAUDE.md`). `vault/examples/ticket_triage/` is a second, non-calculator vision used to prove the loop generalizes. This is still a **prototype step**, not a sold engagement — no real client has been run through it yet, and the offline path only produces a scaffold (not working logic) until a real LLM key is used.
+
 ## Recommended Next 3 Plus 1
 
-1. Pick **one** opportunity from #1–#4 to prototype first (recommend #1 or #3, since both have working code already in this repo) and build a single demoable end-to-end example this week.
+1. Point the generalized pipeline at a real prospective client's actual repetitive workflow (not another synthetic example) and run it with a real `OPENAI_API_KEY` to see what the LLM path actually produces end to end.
 2. Write one paragraph of honest, non-hyped offer copy for that opportunity and show it to 3–5 real prospective buyers/users before building further — validate demand before investing more build time.
 3. If validated, wrap the chosen console/pipeline with the Canon quality gate and a Truth Status block so every delivered output is auditable, then take the first paid engagement.
 4. **Control upgrade:** track actual hours spent per delivery against the automation-ratio estimates in this document, and correct the matrix above with real numbers once available — replace ASSUMED figures with VERIFIED ones.

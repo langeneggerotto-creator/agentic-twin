@@ -1,0 +1,9 @@
+{
+  "project_name": "Support Ticket Triage Assistant",
+  "goal": "Read incoming support ticket text and assign a category (billing, bug, feature_request, account, other) plus a priority (low, medium, high) so a human agent can route it faster.",
+  "constraints": {
+    "language": "Python",
+    "interface": "CLI",
+    "output_format": "text"
+  }
+}
