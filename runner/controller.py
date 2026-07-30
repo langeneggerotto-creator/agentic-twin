@@ -1,7 +1,7 @@
 import argparse
 import json
 
-from agents import planner, developer, tester, reflector
+from agents import planner, developer, tester, reflector, reporter
 from governance.gatekeeper import enforce_canon
 
 
@@ -47,6 +47,14 @@ def main():
 
     print("🪞 Reflections:")
     print(reflections)
+
+    # Client-ready deliverable
+    report = reporter.build_client_report(
+        vision, plan, code, test_results, reflections, canon_rules=canon.get("rules")
+    )
+    with open("outputs/client_report.md", "w") as f:
+        f.write(report)
+    print("\n📄 Client report written to outputs/client_report.md")
 
 
 if __name__ == "__main__":
