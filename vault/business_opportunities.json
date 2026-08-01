@@ -145,6 +145,31 @@
       ]
     },
     {
+      "id": "zero-experience-service-arbitrage",
+      "name": "Service Arbitrage via Free-Listing Marketplaces (zero prior experience)",
+      "category": "Service Arbitrage",
+      "remote_score": 10,
+      "effort_score": 4,
+      "startup_cost_usd": 0,
+      "time_to_first_revenue_days": 14,
+      "income_potential_monthly_usd_low": 200,
+      "income_potential_monthly_usd_high": 3000,
+      "skills_required": ["willingness to learn one AI tool", "basic client communication"],
+      "description": "List a narrow, AI-tool-assisted service (e.g. AI chatbot setup, AI-written product descriptions, resume rewrites) on zero-commission marketplaces so clients discover and message you first, the same browse-and-message flow as Fiverr, but without the ~20% platform cut and without cold outreach.",
+      "why_it_fits": "Removes the two usual barriers to starting a service business -- prior expertise and outbound cold-calling -- by using AI to close the skill gap and free/zero-commission marketplaces to generate inbound requests instead of paying Fiverr's or Upwork's fees out of thin early-stage margins.",
+      "first_steps": [
+        "Pick one narrow AI-assisted deliverable you can learn in a weekend (e.g. AI chatbot setup, AI-edited product descriptions, AI-edited video captions).",
+        "Create a free profile on Contra (0% commission, direct client-to-freelancer payment).",
+        "Also list on Hubstaff Talent (fully free directory, no fees or markups) and the free LinkedIn Services Marketplace for reach.",
+        "Do your first 2-3 jobs cheap to build reviews and a portfolio, then raise your rate."
+      ],
+      "source_urls": [
+        "https://www.jobbers.io/is-there-a-free-alternative-to-fiverr-in-2026-complete-zero-commission-guide/",
+        "https://memvers.com/for-freelancers/platforms/contra",
+        "https://earnifyhub.com/blog/freelancing/contra-review-2026"
+      ]
+    },
+    {
       "id": "idle-asset-monetization",
       "name": "Idle Asset Monetization (rentals, high-yield savings)",
       "category": "Asset Monetization",
