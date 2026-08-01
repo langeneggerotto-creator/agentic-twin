@@ -1,0 +1,222 @@
+{
+  "generated_from": "news_session research pass, August 2026",
+  "scoring_notes": "remote_score and effort_score are 1-10 self-reported estimates from public 2026 market write-ups (10 = fully remote / 10 = high ongoing effort). Income figures are typical ranges reported by sources, not guarantees.",
+  "business_opportunities": [
+    {
+      "id": "digital-products",
+      "name": "Digital Products & Templates (guides, templates, printables)",
+      "category": "Digital Products",
+      "remote_score": 10,
+      "effort_score": 3,
+      "startup_cost_usd": 50,
+      "time_to_first_revenue_days": 21,
+      "income_potential_monthly_usd_low": 100,
+      "income_potential_monthly_usd_high": 3000,
+      "skills_required": ["basic design (Canva)", "niche research", "simple copywriting"],
+      "description": "Create a small set of templates, checklists, or guides once (e.g. 10 Instagram templates, a planner pack) and sell them repeatedly through Gumroad, Etsy, or a simple storefront. Zero marginal cost per sale, no inventory or shipping.",
+      "why_it_fits": "Lowest ongoing effort of any 'build something' option: the work is front-loaded into creation, then payment and delivery are automated.",
+      "first_steps": [
+        "Pick one narrow niche and one product format (templates, checklist pack, or short guide).",
+        "Build a first small batch (8-10 items) using Canva or similar.",
+        "List on Gumroad or Etsy with automated delivery; price at $9-$49.",
+        "Validate demand with 2 weeks of organic posting before investing more time."
+      ],
+      "source_urls": [
+        "https://www.kittl.com/blogs/digital-products-to-sell-dsi/",
+        "https://digisr.com/passive-income-with-digital-products/",
+        "https://launchmystore.io/blog/passive-income-ideas"
+      ]
+    },
+    {
+      "id": "ai-content-repurposing-saas",
+      "name": "AI Content-Repurposing Micro-SaaS",
+      "category": "Micro-SaaS",
+      "remote_score": 10,
+      "effort_score": 6,
+      "startup_cost_usd": 300,
+      "time_to_first_revenue_days": 45,
+      "income_potential_monthly_usd_low": 500,
+      "income_potential_monthly_usd_high": 8000,
+      "skills_required": ["no-code/light coding", "AI API integration", "basic marketing"],
+      "description": "A narrow tool that turns one piece of content (a blog post, podcast, or video) into LinkedIn posts, tweets, and short clips automatically. Vertical, painfully specific tools outperform generic 'AI everything' tools.",
+      "why_it_fits": "Can be built in 4-8 weeks with current no-code + AI API tooling and needs minimal maintenance once the pipeline works, but requires more upfront build effort than a pure content play.",
+      "first_steps": [
+        "Pick one specific content format and one specific output channel (e.g. podcast -> LinkedIn carousel).",
+        "Prototype with an existing AI API and a no-code frontend (Bubble, Lovable, or similar).",
+        "Get 5 target users to try it for free and give feedback before charging.",
+        "Launch a paid tier once the pipeline reliably saves users real time."
+      ],
+      "source_urls": [
+        "https://lovable.dev/guides/micro-saas-ideas-for-solopreneurs-2026",
+        "https://calmops.com/indie-hackers/micro-saas-ideas-2026/",
+        "https://www.tldl.io/resources/ai-saas-business-ideas-2026"
+      ]
+    },
+    {
+      "id": "print-on-demand",
+      "name": "Print-on-Demand Store",
+      "category": "Ecommerce",
+      "remote_score": 9,
+      "effort_score": 4,
+      "startup_cost_usd": 100,
+      "time_to_first_revenue_days": 30,
+      "income_potential_monthly_usd_low": 100,
+      "income_potential_monthly_usd_high": 2000,
+      "skills_required": ["design", "niche research", "basic marketing"],
+      "description": "Sell custom designs on mugs, t-shirts, posters, and phone cases without holding inventory; the printer/fulfillment partner handles production and shipping.",
+      "why_it_fits": "No inventory risk and fully remote, but ongoing design refreshes and marketing keep effort moderate rather than minimal.",
+      "first_steps": [
+        "Pick a specific audience/niche rather than generic designs.",
+        "Set up a Printful/Printify-connected Shopify or Etsy store.",
+        "Publish 15-20 designs and test which resonate before scaling the catalog."
+      ],
+      "source_urls": [
+        "https://dropship.me/online-business-ideas/"
+      ]
+    },
+    {
+      "id": "affiliate-content",
+      "name": "Affiliate Marketing / Niche Review Content",
+      "category": "Content & Affiliate",
+      "remote_score": 10,
+      "effort_score": 5,
+      "startup_cost_usd": 150,
+      "time_to_first_revenue_days": 75,
+      "income_potential_monthly_usd_low": 100,
+      "income_potential_monthly_usd_high": 5000,
+      "skills_required": ["SEO", "copywriting", "content research"],
+      "description": "Publish comparison and review content in a specific niche and earn commissions through programs like Amazon Associates or ClickBank (commissions up to ~20%).",
+      "why_it_fits": "Medium upfront effort to build content, low ongoing effort once articles rank, but takes longer (2-3 months) to reach meaningful traffic and income.",
+      "first_steps": [
+        "Choose a niche with clear buyer intent (comparison/'best X for Y' searches).",
+        "Publish 10-15 in-depth articles targeting long-tail keywords.",
+        "Join relevant affiliate programs and add disclosed links.",
+        "Reinvest early earnings into more content rather than ads."
+      ],
+      "source_urls": [
+        "https://wise.com/us/blog/passive-income-ideas",
+        "https://themearile.com/the-best-ultimate-passive-income-ideas-to-make-money-online-in-2026/"
+      ]
+    },
+    {
+      "id": "vertical-ai-agent-tool",
+      "name": "Vertical No-Code AI Agent Tool (industry-specific)",
+      "category": "Micro-SaaS",
+      "remote_score": 10,
+      "effort_score": 7,
+      "startup_cost_usd": 500,
+      "time_to_first_revenue_days": 40,
+      "income_potential_monthly_usd_low": 1000,
+      "income_potential_monthly_usd_high": 10000,
+      "skills_required": ["no-code platforms", "vertical domain knowledge", "sales/outreach"],
+      "description": "A no-code AI support/ops agent built for one specific industry (e.g. property management, recruiting coordination, compliance documentation) rather than a horizontal general-purpose tool.",
+      "why_it_fits": "Highest income ceiling in this scan, but also the highest effort and startup cost -- best suited once an operator already has domain expertise to sell into.",
+      "first_steps": [
+        "Pick one industry where you have direct experience or contacts.",
+        "Interview 5-10 people in that industry about their most repetitive task.",
+        "Build a narrow agent for that one task and pilot it for free with 1-2 companies.",
+        "Convert pilots to paid seats once the agent demonstrably saves time."
+      ],
+      "source_urls": [
+        "https://lovable.dev/guides/micro-saas-ideas-for-solopreneurs-2026",
+        "https://calmops.com/indie-hackers/micro-saas-ideas/"
+      ]
+    },
+    {
+      "id": "stock-media",
+      "name": "Stock Photography & Media Licensing",
+      "category": "Media Licensing",
+      "remote_score": 9,
+      "effort_score": 3,
+      "startup_cost_usd": 200,
+      "time_to_first_revenue_days": 60,
+      "income_potential_monthly_usd_low": 50,
+      "income_potential_monthly_usd_high": 500,
+      "skills_required": ["photography or AI image generation", "metadata/keyword tagging"],
+      "description": "Upload photos or media to stock platforms for recurring royalty payments. A photographer uploading ~100 images/month can reach $300-$500/month after about six months as the back catalog accumulates downloads.",
+      "why_it_fits": "Genuinely low ongoing effort once a catalog exists, but income ceiling is modest and takes months to build up.",
+      "first_steps": [
+        "Pick 2-3 evergreen themes with steady commercial demand.",
+        "Upload consistently (aim for ~100 images/month) with strong keyword metadata.",
+        "Track which themes convert and double down on those."
+      ],
+      "source_urls": [
+        "https://themearile.com/the-best-ultimate-passive-income-ideas-to-make-money-online-in-2026/"
+      ]
+    },
+    {
+      "id": "idle-asset-monetization",
+      "name": "Idle Asset Monetization (rentals, high-yield savings)",
+      "category": "Asset Monetization",
+      "remote_score": 6,
+      "effort_score": 1,
+      "startup_cost_usd": 0,
+      "time_to_first_revenue_days": 1,
+      "income_potential_monthly_usd_low": 20,
+      "income_potential_monthly_usd_high": 400,
+      "skills_required": ["none / basic financial literacy"],
+      "description": "The genuinely zero-effort baseline: a high-yield savings account for cash you already have, or renting out a room, car, or equipment you already own.",
+      "why_it_fits": "True minimal-effort option and a useful floor to compare every other opportunity against, but income potential is capped and low relative to the others.",
+      "first_steps": [
+        "Move idle cash into a high-yield savings account (fully remote, no ongoing work).",
+        "If you own an underused room, car, or equipment, list it on an existing rental marketplace."
+      ],
+      "source_urls": [
+        "https://www.meriwest.com/our-story/blog/8-side-hustles-build-passive-income-2026",
+        "https://wise.com/us/blog/passive-income-ideas"
+      ]
+    }
+  ],
+  "educational_tracks": [
+    {
+      "id": "prompt-engineering-agents",
+      "name": "Prompt Engineering & AI Agent Building",
+      "description": "Learning to write effective prompts and assemble simple AI agents/tool-use pipelines.",
+      "relevance": "Directly powers the AI Content-Repurposing and Vertical AI Agent opportunities above, and speeds up building any of the other ideas.",
+      "resources": [
+        "https://freeacademy.ai/courses/prompt-engineering",
+        "https://www.coursera.org/courses?query=prompt+engineering"
+      ]
+    },
+    {
+      "id": "seo-fundamentals",
+      "name": "SEO & Content Distribution Fundamentals",
+      "description": "How search engines rank content and how to structure articles/products so people actually find them.",
+      "relevance": "Underpins the Affiliate Content and Digital Products opportunities, where most traffic comes from search rather than ads.",
+      "resources": [
+        "https://yoast.com/academy/seo-copywriting-training/",
+        "https://seowithsenthil.com/blog/best-free-seo-trainings-online/"
+      ]
+    },
+    {
+      "id": "copywriting",
+      "name": "Copywriting & Persuasive Content",
+      "description": "Writing product descriptions, landing pages, and sales copy that convert readers into buyers.",
+      "relevance": "Improves conversion rates for every opportunity above, especially digital products and affiliate content.",
+      "resources": [
+        "https://cursa.app/free-online-courses/copywriting",
+        "https://www.coursera.org/courses?query=copywriting"
+      ]
+    },
+    {
+      "id": "no-code-automation",
+      "name": "No-Code Automation & Solo-Business Tooling",
+      "description": "Using no-code platforms and automation tools to run store, delivery, and support workflows without a dev team.",
+      "relevance": "Lets a solo operator run Micro-SaaS, print-on-demand, or digital product businesses without hiring engineers.",
+      "resources": [
+        "https://startupstudio.berkeley.edu/tag/no-code-ai",
+        "https://iannuttall.gumroad.com/l/no-code-programmatic-seo"
+      ]
+    },
+    {
+      "id": "idea-validation",
+      "name": "Market & Idea Validation",
+      "description": "Cheap, fast ways to test demand for a business idea before investing significant time or money.",
+      "relevance": "Applies across every opportunity above -- reduces the risk of building something nobody will pay for.",
+      "resources": [
+        "https://ideaproof.io/lists/passive-income-ideas",
+        "https://ideaproof.io/lists/micro-saas-ideas"
+      ]
+    }
+  ]
+}
