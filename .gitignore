@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+
+# Generated run outputs are regenerated per session; keep the directory via .gitkeep only.
+outputs/*
+!outputs/.gitkeep
