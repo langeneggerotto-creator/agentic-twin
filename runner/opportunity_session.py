@@ -7,16 +7,16 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from agents import news_analyst
+from agents import opportunity_analyst
 from governance.gatekeeper import enforce_claims_safety
 
 DATA_PATH = str(REPO_ROOT / "vault" / "business_opportunities.json")
-REPORT_PATH = str(REPO_ROOT / "outputs" / "news_session_report.md")
+REPORT_PATH = str(REPO_ROOT / "outputs" / "opportunity_session_report.md")
 
 
 def build_report(ranked: list, tracks: list, generated_on: str) -> str:
     lines = [
-        f"# News Session -- Online Business Opportunity Scan ({generated_on})",
+        f"# Opportunity Session -- Online Business Opportunity Scan ({generated_on})",
         "",
         "This is a decision-support digest, not financial advice or a guarantee of income.",
         "Scores are heuristic estimates from the criteria below, calibrated against public 2026 market",
@@ -82,10 +82,10 @@ def build_report(ranked: list, tracks: list, generated_on: str) -> str:
     return "\n".join(lines)
 
 
-def run_news_session() -> str:
-    opportunities = news_analyst.load_opportunities(DATA_PATH)
-    ranked = news_analyst.rank_opportunities(opportunities)
-    tracks = news_analyst.educational_tracks(opportunities)
+def run_opportunity_session() -> str:
+    opportunities = opportunity_analyst.load_opportunities(DATA_PATH)
+    ranked = opportunity_analyst.rank_opportunities(opportunities)
+    tracks = opportunity_analyst.educational_tracks(opportunities)
     report = build_report(ranked, tracks, date.today().isoformat())
 
     violations = enforce_claims_safety(report)
@@ -100,4 +100,4 @@ def run_news_session() -> str:
 
 
 if __name__ == "__main__":
-    print(run_news_session())
+    print(run_opportunity_session())
