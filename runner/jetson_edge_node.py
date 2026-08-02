@@ -7,11 +7,16 @@ on-device.
 
 What the Jetson node actually does: watch local services (systemd units,
 health checks), and when something's wrong, package it as a "dream" via
-agents.dream_builder and drop it in a file-based queue directory. It never
-calls Claude Code or OpenAI directly, and never touches git or the
-repository itself -- it only produces a request. runner/dream_queue_worker.py
-(on the control-plane host) is what actually picks the queue up and routes
-it through governance.
+agents.dream_builder.plan_dream() and drop it in a file-based queue
+directory. It never calls Claude Code or OpenAI directly, and never
+touches git or the repository itself -- it only produces a request.
+runner/dream_queue_worker.py (on the control-plane host) is what actually
+picks the queue up and routes it through governance.
+
+plan_dream() currently falls back to a rule-based placeholder rather than
+the real APEX Dream Builder (AUTHORITATIVE_INTERFACE_UNRESOLVED as of
+2026-08-02 -- see agents/dream_builder.py) -- queued dreams are tagged
+with dream_builder.dream_source accordingly.
 
 No network dependency between the two beyond a shared filesystem/queue
 directory in this reference implementation -- swap queue_dir for a
@@ -29,7 +34,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from agents.dream_builder import build_dream
+from agents.dream_builder import plan_dream
 
 DEFAULT_QUEUE_DIR = "vault/dream_queue/pending"
 
@@ -76,7 +81,7 @@ def monitor_and_queue(
     for name, status in statuses.items():
         if status == "active":
             continue
-        contract = build_dream(
+        contract = plan_dream(
             description=f"Repair the {name} service, which is currently '{status}'",
             allowed_paths=allowed_paths,
             allowed_commands=allowed_commands,

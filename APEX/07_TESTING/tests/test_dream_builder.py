@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Smoke tests for agents.dream_builder -- turning a raw goal into a
-governed OCode contract, and that contract round-tripping through the real
-enforce_contract gate."""
+"""Smoke tests for agents.dream_builder -- both its behavior (turning a raw
+goal into a governed OCode contract that round-trips through the real
+enforce_contract gate) and its honesty (DreamBuilderAdapter must refuse
+rather than pretend, and every contract must be tagged with which builder
+actually produced it)."""
 import sys
 from pathlib import Path
 
@@ -9,7 +11,13 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from agents.dream_builder import ALWAYS_FORBIDDEN_ACTIONS, build_dream
+from agents.dream_builder import (
+    ALWAYS_FORBIDDEN_ACTIONS,
+    DreamBuilderAdapter,
+    DreamBuilderUnresolvedError,
+    RuleBasedDreamPathwayPlaceholder,
+    plan_dream,
+)
 from governance.gatekeeper import enforce_contract
 
 
@@ -18,13 +26,30 @@ def assert_true(condition, message):
         raise AssertionError(message)
 
 
+def test_adapter_refuses_rather_than_pretending():
+    threw = False
+    try:
+        DreamBuilderAdapter().build("Anything", ["src/**"], ["echo hi"])
+    except DreamBuilderUnresolvedError:
+        threw = True
+    assert_true(threw, "the unresolved adapter must refuse to act, never silently fabricate a result")
+
+
+def test_plan_dream_falls_back_and_tags_its_provenance():
+    dream = plan_dream("Repair the camera driver crash", ["src/camera/**"], ["pytest tests/camera"])
+    assert_true(dream["dream_builder"]["dream_source"] == RuleBasedDreamPathwayPlaceholder.PROVENANCE,
+                "every produced contract must honestly name which builder produced it")
+    assert_true(dream["dream_builder"]["truth_status"] == "PLACEHOLDER_ACTIVE",
+                "the fallback's output must never claim to be more than a placeholder")
+
+
 def test_plain_dream_needs_no_approval():
-    dream = build_dream("Repair the camera driver crash", ["src/camera/**"], ["pytest tests/camera"])
+    dream = plan_dream("Repair the camera driver crash", ["src/camera/**"], ["pytest tests/camera"])
     assert_true(dream["requires_human_approval"] == [], "an ordinary dream must not require approval")
 
 
 def test_deployment_language_triggers_approval():
-    dream = build_dream(
+    dream = plan_dream(
         "Deploy the fixed camera service to production",
         ["src/camera/**"], ["kubectl apply -f k8s/camera.yaml"],
     )
@@ -33,25 +58,25 @@ def test_deployment_language_triggers_approval():
 
 
 def test_hardware_language_triggers_approval():
-    dream = build_dream("Adjust the servo motor calibration", ["src/robot/**"], ["python calibrate.py"])
+    dream = plan_dream("Adjust the servo motor calibration", ["src/robot/**"], ["python calibrate.py"])
     assert_true(dream["requires_human_approval"] == ["hardware_control"],
                 "hardware keywords must auto-add the hardware_control approval tag")
 
 
 def test_forbidden_actions_always_present():
-    dream = build_dream("Anything at all", ["src/**"], ["echo hi"])
+    dream = plan_dream("Anything at all", ["src/**"], ["echo hi"])
     for action in ALWAYS_FORBIDDEN_ACTIONS:
         assert_true(action in dream["forbidden_actions"], f"{action} must always be forbidden by default")
 
 
 def test_scope_is_never_inferred_only_explicit():
-    dream = build_dream("Fix everything everywhere", ["src/camera/**"], ["pytest tests/camera"])
+    dream = plan_dream("Fix everything everywhere", ["src/camera/**"], ["pytest tests/camera"])
     assert_true(dream["allowed_paths"] == ["src/camera/**"],
                 "allowed_paths must come only from the explicit argument, never from the description")
 
 
 def test_dream_passes_the_real_gate_when_executed_compliantly():
-    dream = build_dream("Repair the camera driver crash", ["src/camera/**"], ["pytest tests/camera"])
+    dream = plan_dream("Repair the camera driver crash", ["src/camera/**"], ["pytest tests/camera"])
     gate = enforce_contract(
         dream,
         changed_files=["src/camera/driver.py"],
@@ -62,7 +87,7 @@ def test_dream_passes_the_real_gate_when_executed_compliantly():
 
 
 def test_dream_fails_the_real_gate_when_scope_is_violated():
-    dream = build_dream("Repair the camera driver crash", ["src/camera/**"], ["pytest tests/camera"])
+    dream = plan_dream("Repair the camera driver crash", ["src/camera/**"], ["pytest tests/camera"])
     gate = enforce_contract(
         dream,
         changed_files=["src/camera/driver.py", "src/robotics/actuator.py"],
@@ -73,6 +98,8 @@ def test_dream_fails_the_real_gate_when_scope_is_violated():
 
 
 if __name__ == "__main__":
+    test_adapter_refuses_rather_than_pretending()
+    test_plan_dream_falls_back_and_tags_its_provenance()
     test_plain_dream_needs_no_approval()
     test_deployment_language_triggers_approval()
     test_hardware_language_triggers_approval()

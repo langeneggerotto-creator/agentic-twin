@@ -11,6 +11,10 @@ Manual-run only, same posture as runner/claude_code_delegate.py and
 runner/providers/openai_provider.py: makes real, billed API calls, so it
 is not wired into any automatic trigger. Run it periodically (a cron entry,
 a systemd timer) if you want the queue drained continuously.
+
+This module never invokes Dream Builder itself -- it only consumes
+already-built contracts (see agents/dream_builder.py for how those get
+built, and its current AUTHORITATIVE_INTERFACE_UNRESOLVED status).
 """
 import argparse
 import asyncio
