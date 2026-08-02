@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "dreammusicforge/schemas/provider_specific_production_package.schema.json",
+  "title": "DreamMusicForge Provider-Specific Production Package",
+  "description": "Output of the provider translation layer (pipeline's final stage). Translates the provider-neutral Cinematic and Musical Architecture documents into one video provider's and one music provider's prompt format, plus a Monte Carlo estimate of generation risk. A provider's rendering of a shot is one interface onto the canonical spec, not a replacement for it -- the Cinematic/Musical/Editorial documents remain the source of truth; a provider's specific output is not treated as more authoritative than they are.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_principle_id",
+    "source_human_truth_id",
+    "selected_video_provider",
+    "selected_music_provider",
+    "video_prompts",
+    "music_prompt",
+    "generation_risk_estimate",
+    "non_goals",
+    "truth_status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "source_principle_id": { "type": "string", "minLength": 1 },
+    "source_human_truth_id": { "type": "string", "minLength": 1 },
+    "selected_video_provider": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Not locked to an enum -- the provider layer is deliberately provider-neutral and providers churn. Documented candidates as of this writing: Google Veo, Runway, Luma AI Dream Machine, Pika, Kling AI."
+    },
+    "selected_music_provider": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Documented candidates as of this writing: Suno, Udio."
+    },
+    "video_prompts": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per shot in the paired Cinematic Architecture. Every shot_id must be covered (checked by validate_against_cinematic_architecture).",
+      "items": {
+        "type": "object",
+        "required": ["shot_id", "provider", "prompt_text", "source_fields_used"],
+        "properties": {
+          "shot_id": { "type": "string", "minLength": 1 },
+          "provider": { "type": "string", "minLength": 1 },
+          "prompt_text": { "type": "string", "minLength": 1 },
+          "negative_prompt": { "type": "string" },
+          "provider_parameters": { "type": "object" },
+          "source_fields_used": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Which Cinematic Architecture fields this prompt was actually derived from -- a traceability gate against inventing creative content that isn't in the canonical spec."
+          }
+        }
+      }
+    },
+    "music_prompt": {
+      "type": "object",
+      "required": ["provider", "prompt_text", "source_fields_used"],
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "prompt_text": { "type": "string", "minLength": 1 },
+        "negative_prompt": { "type": "string" },
+        "provider_parameters": { "type": "object" },
+        "source_fields_used": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "generation_risk_estimate": {
+      "type": "object",
+      "description": "A Monte Carlo simulation of how many generation attempts the full shot list is likely to need, modeling per-shot pass probability as uniformly uncertain within a range (same technique as estimating whether two tasks with uncertain durations finish before a deadline) and per-shot retries as geometric. Re-derivable: validate_provider_specific_production_package() reruns the simulation from the stored parameters and checks the stored estimate is reproducible, not hand-typed.",
+      "required": [
+        "method", "trials", "per_shot_success_probability_range",
+        "budget_max_total_attempts", "estimated_probability_exceeds_budget", "mean_total_attempts"
+      ],
+      "properties": {
+        "method": { "const": "monte_carlo_uniform_sampling" },
+        "trials": { "type": "integer", "minimum": 1000 },
+        "per_shot_success_probability_range": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+            "max": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+          }
+        },
+        "budget_max_total_attempts": { "type": "integer", "minimum": 1 },
+        "estimated_probability_exceeds_budget": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mean_total_attempts": { "type": "number", "minimum": 0 },
+        "seed": { "type": ["integer", "null"] }
+      }
+    },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "contains": {
+        "const": "This kernel does not claim to guarantee any specific viewer belief, emotion, or decision."
+      }
+    },
+    "source": { "type": "string" },
+    "truth_status": { "enum": ["VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"] }
+  },
+  "additionalProperties": false
+}
