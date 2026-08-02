@@ -45,6 +45,9 @@ _COMMAND_ACTION_HEURISTICS = [
     (re.compile(r"\bgit\s+push\b.*--force\b"), "force_push"),
     (re.compile(r"\bgit\s+reset\s+--hard\b"), "hard_reset"),
     (re.compile(r"\bcurl\b.*\|\s*(bash|sh)\b"), "remote_code_execution"),
+    (re.compile(r"\b(kubectl\s+apply|terraform\s+apply|docker\s+push|npm\s+publish|helm\s+upgrade|aws\s+deploy|systemctl\s+restart)\b"),
+     "production_deployment"),
+    (re.compile(r"\b(gpio|pwm|servo|actuator|motor_control)\b", re.IGNORECASE), "hardware_control"),
 ]
 
 
@@ -73,6 +76,7 @@ def enforce_contract(
     commands_run: list = None,
     test_results: str = "",
     declared_actions: list = None,
+    approved_actions: list = None,
 ) -> dict:
     """Mechanically enforce a delegation contract against what an executor actually did.
 
@@ -80,9 +84,16 @@ def enforce_contract(
     they are never taken on trust. Forbidden actions are checked against both an
     explicit declared_actions list and a heuristic scan of commands_run, since an
     executor should not be relied on to self-report every dangerous command.
+
+    requires_human_approval is not just echoed back for display -- any of those
+    action tags that were actually observed (declared or heuristically detected)
+    fail the gate unless present in approved_actions, per "preserve human control
+    over consequential actions." Pass approved_actions from a real, out-of-band
+    human decision (see governance.approvals) -- never from the executor's own output.
     """
     commands_run = commands_run or []
     declared_actions = declared_actions or []
+    approved_actions = set(approved_actions or [])
     violations = []
 
     allowed_paths = contract.get("allowed_paths", [])
@@ -95,11 +106,17 @@ def enforce_contract(
         if allowed_commands and not _command_allowed(command, allowed_commands):
             violations.append(f"command outside allowed_commands: {command}")
 
-    forbidden_actions = set(contract.get("forbidden_actions", []))
     observed_actions = set(declared_actions) | _detect_actions_from_commands(commands_run)
+
+    forbidden_actions = set(contract.get("forbidden_actions", []))
     tripped = sorted(forbidden_actions & observed_actions)
     if tripped:
         violations.append(f"forbidden actions detected: {tripped}")
+
+    requires_human_approval = set(contract.get("requires_human_approval", []))
+    pending_approval = sorted((requires_human_approval & observed_actions) - approved_actions)
+    if pending_approval:
+        violations.append(f"actions require human approval before proceeding: {pending_approval}")
 
     test_commands_ran = any("test" in c or "pytest" in c for c in commands_run)
     if test_commands_ran and "FAIL" in test_results:
@@ -108,5 +125,6 @@ def enforce_contract(
     return {
         "passed": not violations,
         "violations": violations,
-        "requires_human_approval": list(contract.get("requires_human_approval", [])),
+        "requires_human_approval": sorted(requires_human_approval),
+        "pending_approval": pending_approval,
     }

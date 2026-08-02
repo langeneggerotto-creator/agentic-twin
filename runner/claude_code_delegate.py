@@ -30,6 +30,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from governance.approvals import approved_actions_for
 from governance.evidence_ledger import record_evidence
 from governance.gatekeeper import enforce_contract
 
@@ -150,10 +151,17 @@ async def run_delegate(contract: dict) -> dict:
         changed_files=sorted(changed),
         commands_run=commands_run,
         test_results=test_results,
+        approved_actions=approved_actions_for(contract),
     )
 
     if not gate["passed"]:
         rollback(REPO_ROOT, changed)
+
+    # permission_denials: things Claude attempted but the SDK itself already
+    # blocked, because build_options() never grants unlisted tools/commands.
+    # Surfacing these tells a human exactly what to review for approval,
+    # even when the session never got far enough to trip enforce_contract.
+    permission_denials = getattr(result_message, "permission_denials", None) or []
 
     outcome = {
         "gate": gate,
@@ -161,6 +169,7 @@ async def run_delegate(contract: dict) -> dict:
         "changed_files_declared_by_model": sorted(declared_write_paths),
         "changed_files_verified_by_git": sorted(changed),
         "commands_run": commands_run,
+        "permission_denials": permission_denials,
         "session_id": getattr(result_message, "session_id", None),
         "cost_usd": getattr(result_message, "total_cost_usd", None),
         "subtype": getattr(result_message, "subtype", None),
@@ -172,9 +181,11 @@ async def run_delegate(contract: dict) -> dict:
         "contract": contract,
         "gate_passed": gate["passed"],
         "gate_violations": gate["violations"],
+        "pending_approval": gate["pending_approval"],
         "rolled_back": outcome["rolled_back"],
         "changed_files": outcome["changed_files_verified_by_git"],
         "commands_run": commands_run,
+        "permission_denials": permission_denials,
         "session_id": outcome["session_id"],
         "cost_usd": outcome["cost_usd"],
         "evidence_kind": "simulated_delegation_result",

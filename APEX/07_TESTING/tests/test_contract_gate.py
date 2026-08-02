@@ -100,8 +100,51 @@ def test_failing_tests_are_rejected():
 
 def test_requires_human_approval_is_echoed_back():
     result = enforce_contract(CAMERA_CONTRACT, changed_files=[], commands_run=[])
-    assert_true(result["requires_human_approval"] == ["production_deployment", "hardware_control"],
+    assert_true(result["requires_human_approval"] == sorted(["production_deployment", "hardware_control"]),
                 "gate must surface the contract's human-approval requirements to the caller")
+
+
+DEPLOY_CONTRACT = {
+    "goal": "Deploy the hotfix once the camera driver is patched",
+    "allowed_paths": ["src/camera/**"],
+    "allowed_commands": ["kubectl apply -f k8s/hotfix.yaml"],
+    "forbidden_actions": [],
+    "requires_human_approval": ["production_deployment"],
+}
+
+
+def test_observed_approval_gated_action_blocks_without_a_grant():
+    result = enforce_contract(
+        DEPLOY_CONTRACT,
+        changed_files=["src/camera/driver.py"],
+        commands_run=["kubectl apply -f k8s/hotfix.yaml"],
+    )
+    assert_true(not result["passed"], "a production_deployment action must block without an explicit human approval")
+    assert_true(result["pending_approval"] == ["production_deployment"],
+                "pending_approval must name the exact action awaiting a human decision")
+
+
+def test_approved_action_unblocks_the_gate():
+    result = enforce_contract(
+        DEPLOY_CONTRACT,
+        changed_files=["src/camera/driver.py"],
+        commands_run=["kubectl apply -f k8s/hotfix.yaml"],
+        approved_actions=["production_deployment"],
+    )
+    assert_true(result["passed"], f"an explicitly approved action must unblock the gate, got {result['violations']}")
+    assert_true(result["pending_approval"] == [], "no action should remain pending once approved")
+
+
+def test_approval_for_an_action_not_actually_observed_is_a_no_op():
+    result = enforce_contract(
+        CAMERA_CONTRACT,
+        changed_files=["src/camera/driver.py"],
+        commands_run=["pytest tests/camera"],
+        test_results="test_startup: PASS",
+        approved_actions=["production_deployment"],
+    )
+    assert_true(result["passed"], "an unused approval must not itself cause a failure")
+    assert_true(result["pending_approval"] == [], "nothing is pending when the gated action never happened")
 
 
 if __name__ == "__main__":
@@ -112,4 +155,7 @@ if __name__ == "__main__":
     test_declared_forbidden_action_is_rejected_without_a_matching_command()
     test_failing_tests_are_rejected()
     test_requires_human_approval_is_echoed_back()
+    test_observed_approval_gated_action_blocks_without_a_grant()
+    test_approved_action_unblocks_the_gate()
+    test_approval_for_an_action_not_actually_observed_is_a_no_op()
     print("PASS: enforce_contract smoke tests")
