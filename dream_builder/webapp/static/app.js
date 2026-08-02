@@ -113,9 +113,13 @@ newDreamForm.addEventListener("submit", async (e) => {
 async function selectDream(id) {
   currentDreamId = id;
   stopBuildPolling();
-  const dream = await api(`/api/dreams/${id}`);
-  renderDetail(dream);
-  await loadDreamList();
+  try {
+    const dream = await api(`/api/dreams/${id}`);
+    renderDetail(dream);
+    await loadDreamList();
+  } catch (err) {
+    showError(err.message);
+  }
 }
 
 function renderDetail(dream) {
@@ -331,7 +335,13 @@ async function refreshBucketCount() {
 async function renderBucketView() {
   currentDreamId = null;
   stopBuildPolling();
-  const items = await api("/api/bucket");
+  let items;
+  try {
+    items = await api("/api/bucket");
+  } catch (err) {
+    showError(err.message);
+    return;
+  }
   detailEl.innerHTML = `
     <header>
       <h2 style="border:none;text-transform:none;letter-spacing:normal;font-size:1.4rem;color:inherit;">Action Bucket</h2>
@@ -369,9 +379,13 @@ async function renderBucketView() {
 
   detailEl.querySelectorAll("[data-remove-id]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      await api(`/api/bucket/${btn.dataset.removeId}`, { method: "DELETE" });
-      await refreshBucketCount();
-      renderBucketView();
+      try {
+        await api(`/api/bucket/${btn.dataset.removeId}`, { method: "DELETE" });
+        await refreshBucketCount();
+        renderBucketView();
+      } catch (err) {
+        showError(err.message);
+      }
     });
   });
 
@@ -403,18 +417,37 @@ async function renderBucketView() {
 document.getElementById("btn-view-bucket").addEventListener("click", renderBucketView);
 
 async function toggleStep(id, step, done) {
-  const dream = await api(`/api/dreams/${id}/steps/${step}`, {
-    method: "PATCH",
-    body: JSON.stringify({ done }),
-  });
-  renderDetail(dream);
-  await loadDreamList();
+  try {
+    const dream = await api(`/api/dreams/${id}/steps/${step}`, {
+      method: "PATCH",
+      body: JSON.stringify({ done }),
+    });
+    renderDetail(dream);
+    await loadDreamList();
+  } catch (err) {
+    showError(err.message);
+    try {
+      renderDetail(await api(`/api/dreams/${id}`));
+    } catch (_) {
+      // error banner is already showing; nothing more useful to do here
+    }
+  }
 }
 
 async function generatePlan(id) {
-  const dream = await api(`/api/dreams/${id}/plan`, { method: "POST" });
-  renderDetail(dream);
-  await loadDreamList();
+  const btn = document.getElementById("btn-plan");
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Generating…";
+  try {
+    const dream = await api(`/api/dreams/${id}/plan`, { method: "POST" });
+    renderDetail(dream);
+    await loadDreamList();
+  } catch (err) {
+    showError(err.message);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 }
 
 async function findResources(id) {
@@ -497,9 +530,19 @@ async function getScaling(id) {
 }
 
 async function getReflection(id) {
-  await api(`/api/dreams/${id}/reflect`, { method: "POST" });
-  const dream = await api(`/api/dreams/${id}`);
-  renderDetail(dream);
+  const btn = document.getElementById("btn-reflect");
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Reflecting…";
+  try {
+    await api(`/api/dreams/${id}/reflect`, { method: "POST" });
+    const dream = await api(`/api/dreams/${id}`);
+    renderDetail(dream);
+  } catch (err) {
+    showError(err.message);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 }
 
 async function startBuild(id) {
