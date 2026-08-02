@@ -99,6 +99,50 @@ def test_embed_provider_package_rejects_a_broken_provider_package():
     assert_true(result["readiness"] is None, "readiness should not be computed when the provider package is broken")
 
 
+def _all_pending_checklist():
+    return [{"council_name": name, "status": "pending"} for name in sorted(blueprint.REVIEW_COUNCILS)]
+
+
+def test_sync_review_checklist_advances_relevant_councils_when_draft():
+    doc = copy.deepcopy(blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT)
+    doc["review_checklist"] = _all_pending_checklist()
+    doc["provider_specific_prompt_sets"]["build_status"] = "draft"
+    synced = blueprint.sync_review_checklist_with_provider_status(doc)
+    by_name = {e["council_name"]: e["status"] for e in synced["review_checklist"]}
+    for name in blueprint.REVIEW_COUNCILS_UNLOCKED_BY_DRAFT_PROMPTS:
+        assert_true(by_name[name] == "in_review", f"{name} should advance to in_review once build_status is 'draft'")
+    for name in blueprint.REVIEW_COUNCILS - blueprint.REVIEW_COUNCILS_UNLOCKED_BY_DRAFT_PROMPTS:
+        assert_true(by_name[name] == "pending", f"{name} should stay pending -- it depends on more than prompts existing")
+
+
+def test_sync_review_checklist_does_nothing_while_not_yet_built():
+    doc = copy.deepcopy(blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT)
+    doc["review_checklist"] = _all_pending_checklist()
+    doc["provider_specific_prompt_sets"]["build_status"] = "not_yet_built"
+    synced = blueprint.sync_review_checklist_with_provider_status(doc)
+    assert_true(all(e["status"] == "pending" for e in synced["review_checklist"]), "nothing should advance while build_status is still not_yet_built")
+
+
+def test_sync_review_checklist_never_regresses_an_advanced_council():
+    doc = copy.deepcopy(blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT)
+    doc["review_checklist"] = _all_pending_checklist()
+    for entry in doc["review_checklist"]:
+        if entry["council_name"] == "visual_council":
+            entry["status"] = "approved"
+    doc["provider_specific_prompt_sets"]["build_status"] = "draft"
+    synced = blueprint.sync_review_checklist_with_provider_status(doc)
+    by_name = {e["council_name"]: e["status"] for e in synced["review_checklist"]}
+    assert_true(by_name["visual_council"] == "approved", "a council a human already advanced past pending must not be regressed by the auto-sync")
+
+
+def test_example_checklist_was_synced_by_wiring():
+    by_name = {e["council_name"]: e["status"] for e in blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT["review_checklist"]}
+    for name in blueprint.REVIEW_COUNCILS_UNLOCKED_BY_DRAFT_PROMPTS:
+        assert_true(by_name[name] == "in_review", f"the worked example should have {name} auto-advanced to in_review since it's wired to draft")
+    for name in blueprint.REVIEW_COUNCILS - blueprint.REVIEW_COUNCILS_UNLOCKED_BY_DRAFT_PROMPTS:
+        assert_true(by_name[name] == "pending", f"{name} should remain pending in the worked example")
+
+
 def test_embed_provider_package_rejects_identity_mismatch():
     provider_package = blueprint._load_sibling("provider_specific_production_package")
     base_doc = copy.deepcopy(blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT)
@@ -155,6 +199,10 @@ if __name__ == "__main__":
     test_readiness_activation_is_reproducible_and_matches_ready_flag()
     test_readiness_activation_is_monotonic_in_risk()
     test_embed_provider_package_rejects_a_broken_provider_package()
+    test_sync_review_checklist_advances_relevant_councils_when_draft()
+    test_sync_review_checklist_does_nothing_while_not_yet_built()
+    test_sync_review_checklist_never_regresses_an_advanced_council()
+    test_example_checklist_was_synced_by_wiring()
     test_embed_provider_package_rejects_identity_mismatch()
     test_missing_review_council_is_rejected()
     test_missing_required_ethics_non_goal_is_rejected()

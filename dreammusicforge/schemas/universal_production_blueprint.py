@@ -37,6 +37,14 @@ features of the package's Monte Carlo risk estimate, rather than a flat
 if/else, so the promotion decision is a continuous, inspectable score
 instead of a single hidden threshold. It can only ever promote to "draft",
 never "complete" -- that still requires the review_checklist.
+
+sync_review_checklist_with_provider_status(doc), also called automatically
+at the end of embed_provider_specific_production_package(), advances the
+councils with something concrete to review once real prompts exist
+(visual_council, music_council, ethics_council) from "pending" to
+"in_review". It only ever moves a council forward from "pending" -- it
+never regresses a council a human has already advanced or reviewed, and it
+never advances anything while build_status is still "not_yet_built".
 """
 
 import copy
@@ -116,6 +124,36 @@ def compute_readiness_activation(provider_package_doc: dict) -> dict:
     }
 
 
+REVIEW_COUNCILS_UNLOCKED_BY_DRAFT_PROMPTS = {"visual_council", "music_council", "ethics_council"}
+
+
+def sync_review_checklist_with_provider_status(doc: dict) -> dict:
+    """Advance visual_council, music_council, and ethics_council from
+    'pending' to 'in_review' once provider_specific_prompt_sets reaches
+    'draft' or 'complete' -- those are the councils with something concrete
+    to review (real prompts) at that point. Story, editorial, performance,
+    symbolism, and audience councils depend on more than prompts existing
+    (actual generated footage, edited assembly) and are left untouched.
+
+    Never regresses a council a human has already moved past 'pending'
+    (in_review/approved/needs_revision stay exactly as they are), and never
+    advances anything while build_status is still 'not_yet_built'. Does
+    not mutate the input.
+    """
+    updated = copy.deepcopy(doc)
+    build_status = updated.get("provider_specific_prompt_sets", {}).get("build_status")
+    if build_status not in ("draft", "complete"):
+        return updated
+
+    for entry in updated.get("review_checklist", []):
+        if entry.get("council_name") in REVIEW_COUNCILS_UNLOCKED_BY_DRAFT_PROMPTS and entry.get("status") == "pending":
+            entry["status"] = "in_review"
+            note = f"Auto-advanced to in_review: provider_specific_prompt_sets reached '{build_status}'."
+            entry["notes"] = f"{entry['notes']} {note}" if entry.get("notes") else note
+
+    return updated
+
+
 def embed_provider_specific_production_package(blueprint_doc: dict, provider_package_doc: dict) -> dict:
     """Wire a real Provider-Specific Production Package into a Universal
     Production Blueprint's tier-3 provider_specific_prompt_sets, replacing
@@ -157,6 +195,7 @@ def embed_provider_specific_production_package(blueprint_doc: dict, provider_pac
         "build_status": build_status,
         "prompts": prompts if build_status != "not_yet_built" else [],
     }
+    updated = sync_review_checklist_with_provider_status(updated)
 
     return {"blueprint": updated, "errors": [], "readiness": readiness}
 
