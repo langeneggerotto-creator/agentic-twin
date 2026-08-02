@@ -48,16 +48,65 @@ def test_missing_narrative_supplement_field_is_rejected():
 
 def test_prompts_present_while_not_yet_built_is_rejected():
     doc = copy.deepcopy(blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT)
-    doc["provider_specific_prompt_sets"]["prompts"] = [{"provider": "veo", "prompt_text": "..."}]
+    doc["provider_specific_prompt_sets"] = {
+        "build_status": "not_yet_built",
+        "prompts": [{"provider": "veo", "prompt_text": "..."}],
+    }
     errors = blueprint.validate_universal_production_blueprint(doc)
     assert_true(any("must be empty while build_status is 'not_yet_built'" in e for e in errors), "claiming prompts exist while still not_yet_built should be flagged")
 
 
 def test_draft_status_requires_prompts():
     doc = copy.deepcopy(blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT)
-    doc["provider_specific_prompt_sets"]["build_status"] = "draft"
+    doc["provider_specific_prompt_sets"] = {"build_status": "draft", "prompts": []}
     errors = blueprint.validate_universal_production_blueprint(doc)
     assert_true(any("must be non-empty when build_status is 'draft'" in e for e in errors), "a draft status with no prompts should be flagged")
+
+
+def test_example_was_actually_wired_not_left_as_placeholder():
+    prompt_sets = blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT["provider_specific_prompt_sets"]
+    assert_true(prompt_sets["build_status"] == "draft", f"the worked example should be wired to 'draft' via embed_provider_specific_production_package(), got {prompt_sets['build_status']!r}")
+    assert_true(len(prompt_sets["prompts"]) == 9, f"expected 8 video prompts + 1 music prompt, got {len(prompt_sets['prompts'])}")
+
+
+def test_readiness_activation_is_reproducible_and_matches_ready_flag():
+    provider_package = blueprint._load_sibling("provider_specific_production_package")
+    readiness = blueprint.compute_readiness_activation(provider_package.EXAMPLE_PROVIDER_SPECIFIC_PRODUCTION_PACKAGE)
+    assert_true(0.0 <= readiness["activation"] <= 1.0, "activation must be a valid sigmoid output in [0, 1]")
+    assert_true(readiness["ready"] == (readiness["activation"] >= blueprint.READINESS_THRESHOLD), "ready flag must match the activation vs. threshold comparison")
+    assert_true(readiness["ready"] is True, "the worked example's risk profile should be healthy enough to be ready")
+
+
+def test_readiness_activation_is_monotonic_in_risk():
+    provider_package = blueprint._load_sibling("provider_specific_production_package")
+    healthy = copy.deepcopy(provider_package.EXAMPLE_PROVIDER_SPECIFIC_PRODUCTION_PACKAGE)
+    risky = copy.deepcopy(provider_package.EXAMPLE_PROVIDER_SPECIFIC_PRODUCTION_PACKAGE)
+    risky["generation_risk_estimate"]["estimated_probability_exceeds_budget"] = 0.9
+    healthy_activation = blueprint.compute_readiness_activation(healthy)["activation"]
+    risky_activation = blueprint.compute_readiness_activation(risky)["activation"]
+    assert_true(risky_activation < healthy_activation, "a riskier generation profile should produce a lower readiness activation")
+
+
+def test_embed_provider_package_rejects_a_broken_provider_package():
+    provider_package = blueprint._load_sibling("provider_specific_production_package")
+    base_doc = copy.deepcopy(blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT)
+    base_doc["provider_specific_prompt_sets"] = {"build_status": "not_yet_built", "prompts": []}
+    broken_package = copy.deepcopy(provider_package.EXAMPLE_PROVIDER_SPECIFIC_PRODUCTION_PACKAGE)
+    del broken_package["music_prompt"]["prompt_text"]
+    result = blueprint.embed_provider_specific_production_package(base_doc, broken_package)
+    assert_true(len(result["errors"]) > 0, "a broken provider package should produce errors")
+    assert_true(result["blueprint"]["provider_specific_prompt_sets"]["build_status"] == "not_yet_built", "tier 3 should stay untouched when the provider package doesn't validate")
+    assert_true(result["readiness"] is None, "readiness should not be computed when the provider package is broken")
+
+
+def test_embed_provider_package_rejects_identity_mismatch():
+    provider_package = blueprint._load_sibling("provider_specific_production_package")
+    base_doc = copy.deepcopy(blueprint.EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT)
+    base_doc["provider_specific_prompt_sets"] = {"build_status": "not_yet_built", "prompts": []}
+    mismatched_package = copy.deepcopy(provider_package.EXAMPLE_PROVIDER_SPECIFIC_PRODUCTION_PACKAGE)
+    mismatched_package["source_human_truth_id"] = "believing_despite_uncertainty"
+    result = blueprint.embed_provider_specific_production_package(base_doc, mismatched_package)
+    assert_true(any("does not match the blueprint" in e for e in result["errors"]), "an identity mismatch between blueprint and provider package should be flagged")
 
 
 def test_missing_review_council_is_rejected():
@@ -102,6 +151,11 @@ if __name__ == "__main__":
     test_missing_narrative_supplement_field_is_rejected()
     test_prompts_present_while_not_yet_built_is_rejected()
     test_draft_status_requires_prompts()
+    test_example_was_actually_wired_not_left_as_placeholder()
+    test_readiness_activation_is_reproducible_and_matches_ready_flag()
+    test_readiness_activation_is_monotonic_in_risk()
+    test_embed_provider_package_rejects_a_broken_provider_package()
+    test_embed_provider_package_rejects_identity_mismatch()
     test_missing_review_council_is_rejected()
     test_missing_required_ethics_non_goal_is_rejected()
     test_full_chain_check_catches_a_broken_embedded_document()

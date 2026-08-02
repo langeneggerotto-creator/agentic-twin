@@ -24,9 +24,24 @@ validate_full_chain(doc) additionally re-runs every validator already
 built for principle_kernel, narrative_emotional_architecture,
 musical_architecture, cinematic_architecture, and editorial_architecture
 -- the closest thing this repo has to a full pipeline integration test.
+
+embed_provider_specific_production_package(blueprint, provider_package)
+wires tier 3 up: it validates a real Provider-Specific Production Package,
+and if it's clean, promotes provider_specific_prompt_sets from the
+not_yet_built placeholder to a "draft" status carrying real prompts.
+Whether to promote is decided by compute_readiness_activation(), a single
+artificial neuron built exactly per the classic formulation introduced in
+3Blue1Brown's "But what is a neural network?" (weighted sum of inputs plus
+a bias, squashed through a sigmoid into [0, 1]) -- applied here to two
+features of the package's Monte Carlo risk estimate, rather than a flat
+if/else, so the promotion decision is a continuous, inspectable score
+instead of a single hidden threshold. It can only ever promote to "draft",
+never "complete" -- that still requires the review_checklist.
 """
 
+import copy
 import importlib.util
+import math
 from pathlib import Path
 
 VALID_CONFIDENCE = {"VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"}
@@ -48,6 +63,102 @@ def _load_sibling(module_name: str):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+# ---------------------------------------------------------------------------
+# Readiness neuron -- one artificial neuron, per the classic formulation:
+# activation = sigmoid(weighted_sum(inputs) + bias)
+# ---------------------------------------------------------------------------
+
+READINESS_WEIGHTS = {"low_risk": 6.0, "efficiency": 4.0}
+READINESS_BIAS = -7.0
+READINESS_THRESHOLD = 0.5
+
+
+def _sigmoid(x: float) -> float:
+    return 1.0 / (1.0 + math.exp(-x))
+
+
+def compute_readiness_activation(provider_package_doc: dict) -> dict:
+    """Two features of a Provider-Specific Production Package's Monte Carlo
+    generation_risk_estimate, combined by a single neuron:
+
+      low_risk_feature  = 1 - estimated_probability_exceeds_budget  (in [0, 1])
+      efficiency_feature = num_shots / mean_total_attempts           (in (0, 1])
+
+    weighted_sum = w_low_risk * low_risk_feature + w_efficiency * efficiency_feature + bias
+    activation   = sigmoid(weighted_sum)
+
+    This only gates promotion to the Blueprint's "draft" build_status --
+    never "complete". A high activation says the risk profile is healthy
+    enough to treat the prompts as a real draft; it is not a review.
+    """
+    risk = provider_package_doc["generation_risk_estimate"]
+    num_shots = len(provider_package_doc.get("video_prompts", []))
+    mean_total_attempts = risk.get("mean_total_attempts", 0)
+
+    low_risk_feature = 1.0 - risk["estimated_probability_exceeds_budget"]
+    efficiency_feature = min(1.0, num_shots / mean_total_attempts) if mean_total_attempts else 0.0
+
+    weighted_sum = (
+        READINESS_WEIGHTS["low_risk"] * low_risk_feature
+        + READINESS_WEIGHTS["efficiency"] * efficiency_feature
+        + READINESS_BIAS
+    )
+    activation = _sigmoid(weighted_sum)
+
+    return {
+        "low_risk_feature": low_risk_feature,
+        "efficiency_feature": efficiency_feature,
+        "weighted_sum": weighted_sum,
+        "activation": activation,
+        "ready": activation >= READINESS_THRESHOLD,
+    }
+
+
+def embed_provider_specific_production_package(blueprint_doc: dict, provider_package_doc: dict) -> dict:
+    """Wire a real Provider-Specific Production Package into a Universal
+    Production Blueprint's tier-3 provider_specific_prompt_sets, replacing
+    the not_yet_built placeholder. Does not mutate either input.
+
+    Returns {"blueprint": ..., "errors": [...], "readiness": ... or None}.
+    If the provider package fails its own validation, or doesn't match the
+    blueprint's embedded Cinematic Architecture or chain identity, tier 3
+    is left untouched (still not_yet_built) and errors explains why.
+    """
+    provider_module = _load_sibling("provider_specific_production_package")
+
+    errors = list(provider_module.validate_provider_specific_production_package(provider_package_doc))
+
+    cinematic_doc = blueprint_doc.get("embedded_documents", {}).get("cinematic_architecture", {})
+    errors.extend(provider_module.validate_against_cinematic_architecture(provider_package_doc, cinematic_doc))
+
+    if provider_package_doc.get("source_principle_id") != blueprint_doc.get("source_principle_id"):
+        errors.append("provider package source_principle_id does not match the blueprint")
+    if provider_package_doc.get("source_human_truth_id") != blueprint_doc.get("source_human_truth_id"):
+        errors.append("provider package source_human_truth_id does not match the blueprint")
+
+    updated = copy.deepcopy(blueprint_doc)
+
+    if errors:
+        return {"blueprint": updated, "errors": errors, "readiness": None}
+
+    readiness = compute_readiness_activation(provider_package_doc)
+
+    prompts = [
+        {"provider": entry["provider"], "prompt_text": entry["prompt_text"]}
+        for entry in provider_package_doc["video_prompts"]
+    ]
+    music = provider_package_doc["music_prompt"]
+    prompts.append({"provider": music["provider"], "prompt_text": music["prompt_text"]})
+
+    build_status = "draft" if readiness["ready"] else "not_yet_built"
+    updated["provider_specific_prompt_sets"] = {
+        "build_status": build_status,
+        "prompts": prompts if build_status != "not_yet_built" else [],
+    }
+
+    return {"blueprint": updated, "errors": [], "readiness": readiness}
 
 
 def validate_universal_production_blueprint(doc: dict) -> list[str]:
@@ -214,8 +325,9 @@ def _build_example():
     musical = _load_sibling("musical_architecture")
     cinematic = _load_sibling("cinematic_architecture")
     editorial = _load_sibling("editorial_architecture")
+    provider_package = _load_sibling("provider_specific_production_package")
 
-    return {
+    doc = {
         "schema_version": "1.0.0",
         "source_principle_id": "hope",
         "source_human_truth_id": "rebuilding_after_loss",
@@ -258,16 +370,22 @@ def _build_example():
         ],
         "non_goals": [
             REQUIRED_ETHICS_NON_GOAL,
-            "This blueprint does not claim the provider_specific_prompt_sets section is built -- see its build_status.",
+            "This blueprint does not claim the provider_specific_prompt_sets section is complete -- see its build_status; 'draft' means the readiness neuron passed, not that a human reviewed it.",
             "This blueprint does not claim any review_checklist entry has actually been reviewed -- all entries start pending.",
         ],
         "source": (
             "DreamMusicForge v2 Universal Production Blueprint, worked example assembling the complete Hope "
             "chain (Principle Kernel -> Narrative/Emotional -> Musical -> Cinematic -> Editorial) built across "
-            "this repo's prior sessions."
+            "this repo's prior sessions, with a real Provider-Specific Production Package wired into tier 3 "
+            "via embed_provider_specific_production_package()."
         ),
         "truth_status": "ASSUMED",
     }
+
+    wiring = embed_provider_specific_production_package(doc, provider_package.EXAMPLE_PROVIDER_SPECIFIC_PRODUCTION_PACKAGE)
+    if wiring["errors"]:
+        raise RuntimeError(f"failed to wire the example provider package into the example blueprint: {wiring['errors']}")
+    return wiring["blueprint"]
 
 
 EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT = _build_example()
@@ -279,4 +397,8 @@ if __name__ == "__main__":
     errors = structural_errors + chain_errors
     if errors:
         raise SystemExit("FAIL: " + "; ".join(errors))
-    print(f"PASS: example Universal Production Blueprint is valid ({len(chain_errors)} chain errors, full 5-document integration check clean)")
+    build_status = EXAMPLE_UNIVERSAL_PRODUCTION_BLUEPRINT["provider_specific_prompt_sets"]["build_status"]
+    print(
+        f"PASS: example Universal Production Blueprint is valid ({len(chain_errors)} chain errors, "
+        f"full 5-document integration check clean, provider_specific_prompt_sets.build_status={build_status!r})"
+    )
