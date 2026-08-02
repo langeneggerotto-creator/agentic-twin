@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "dreammusicforge/schemas/narrative_emotional_architecture.schema.json",
+  "title": "DreamMusicForge Narrative + Emotional Architecture",
+  "description": "Combined output of the Story Architecture Engine and Emotional Architecture Engine (pipeline stages: Narrative Architecture, Character Journey, Emotional Architecture). Consumes one Principle Kernel and one of its human_truths.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_principle_id",
+    "source_human_truth_id",
+    "narrative",
+    "what_changes",
+    "emotional_waveform",
+    "non_goals",
+    "truth_status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "source_principle_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must match a principle_kernel.principle_id."
+    },
+    "source_human_truth_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must match one human_truths[].human_truth_id on the referenced Principle Kernel."
+    },
+    "narrative": {
+      "type": "object",
+      "description": "The eight Story Architecture Engine beats. Every story must answer 'what changes?' -- see what_changes below.",
+      "required": ["beginning", "catalyst", "conflict", "choice", "sacrifice", "transformation", "resolution", "reflection"],
+      "properties": {
+        "beginning": { "$ref": "#/definitions/narrativeBeat" },
+        "catalyst": { "$ref": "#/definitions/narrativeBeat" },
+        "conflict": { "$ref": "#/definitions/narrativeBeat" },
+        "choice": { "$ref": "#/definitions/narrativeBeat" },
+        "sacrifice": { "$ref": "#/definitions/narrativeBeat" },
+        "transformation": { "$ref": "#/definitions/narrativeBeat" },
+        "resolution": { "$ref": "#/definitions/narrativeBeat" },
+        "reflection": { "$ref": "#/definitions/narrativeBeat" }
+      }
+    },
+    "what_changes": {
+      "type": "object",
+      "required": ["before_state", "after_state"],
+      "properties": {
+        "before_state": { "type": "string", "minLength": 1 },
+        "after_state": { "type": "string", "minLength": 1 }
+      },
+      "description": "before_state and after_state must differ."
+    },
+    "emotional_waveform": {
+      "type": "array",
+      "minItems": 3,
+      "description": "Explicit named emotional transitions, e.g. curiosity -> connection -> tension -> loss -> hope -> wonder -> reflection. Order values must be strictly increasing and unique. Every one of the eight narrative stages must be referenced by at least one beat.",
+      "items": {
+        "type": "object",
+        "required": ["beat_id", "order", "emotion", "linked_narrative_stage"],
+        "properties": {
+          "beat_id": { "type": "string", "minLength": 1 },
+          "order": { "type": "integer", "minimum": 1 },
+          "emotion": { "type": "string", "minLength": 1 },
+          "linked_narrative_stage": {
+            "enum": ["beginning", "catalyst", "conflict", "choice", "sacrifice", "transformation", "resolution", "reflection"]
+          },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "contains": {
+        "const": "This kernel does not claim to guarantee any specific viewer belief, emotion, or decision."
+      }
+    },
+    "source": { "type": "string" },
+    "truth_status": {
+      "enum": ["VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"]
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "narrativeBeat": {
+      "type": "object",
+      "required": ["description"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

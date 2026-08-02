@@ -72,6 +72,17 @@
       ],
       "evidence": "5/5 smoke tests passing via `python3 dreammusicforge/tests/test_principle_kernel.py`",
       "note": "Validator rejects any kernel whose non_goals list drops the required ethics constraint against compelling viewer belief."
+    },
+    {
+      "name": "narrative_emotional_architecture_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/narrative_emotional_architecture.schema.json",
+        "schemas/narrative_emotional_architecture.py",
+        "tests/test_narrative_emotional_architecture.py"
+      ],
+      "evidence": "7/7 smoke tests passing via `python3 dreammusicforge/tests/test_narrative_emotional_architecture.py`",
+      "note": "Validator enforces all 8 narrative stages present, before/after states differ, waveform has >=3 monotonically-ordered beats, and every narrative stage is covered by at least one waveform beat."
     }
   ],
   "non_goals_now": [
@@ -83,8 +94,9 @@
   ],
   "next_3_plus_1": {
     "next_1": "DONE -- Principle Kernel schema (Principle Engine output). See active_prototypes.",
-    "next_2": "Write the Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs).",
+    "next_2": "DONE -- Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs). See active_prototypes.",
     "next_3": "Define the Universal Production Blueprint as a concrete document schema.",
+    "next_4": "Musical Architecture Engine schema (tempo map, instrumentation, dynamics, lyrical intent).",
     "plus_1_control": "No engine, council, or provider adapter may be documented as built until it has a passing evidence entry."
   }
 }

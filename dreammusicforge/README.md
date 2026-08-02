@@ -118,6 +118,7 @@ Every production is evaluated by specialized reviewers. No single score determin
 | Universal Production Blueprint (~28 artifact types) | TARGET OUTPUT LIST, NOT SCHEMATIZED |
 | Review Council (8 councils) | DESIGNED as a review process; no implementation, scoring rubric, or automation exists |
 | Principle Kernel schema (Principle Engine output) | IMPLEMENTED — `schemas/principle_kernel.schema.json` (contract) + `schemas/principle_kernel.py` (dependency-free validator) + `tests/test_principle_kernel.py` (5 passing smoke tests, run with `python3 dreammusicforge/tests/test_principle_kernel.py`). Bakes the "no compelled viewer belief" ethics constraint into the schema itself: `non_goals` must contain that exact sentence or validation fails. |
+| Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs) | IMPLEMENTED — `schemas/narrative_emotional_architecture.schema.json` + `schemas/narrative_emotional_architecture.py` + `tests/test_narrative_emotional_architecture.py` (7 passing smoke tests). Enforces: all eight narrative stages present, before/after states differ ("what changes?"), emotional waveform has ≥3 beats with strictly increasing order, and every narrative stage is referenced by at least one waveform beat (coverage check, same discipline as v1's "every beat has ≥1 shot" rule). The worked example builds directly on the Hope Principle Kernel's `rebuilding_after_loss` human truth. |
 | v1 stage-6 "comprehension test" (vision-LLM checks viewer understood the exact maxim) | SUPERSEDED — conflicts with the "maximize probability of," non-compelled framing above; if revived, it must become a probabilistic/qualitative reflection signal, not a pass/fail check against one intended reading |
 | v1's other five stages (maxim, intent card, shot list, generation, assembly) | Mapped onto v2's more detailed architecture above; v1 wording preserved below for evidence continuity, not treated as current spec |
 
@@ -132,14 +133,16 @@ Every production is evaluated by specialized reviewers. No single score determin
 ## Next 3 + 1
 
 - **next_1 (done):** ~~Write the Principle Kernel schema~~ — see `schemas/principle_kernel.schema.json`, `schemas/principle_kernel.py`, `tests/test_principle_kernel.py`.
-- **next_2:** Write the Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs), since Character Journey and everything downstream depends on both.
+- **next_2 (done):** ~~Write the Narrative + Emotional Architecture schema~~ — see `schemas/narrative_emotional_architecture.schema.json`, `schemas/narrative_emotional_architecture.py`, `tests/test_narrative_emotional_architecture.py`.
 - **next_3:** Define the Universal Production Blueprint as a concrete document schema (even if most fields start as free text) so "complete package" has one canonical shape.
+- **next_4:** Musical Architecture Engine schema (tempo map, instrumentation, dynamics, lyrical intent) so a project can reach a music provider handoff, matching how the Narrative/Emotional schema reached a video-side handoff.
 - **plus_1_control:** No engine, council, or provider adapter may be documented as built until it has a passing evidence entry — no labeled claim without a check behind it.
 
 ## Running the tests
 
 ```bash
 python3 dreammusicforge/tests/test_principle_kernel.py
+python3 dreammusicforge/tests/test_narrative_emotional_architecture.py
 ```
 
 No dependencies beyond the Python 3 standard library.
