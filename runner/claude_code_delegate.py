@@ -184,6 +184,7 @@ async def run_delegate(contract: dict) -> dict:
     record_evidence({
         "goal": contract.get("goal"),
         "contract": contract,
+        "provider": "claude_code",
         "gate_passed": gate["passed"],
         "gate_violations": gate["violations"],
         "pending_approval": gate["pending_approval"],
