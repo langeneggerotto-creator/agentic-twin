@@ -1,65 +1,163 @@
-# DreamMusicForge — Editorial-Intent-Driven Music Video Generation Pipeline
+# DreamMusicForge — Intelligent Creative Operating System
 
-**Repository status:** Design-stage. This folder captures a design conversation as structure so it survives across sessions and AI systems. Nothing in this folder is executable yet.
+**Repository status:** Design-stage. This folder captures a design vision as structure so it survives across sessions and AI systems. Nothing in this folder is executable yet.
 
-## Purpose
+**Version note:** This is the v2 mission and pipeline. It supersedes the v1 video-generation-pipeline framing originally scaffolded here. v1 is preserved, not deleted, at the bottom of this document — see [Superseded v1 design](#superseded-v1-design-preserved-for-evidence-continuity), per the fork-preservation principle in [`CORE_OS_INHERITANCE.md`](../CORE_OS_INHERITANCE.md): "preserve prior models and evidence when scenarios fork."
 
-DreamMusicForge exists to turn a single testable causal claim (a maxim) into a music video whose visuals demonstrably teach that claim — a structured argument stated in shots, tracked through a numeric state ladder, resolved by a threshold event, and confirmed by an automated comprehension check. It is not an aesthetic assembly of AI-generated clips.
+## Mission
 
-## Inherited principles
+DreamMusicForge is an evidence-informed creative operating system that transforms timeless human principles into emotionally resonant, original audiovisual experiences. It guides creators from an abstract principle to a complete cinematic production blueprint — story, music, lyrics, symbolism, cinematography, performance, editing, color, sound, pacing, and emotional arc — while preserving truth boundaries, originality, and artistic integrity.
 
-This folder inherits the truth-boundary discipline defined at the repository root in [`CORE_OS_INHERITANCE.md`](../CORE_OS_INHERITANCE.md): separate observed, measured, inferred, simulated, forecast, designed-not-proven, and unknown states; expose uncertainty and assumptions; cap commitment according to evidence strength.
+It is not a video-clip generator. AI video generation is the last step in the pipeline, not the first.
 
-## Pipeline — 6 stages
+## The Ultimate DreamMusicForge Principle
 
-1. **Principle → Maxim.** Not software. A hard gate: reduce an idea to one causal claim with a concrete before/after. Reject anything that isn't a stated causal claim before it proceeds.
-2. **Editorial Intent Card.** Structured-output generation (JSON schema, not prose): one tracked entity, a numeric state ladder, dismissal/repeat beats, one threshold event, a bookend rhyme, and two independent causal chains (audio, visual).
-3. **Shot List + Lyrics, time-locked.** Expands the intent card against a song's timestamp structure into a shot-by-shot list. Each beat gets a *coverage set* — 5 angles (wide, full-body, medium, close-up, cutaway) × 2 takes — not a single shot, so assembly has options to cut between. Each shot carries start/end timecode, camera framing, object-state number, and a link back to the intent-card beat it satisfies. Programmatic checks: every state transition is monotonic, every intent-card beat has at least one shot.
-4. **Generation layer.** The real engineering, not prompt engineering. Continuity — not per-clip video quality — is the core problem: the tracked object must look like the same object, progressively changed, across independently generated shots.
-   - SAM 2 — tracking / re-identification of the object across frames and shots.
-   - DepthAnything v2 — consistent depth/perspective so the object sits correctly in each new shot.
-   - img2img / reference-locked conditioning — state N+1 visibly derives from state N's final frame rather than being regenerated from scratch.
-   - ProPainter — inpainting when a state transition is staged by removal/repaint rather than physically re-shot.
-   - SMPL-X — consistent body/pose across shots, needed if dismissal-gesture beats must visually rhyme.
-   - CogVideoX (or equivalent) — the generation model itself.
-   - Composition QA gate before a frame enters assembly: rule of thirds, eyeline placement, headroom, facing-direction-to-frame-third.
-   - Build order: get single-shot generation acceptable first; solve cross-shot continuity as its own subsystem after.
-5. **Assembly & sync.** Stitch shots per the timecode grid; beat-match cuts to an audio-onset-detected beat/energy grid; automated continuity check that object state N+1 reads as more advanced than state N.
-6. **Comprehension test.** Two tiers: an automated proxy (vision-LLM watches muted, states the lesson, diffed against the maxim — the CI gate that lets this run without a human reviewing every output) and a human panel (ground truth, run before shipping).
+DreamMusicForge exists to transform timeless human principles into original audiovisual experiences that help people see themselves, imagine new possibilities, and carry meaningful insights beyond the final frame. Every story begins with an enduring principle, unfolds through authentic human experience, and concludes with reflection rather than instruction. Every creative decision — from lyric to lighting, from camera movement to musical cadence — must serve that transformation while remaining original, truthful, and respectful of the audience's freedom to interpret and grow.
+
+This defines the platform by creative philosophy, not by any particular AI model, video generator, or music generator — the mission stays valid regardless of which tools exist in the future.
+
+## Why the goal is "maximize probability of," not "enforce"
+
+A video cannot guarantee or ethically compel a person's beliefs, emotions, or decisions, and different viewers will interpret the same work differently. The stated goal is therefore:
+
+> Create original audiovisual experiences that maximize the probability of meaningful reflection, emotional connection, and positive personal growth through timeless storytelling, music, symbolism, and cinematic craftsmanship.
+
+This directly constrains the v1 design's stage-6 "comprehension test," which asked whether a viewer received one specific stated lesson — see the note under [Truth status](#truth-status) on how that stage is reframed. It also converges independently with this repository's existing APEX Heart Core gates (`APEX/01_CANON/01_APEX_HEART_CORE.md`): Dignity Gate, Control Gate, and the rule that APEX outputs must not manipulate emotional vulnerability or leave the user unaccountable for their own choices.
+
+## The DreamMusicForge Pipeline
+
+Every project begins with a principle. AI generation is the last stage, not the first.
+
+```text
+Timeless Principle
+        |
+        v
+Human Truth
+        |
+        v
+Audience
+        |
+        v
+Transformation Goal
+        |
+        v
+Narrative Architecture
+        |
+        v
+Character Journey
+        |
+        v
+Emotional Architecture
+        |
+        v
+Musical Architecture
+        |
+        v
+Visual Architecture
+        |
+        v
+Shot Architecture
+        |
+        v
+Performance Direction
+        |
+        v
+Editorial Architecture
+        |
+        v
+Provider-Specific Production Package
+```
+
+## The Seven Core Design Engines
+
+1. **Principle Engine.** Input: a timeless human principle (courage, forgiveness, curiosity, stewardship, resilience, hope, purpose, compassion, ...). Output: a timeless principle kernel.
+2. **Human Experience Engine.** Maps the principle onto authentic human experiences. Example: hope may become rebuilding after loss, beginning again, or believing despite uncertainty.
+3. **Story Architecture Engine.** Designs beginning, catalyst, conflict, choice, sacrifice, transformation, resolution, reflection. Every story must answer: "What changes?"
+4. **Emotional Architecture Engine.** Designs the emotional waveform as explicit transitions (e.g. curiosity -> connection -> tension -> loss -> hope -> wonder -> reflection), not a vague instruction to "make this emotional."
+5. **Cinematic Architecture Engine.** Designs composition, camera language, movement, blocking, lighting, wardrobe, production design, symbolic objects, transitions. Every shot must justify why it exists, why it occurs now, and what audience state it changes.
+6. **Musical Architecture Engine.** Designs melody, harmony, rhythm, orchestration, vocal tone, dynamics, silence, emotional pacing. Music is another storyteller, not a backing track.
+7. **Editorial Architecture Engine.** Designs shot timing, reveal timing, rhythm, motif evolution, visual callbacks, expectation and payoff, emotional pacing, ending.
+
+## Provider layer (provider-neutral)
+
+DreamMusicForge does not depend on one video model or one music model. It produces an abstract production specification, then translates that spec into each provider's prompt format — so the pipeline survives provider churn.
+
+- **Video generation candidates:** Google Veo, Runway, Luma AI Dream Machine, Pika, Kling AI — each with different strengths (cinematic realism, motion consistency, stylization, speed).
+- **Music generation candidates:** Suno, Udio.
+- Musical architecture (emotional progression, instrumentation, tempo map, dynamics, lyrical intent) must be defined before a music provider is selected.
+
+No provider is currently integrated; this is a target architecture, not a built adapter layer.
+
+## The Universal Production Blueprint
+
+Every project should output a complete package: creative brief, principle kernel, audience profile, transformation goal, narrative treatment, character biographies, scene breakdown, sequence plan, shot list, storyboard descriptions, camera directions, lens and framing recommendations, lighting plan, color script, wardrobe notes, production design, symbolism ledger, music brief, lyric brief, vocal direction, choreography and blocking, sound design, editorial timing, transition map, motif evolution, emotional waveform, reflection and legacy statement, provider-specific prompt sets, review checklist.
+
+None of these artifact types have a schema yet. This list is the target output surface, not a built format.
+
+## The DreamMusicForge Review Council
+
+Every production is evaluated by specialized reviewers. No single score determines success — councils identify strengths, tradeoffs, and opportunities for refinement.
+
+- Story Council — narrative clarity and transformation.
+- Editorial Council — pacing, shot logic, and transitions.
+- Music Council — emotional-musical coherence.
+- Performance Council — authenticity of acting, movement, and expression.
+- Visual Council — cinematography, lighting, color, and composition.
+- Symbolism Council — recurring motifs and thematic depth.
+- Audience Council — relatability, accessibility, and emotional resonance.
+- Ethics Council — originality, respectful representation, and truth boundaries.
 
 ## Truth status
 
 | Claim | Status |
 |---|---|
-| 6-stage pipeline shape | DESIGNED, evidenced by this document |
-| Editorial Intent Card JSON schema | NOT YET WRITTEN |
-| Shot List JSON schema (with coverage-set field) | NOT YET WRITTEN |
-| Any generation, assembly, or comprehension-test code | NOT STARTED |
-| Tempo→camera-movement mapping, 5-shot coverage rule, framing rules | INFERRED from a cited practitioner source (Full Time Filmmaker, "Top 10 Tips for Cinematic Music Videos"), not yet encoded as rules |
-| Named subsystems appearing only in the originating chat (e.g. "Trust Evolution Engine," "Timelessness Gate," "Multi-Layer Intent Lock," "Editorial Resonance Index") | UNVERIFIED — carried over as text, not confirmed to correspond to any real designed component. Do not treat as built or even as scoped until each is independently re-derived and given its own evidence entry |
+| v2 mission and Ultimate Principle statement | DESIGNED, evidenced by this document |
+| 12-stage pipeline (Timeless Principle -> Provider-Specific Production Package) | DESIGNED, NOT IMPLEMENTED |
+| Seven Core Design Engines | DESIGNED as named responsibilities; none have an input/output schema yet |
+| Provider-neutral abstract production spec + per-provider translation | TARGET ARCHITECTURE, NOT BUILT — no provider adapters exist |
+| Universal Production Blueprint (~28 artifact types) | TARGET OUTPUT LIST, NOT SCHEMATIZED |
+| Review Council (8 councils) | DESIGNED as a review process; no implementation, scoring rubric, or automation exists |
+| v1 stage-6 "comprehension test" (vision-LLM checks viewer understood the exact maxim) | SUPERSEDED — conflicts with the "maximize probability of," non-compelled framing above; if revived, it must become a probabilistic/qualitative reflection signal, not a pass/fail check against one intended reading |
+| v1's other five stages (maxim, intent card, shot list, generation, assembly) | Mapped onto v2's more detailed architecture above; v1 wording preserved below for evidence continuity, not treated as current spec |
 
 ## Non-goals now
 
-- Do not claim any generated video is production-ready without the stage-6 comprehension gate passing.
-- Do not treat the unverified named subsystems above as implemented, or even as agreed scope, until re-derived from first principles with evidence.
-- Do not skip the stage-1 maxim gate — every entry into stage 2 must trace back to one stated causal claim.
-- Do not solve cross-shot continuity and single-shot quality in the same pass (stage 4 build order above).
-
-## Build order
-
-1. Editorial Intent Card JSON schema (stage 2) — the data contract stage 2 and 3 share.
-2. Shot List JSON schema (stage 3), including the coverage-set field.
-3. Continuity subsystem prototype (stage 4): SAM 2 + depth-conditioned generation for one tracked object across states.
-4. Orchestration for stages 1, 3, 5 (largely glue once 2 and 4 exist).
-5. Automated comprehension-proxy gate (stage 6).
+- Do not claim, measure, or optimize for "the viewer received the intended belief." The goal is probability of reflection and connection, not compelled comprehension.
+- Do not build a hard pass/fail comprehension gate against one canonical interpretation (this was v1's stage 6; it is superseded).
+- Do not lock the pipeline to a single video or music provider — the production spec must stay provider-neutral until the translation layer exists.
+- Do not treat any of the Seven Engines, the Review Council, or the Universal Production Blueprint as implemented — none have code, schemas, or evidence yet.
+- Do not skip the Principle Engine step — every project must trace back to one stated timeless principle.
 
 ## Next 3 + 1
 
-- **next_1:** Write the Editorial Intent Card JSON schema.
-- **next_2:** Write the Shot List JSON schema, including the coverage-set (5 angles × 2 takes) field.
-- **next_3:** Prototype the stage-4 continuity subsystem for one tracked object across two states.
-- **plus_1_control:** No subsystem name may be documented as built until it has a passing evidence entry — no labeled claim without a check behind it.
+- **next_1:** Write the Principle Kernel schema (Principle Engine output) — the root data contract everything downstream consumes.
+- **next_2:** Write the Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs), since Character Journey and everything downstream depends on both.
+- **next_3:** Define the Universal Production Blueprint as a concrete document schema (even if most fields start as free text) so "complete package" has one canonical shape.
+- **plus_1_control:** No engine, council, or provider adapter may be documented as built until it has a passing evidence entry — no labeled claim without a check behind it.
 
 ## Source
 
-Structure derived from a design conversation on 2026-08-02, plus a practitioner shot-coverage breakdown (Full Time Filmmaker, "Top 10 Tips for Shooting Cinematic Music Videos," https://youtu.be/BX86dUlokQY). No prior DreamMusicForge state existed in this repository before this folder.
+v2 mission, pipeline, Seven Engines, provider layer, Universal Production Blueprint, and Review Council contributed 2026-08-02, reframing the platform from a music-video generator to an Intelligent Creative Operating System / Human Transformation Studio.
+
+---
+
+## Superseded v1 design (preserved for evidence continuity)
+
+The following was the original scaffold for this folder. It is kept for evidence continuity per the fork-preservation principle, not as current spec. Where it conflicts with the v2 mission above (notably its stage-6 comprehension gate), v2 governs.
+
+### v1 purpose (superseded)
+
+DreamMusicForge exists to turn a single testable causal claim (a maxim) into a music video whose visuals demonstrably teach that claim — a structured argument stated in shots, tracked through a numeric state ladder, resolved by a threshold event, and confirmed by an automated comprehension check.
+
+### v1 pipeline — 6 stages (superseded)
+
+1. **Principle -> Maxim.** Hard gate: reduce an idea to one causal claim with a concrete before/after.
+2. **Editorial Intent Card.** Structured output: one tracked entity, a numeric state ladder, dismissal/repeat beats, one threshold event, a bookend rhyme, two independent causal chains (audio, visual).
+3. **Shot List + Lyrics, time-locked.** Coverage set per beat (5 angles x 2 takes), timecode, framing, object-state number, link back to the intent-card beat.
+4. **Generation layer.** SAM 2, DepthAnything v2, img2img/reference-locked conditioning, ProPainter, SMPL-X, CogVideoX; composition QA gate; single-shot quality before cross-shot continuity.
+5. **Assembly & sync.** Timecode-grid stitching, beat-matched cuts, automated continuity check.
+6. **Comprehension test (superseded by v2's non-compelled framing above).** Automated vision-LLM proxy checking the viewer's stated takeaway against one intended maxim, plus a human panel.
+
+### v1 non-goals, named-subsystem caution, and source note (superseded, retained for evidence)
+
+Named subsystems appearing only in the conversation that produced v1 (e.g. "Trust Evolution Engine," "Timelessness Gate," "Multi-Layer Intent Lock," "Editorial Resonance Index") were flagged UNVERIFIED and never adopted into this repo's spec. That caution still applies under v2. v1 structure was derived from a design conversation on 2026-08-02, plus a practitioner shot-coverage breakdown (Full Time Filmmaker, "Top 10 Tips for Shooting Cinematic Music Videos," https://youtu.be/BX86dUlokQY).

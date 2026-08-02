@@ -3,30 +3,76 @@
   "repository_layer": "agentic-twin/dreammusicforge",
   "status": "initialized",
   "truth_status": "STRUCTURE_CREATED_NOT_PRODUCTION_CERTIFIED",
-  "created_purpose": "Generate music videos whose visuals demonstrably teach one stated causal claim, via a structured intent-card and shot-list pipeline rather than freeform AI clip assembly.",
+  "spec_version": "v2",
+  "created_purpose": "Transform timeless human principles into original audiovisual experiences that maximize the probability of meaningful reflection, emotional connection, and positive personal growth -- an Intelligent Creative Operating System, not a video-clip generator.",
+  "superseded_versions": [
+    {
+      "version": "v1",
+      "created_purpose": "Generate music videos whose visuals demonstrably teach one stated causal claim, via a structured intent-card and shot-list pipeline.",
+      "superseded_by": "v2",
+      "superseded_reason": "v1's stage-6 comprehension test checked for one compelled, intended reading; v2's mission explicitly rejects enforcing viewer belief in favor of maximizing probability of reflection.",
+      "preserved_at": "README.md#superseded-v1-design-preserved-for-evidence-continuity"
+    }
+  ],
   "linked_to": {
     "parent_repo": "agentic-twin",
-    "inherits": "CORE_OS_INHERITANCE.md"
+    "inherits": "CORE_OS_INHERITANCE.md",
+    "converges_with": "APEX/01_CANON/01_APEX_HEART_CORE.md (Dignity Gate, Control Gate)"
   },
+  "mission_principle": "DreamMusicForge exists to transform timeless human principles into original audiovisual experiences that help people see themselves, imagine new possibilities, and carry meaningful insights beyond the final frame.",
   "pipeline_stages": [
-    "principle_to_maxim",
-    "editorial_intent_card",
-    "shot_list_time_locked",
-    "generation_layer",
-    "assembly_and_sync",
-    "comprehension_test"
+    "timeless_principle",
+    "human_truth",
+    "audience",
+    "transformation_goal",
+    "narrative_architecture",
+    "character_journey",
+    "emotional_architecture",
+    "musical_architecture",
+    "visual_architecture",
+    "shot_architecture",
+    "performance_direction",
+    "editorial_architecture",
+    "provider_specific_production_package"
   ],
+  "core_design_engines": [
+    "principle_engine",
+    "human_experience_engine",
+    "story_architecture_engine",
+    "emotional_architecture_engine",
+    "cinematic_architecture_engine",
+    "musical_architecture_engine",
+    "editorial_architecture_engine"
+  ],
+  "provider_layer": {
+    "status": "target_architecture_not_built",
+    "principle": "provider-neutral abstract production spec, translated per-provider at the last step",
+    "video_candidates": ["Google Veo", "Runway", "Luma AI Dream Machine", "Pika", "Kling AI"],
+    "music_candidates": ["Suno", "Udio"]
+  },
+  "review_council": [
+    "story_council",
+    "editorial_council",
+    "music_council",
+    "performance_council",
+    "visual_council",
+    "symbolism_council",
+    "audience_council",
+    "ethics_council"
+  ],
+  "universal_production_blueprint_status": "target_output_list_not_schematized",
   "active_prototypes": [],
   "non_goals_now": [
-    "Do not claim a generated video is production-ready without the stage-6 comprehension gate passing.",
-    "Do not treat subsystem names carried over from the originating design conversation as implemented until independently re-derived and evidenced.",
-    "Do not skip the stage-1 maxim gate.",
-    "Do not attempt single-shot quality and cross-shot continuity in the same build pass."
+    "Do not claim, measure, or optimize for the viewer receiving one intended belief -- the goal is probability of reflection, not compelled comprehension.",
+    "Do not build a hard pass/fail comprehension gate against one canonical interpretation (superseded v1 stage 6).",
+    "Do not lock the pipeline to a single video or music provider before the translation layer exists.",
+    "Do not treat any of the Seven Engines, the Review Council, or the Universal Production Blueprint as implemented -- none have code, schemas, or evidence yet.",
+    "Do not skip the Principle Engine step -- every project must trace back to one stated timeless principle."
   ],
   "next_3_plus_1": {
-    "next_1": "Write the Editorial Intent Card JSON schema (stage 2).",
-    "next_2": "Write the Shot List JSON schema (stage 3), including the coverage-set (5 angles x 2 takes) field.",
-    "next_3": "Prototype the stage-4 continuity subsystem (SAM 2 + depth-conditioned generation) for one tracked object across two states.",
-    "plus_1_control": "No subsystem name may be documented as built until it has a passing evidence entry."
+    "next_1": "Write the Principle Kernel schema (Principle Engine output).",
+    "next_2": "Write the Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs).",
+    "next_3": "Define the Universal Production Blueprint as a concrete document schema.",
+    "plus_1_control": "No engine, council, or provider adapter may be documented as built until it has a passing evidence entry."
   }
 }
