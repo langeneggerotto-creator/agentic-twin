@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "dreammusicforge/schemas/musical_architecture.schema.json",
+  "title": "DreamMusicForge Musical Architecture",
+  "description": "Output of the Musical Architecture Engine (pipeline stage: Musical Architecture). Consumes one Principle Kernel and its paired Narrative + Emotional Architecture -- specifically the emotional_waveform beats, which the tempo map is time-locked to. Must be fully defined before a music provider (Suno, Udio, ...) is selected.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_principle_id",
+    "source_human_truth_id",
+    "instrumentation",
+    "tempo_map",
+    "vocal_tone",
+    "harmonic_language",
+    "melodic_motif",
+    "lyrical_intent",
+    "emotional_pacing_notes",
+    "non_goals",
+    "truth_status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "source_principle_id": { "type": "string", "minLength": 1 },
+    "source_human_truth_id": { "type": "string", "minLength": 1 },
+    "instrumentation": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["instrument", "role"],
+        "properties": {
+          "instrument": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "tempo_map": {
+      "type": "array",
+      "minItems": 3,
+      "description": "Time-locked to the paired Narrative + Emotional Architecture's emotional_waveform. Order must be strictly increasing and unique. Every linked_waveform_beat_id must match a beat_id present in that document's emotional_waveform (checked by validate_against_narrative_architecture, not by this schema alone).",
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "order", "bpm", "dynamic_level", "linked_waveform_beat_id"],
+        "properties": {
+          "segment_id": { "type": "string", "minLength": 1 },
+          "order": { "type": "integer", "minimum": 1 },
+          "bpm": { "type": "integer", "minimum": 1 },
+          "dynamic_level": { "enum": ["pp", "p", "mp", "mf", "f", "ff"] },
+          "linked_waveform_beat_id": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "silence_moments": {
+      "type": "array",
+      "description": "Optional -- not every piece needs a deliberate silence beat.",
+      "items": {
+        "type": "object",
+        "required": ["after_segment_id", "duration_qualitative", "purpose"],
+        "properties": {
+          "after_segment_id": { "type": "string", "minLength": 1, "description": "Must match a tempo_map[].segment_id." },
+          "duration_qualitative": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "vocal_tone": {
+      "type": "object",
+      "required": ["register", "texture", "description"],
+      "properties": {
+        "register": { "type": "string", "minLength": 1 },
+        "texture": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 }
+      }
+    },
+    "harmonic_language": {
+      "type": "object",
+      "required": ["mode_or_key", "description"],
+      "properties": {
+        "mode_or_key": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 }
+      }
+    },
+    "melodic_motif": {
+      "type": "object",
+      "required": ["description", "recurs_at"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "recurs_at": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Each entry must match a tempo_map[].segment_id."
+        }
+      }
+    },
+    "lyrical_intent": { "type": "string", "minLength": 1 },
+    "emotional_pacing_notes": { "type": "string", "minLength": 1 },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "contains": {
+        "const": "This kernel does not claim to guarantee any specific viewer belief, emotion, or decision."
+      }
+    },
+    "source": { "type": "string" },
+    "truth_status": { "enum": ["VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"] }
+  },
+  "additionalProperties": false
+}
