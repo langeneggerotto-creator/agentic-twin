@@ -94,6 +94,17 @@
       ],
       "evidence": "10/10 smoke tests passing via `python3 dreammusicforge/tests/test_musical_architecture.py`",
       "note": "First cross-document check in this repo: validate_against_narrative_architecture() confirms every tempo_map[].linked_waveform_beat_id exists in the paired Narrative + Emotional Architecture's emotional_waveform, in addition to internal tempo/dynamics/motif/silence-reference checks."
+    },
+    {
+      "name": "cinematic_architecture_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/cinematic_architecture.schema.json",
+        "schemas/cinematic_architecture.py",
+        "tests/test_cinematic_architecture.py"
+      ],
+      "evidence": "10/10 smoke tests passing via `python3 dreammusicforge/tests/test_cinematic_architecture.py`",
+      "note": "Composition rules (focal point, rule of thirds, golden triangle, centered framing + rationale, leading lines, headroom/leadroom, depth layering, focus technique, color/contrast) sourced from a cited practitioner composition breakdown. Cross-checks against both prior documents, including a stage-drift check (a shot's declared narrative stage must match its linked waveform beat's actual stage in the narrative document), not just referential existence."
     }
   ],
   "non_goals_now": [
@@ -107,8 +118,9 @@
     "next_1": "DONE -- Principle Kernel schema (Principle Engine output). See active_prototypes.",
     "next_2": "DONE -- Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs). See active_prototypes.",
     "next_3": "DONE -- Musical Architecture schema (Musical Architecture Engine output), with cross-document validation against the Narrative + Emotional Architecture. See active_prototypes.",
-    "next_4": "Define the Universal Production Blueprint as a concrete document schema.",
-    "next_5": "Cinematic Architecture Engine schema, cross-referencing both the Narrative + Emotional Architecture and the Musical Architecture's tempo map.",
+    "next_4": "DONE -- Cinematic Architecture schema (Visual/Shot Architecture + Performance Direction), cross-referencing both the Narrative + Emotional Architecture and the Musical Architecture's tempo map. See active_prototypes.",
+    "next_5": "Define the Universal Production Blueprint as a concrete document schema.",
+    "next_6": "Editorial Architecture Engine schema (shot timing, reveal timing, motif evolution, expectation/payoff, ending) -- the last engine before a Provider-Specific Production Package can be assembled.",
     "plus_1_control": "No engine, council, or provider adapter may be documented as built until it has a passing evidence entry."
   }
 }
