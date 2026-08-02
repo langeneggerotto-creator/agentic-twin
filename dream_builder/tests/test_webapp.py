@@ -82,6 +82,15 @@ def test_plan_endpoint_generates_plan_and_hints(client, monkeypatch):
     assert body["resource_hints"] == ["Could be handy: a phrasebook."]
 
 
+def test_plan_endpoint_returns_clear_503_when_model_refuses(client, monkeypatch):
+    dream = _make_dream(monkeypatch)
+    monkeypatch.setattr(planner, "chat", lambda messages, **kw: "I can't help with this request.")
+
+    resp = client.post(f"/api/dreams/{dream['id']}/plan")
+    assert resp.status_code == 503
+    assert "I can't help with this request." in resp.json()["error"]
+
+
 def test_resources_endpoint_full_search(client, monkeypatch):
     dream = _make_dream(monkeypatch)
     need_response = json.dumps(

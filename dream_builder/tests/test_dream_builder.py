@@ -104,6 +104,38 @@ def test_build_plan_uses_llm_output(tmp_path, monkeypatch):
     assert store.get_dream(dream["id"])["plan"][0]["step"].startswith("Get a couch")
 
 
+def test_build_plan_retries_once_on_malformed_json(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Run a marathon", "Finish a marathon in under 5 hours")
+
+    valid_response = json.dumps([{"step": "Get a couch-to-10k training plan", "needs_internet": False}])
+    calls = {"n": 0}
+
+    def flaky_chat(messages, **kw):
+        calls["n"] += 1
+        return "I can't help with this request." if calls["n"] == 1 else valid_response
+
+    monkeypatch.setattr(planner, "chat", flaky_chat)
+
+    planner.build_plan(dream)
+
+    assert calls["n"] == 2
+    assert dream["plan"][0]["step"] == "Get a couch-to-10k training plan"
+
+
+def test_build_plan_raises_clearly_when_model_refuses_twice(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Run a marathon", "Finish a marathon in under 5 hours")
+
+    monkeypatch.setattr(planner, "chat", lambda messages, **kw: "I can't help with this request.")
+
+    try:
+        planner.build_plan(dream)
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "I can't help with this request." in str(e)
+
+
 def test_find_resources_ranks_search_results(tmp_path, monkeypatch):
     monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
     dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
@@ -175,6 +207,25 @@ def test_suggest_resources_includes_plan_context(tmp_path, monkeypatch):
 
     user_message = captured["messages"][1]["content"]
     assert "Buy a cheap acoustic guitar" in user_message
+
+
+def test_suggest_resources_retries_once_on_refusal(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
+
+    valid_response = json.dumps([{"pitch": "This could be handy: a tuner app."}])
+    calls = {"n": 0}
+
+    def flaky_chat(messages, **kw):
+        calls["n"] += 1
+        return "I can't help with this request." if calls["n"] == 1 else valid_response
+
+    monkeypatch.setattr(resources, "chat", flaky_chat)
+
+    pitches = resources.suggest_resources(dream)
+
+    assert calls["n"] == 2
+    assert pitches == ["This could be handy: a tuner app."]
 
 
 def test_service_create_dream_with_hints_calls_both(tmp_path, monkeypatch):

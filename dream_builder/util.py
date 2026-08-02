@@ -16,6 +16,32 @@ def extract_json_object(text):
     return json.loads(match.group(0))
 
 
+def chat_json_array(chat_fn, messages):
+    """Call chat_fn(messages) and parse a JSON array from the result,
+    retrying once on failure. The model occasionally returns malformed
+    JSON or an outright refusal ("I can't help with this request.")
+    instead of the requested array — one retry clears most transient
+    cases; a real refusal still propagates as ValueError so callers (and
+    the web/CLI error handlers) can surface it clearly instead of it
+    failing silently or crashing uninformatively."""
+    raw = chat_fn(messages)
+    try:
+        return extract_json_array(raw)
+    except ValueError:
+        raw = chat_fn(messages)
+        return extract_json_array(raw)
+
+
+def chat_json_object(chat_fn, messages):
+    """Object-returning counterpart to chat_json_array — see its docstring."""
+    raw = chat_fn(messages)
+    try:
+        return extract_json_object(raw)
+    except ValueError:
+        raw = chat_fn(messages)
+        return extract_json_object(raw)
+
+
 def slugify(text):
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "project"
 

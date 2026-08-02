@@ -1,6 +1,6 @@
 from . import store
 from .llm_client import chat
-from .util import extract_json_array
+from .util import chat_json_array
 from .web_lookup import search
 
 RESOURCE_SYSTEM_PROMPT = (
@@ -72,8 +72,7 @@ def suggest_resources(dream, max_hints=4):
         {"role": "system", "content": SUGGEST_SYSTEM_PROMPT},
         {"role": "user", "content": user_content},
     ]
-    raw = chat(messages)
-    hints = extract_json_array(raw)
+    hints = chat_json_array(chat, messages)
     pitches = [h["pitch"] for h in hints if h.get("pitch")][:max_hints]
     dream["resource_hints"] = pitches
     store.update_dream(dream)
@@ -88,8 +87,7 @@ def find_resources(dream, max_results=5):
             "content": f"Goal: {dream['title']}\nDetails: {dream['description']}",
         },
     ]
-    raw = chat(messages)
-    needs = extract_json_array(raw)
+    needs = chat_json_array(chat, messages)
 
     resources = []
     for need in needs:

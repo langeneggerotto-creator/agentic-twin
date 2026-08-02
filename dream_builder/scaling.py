@@ -1,6 +1,6 @@
 from . import store
 from .llm_client import chat
-from .util import as_text, extract_json_object, plan_summary, resource_summary
+from .util import as_text, chat_json_object, plan_summary, resource_summary
 
 SCALING_SYSTEM_PROMPT = (
     "You help someone think through how to fund and scale their goal — "
@@ -51,14 +51,7 @@ def plan_scaling(dream):
             ),
         },
     ]
-    raw = chat(messages)
-    try:
-        data = extract_json_object(raw)
-    except ValueError:
-        # LLM output is occasionally malformed JSON; one retry clears most
-        # of those without making callers deal with the failure themselves.
-        raw = chat(messages)
-        data = extract_json_object(raw)
+    data = chat_json_object(chat, messages)
     scaling = {
         "funding_strategy": as_text(data.get("funding_strategy", "")),
         "scaling_strategy": as_text(data.get("scaling_strategy", "")),

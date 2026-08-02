@@ -1,6 +1,6 @@
 from . import store
 from .llm_client import chat
-from .util import as_text, extract_json_array, plan_summary, resource_summary
+from .util import as_text, chat_json_array, plan_summary, resource_summary
 
 RECOMMEND_SYSTEM_PROMPT = (
     "You are a decisive practical advisor. Given a person's goal, the "
@@ -46,14 +46,7 @@ def generate_recommendations(dream):
             ),
         },
     ]
-    raw = chat(messages)
-    try:
-        data = extract_json_array(raw)
-    except ValueError:
-        # LLM output is occasionally malformed JSON; one retry clears most
-        # of those without making callers deal with the failure themselves.
-        raw = chat(messages)
-        data = extract_json_array(raw)
+    data = chat_json_array(chat, messages)
 
     recommendations = []
     for rec in data[:3]:

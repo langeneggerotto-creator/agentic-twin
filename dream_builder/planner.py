@@ -1,6 +1,6 @@
 from . import store
 from .llm_client import chat
-from .util import extract_json_array
+from .util import chat_json_array
 
 PLAN_SYSTEM_PROMPT = (
     "You are a practical planning assistant. Given a person's goal, break it "
@@ -22,8 +22,7 @@ def build_plan(dream):
             "content": f"Goal: {dream['title']}\nDetails: {dream['description']}",
         },
     ]
-    raw = chat(messages)
-    steps = extract_json_array(raw)
+    steps = chat_json_array(chat, messages)
     dream["plan"] = [
         {
             "step": s["step"],

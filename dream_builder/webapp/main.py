@@ -43,6 +43,20 @@ def _claude_error_handler(request, exc):
     return JSONResponse(status_code=503, content={"error": str(exc)})
 
 
+@app.exception_handler(ValueError)
+def _value_error_handler(request, exc):
+    # Routes that raise ValueError for a legitimate user-input problem (e.g.
+    # an out-of-range recommendation index) already catch it themselves and
+    # return a 400 before it gets here. Anything that reaches this handler
+    # is an uncaught failure parsing the LLM's output — most commonly the
+    # model refusing outright ("I can't help with this request.") instead
+    # of returning the requested JSON — so it's treated the same way as an
+    # Ollama-connection failure: a clear, visible error, not a raw 500.
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(status_code=503, content={"error": str(exc)})
+
+
 class DreamCreate(BaseModel):
     title: str
     description: str

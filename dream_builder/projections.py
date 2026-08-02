@@ -1,6 +1,6 @@
 from . import store
 from .llm_client import chat
-from .util import as_text, extract_json_object, plan_summary, resource_summary
+from .util import as_text, chat_json_object, plan_summary, resource_summary
 
 PROJECTION_SYSTEM_PROMPT = (
     "You are a practical estimator and metrics coach. Given a person's goal, "
@@ -33,14 +33,7 @@ def project_dream(dream):
             ),
         },
     ]
-    raw = chat(messages)
-    try:
-        data = extract_json_object(raw)
-    except ValueError:
-        # LLM output is occasionally malformed JSON; one retry clears most
-        # of those without making callers deal with the failure themselves.
-        raw = chat(messages)
-        data = extract_json_object(raw)
+    data = chat_json_object(chat, messages)
     projection = {
         "time_estimate": as_text(data.get("time_estimate", "")),
         "cost_estimate": as_text(data.get("cost_estimate", "")),
