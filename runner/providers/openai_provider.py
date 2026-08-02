@@ -4,7 +4,7 @@ the Claude Code provider -- proof the execution gate is provider-agnostic,
 not built around any one model's own scaffolding.
 
 Requires OPENAI_API_KEY to be set and `pip install openai`. Not wired into
-runner/controller.py or CI: every run makes real, billed API calls.
+any CI workflow: every run makes real, billed API calls.
 
 Unlike the Claude Agent SDK, plain chat completions has no built-in
 permission system: every tool call here is checked against the contract's
@@ -93,18 +93,19 @@ def build_prompt(contract: dict) -> str:
     return "\n".join(lines)
 
 
-def execute_tool(name: str, args: dict, contract: dict) -> tuple[str, bool]:
+def execute_tool(name: str, args: dict, contract: dict, repo_root: Path = None) -> tuple[str, bool]:
     """Returns (result_text, is_error). Pre-execution scope check for writes
     and commands -- there is no SDK-level permission mode here, so this is
     the only thing standing between the model and an out-of-scope action
     before it happens."""
+    repo_root = repo_root or REPO_ROOT
     allowed_paths = contract.get("allowed_paths", [])
     allowed_commands = contract.get("allowed_commands", [])
 
     if name == "read_file":
         path = args.get("path", "")
         try:
-            return (REPO_ROOT / path).read_text(), False
+            return (repo_root / path).read_text(), False
         except OSError as e:
             return f"error: {e}", True
 
@@ -112,7 +113,7 @@ def execute_tool(name: str, args: dict, contract: dict) -> tuple[str, bool]:
         path = args.get("path", "")
         if not path_allowed(path, allowed_paths):
             return f"denied: '{path}' is outside allowed_paths", True
-        target = REPO_ROOT / path
+        target = repo_root / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(args.get("content", ""))
         return f"wrote {path}", False
@@ -122,7 +123,7 @@ def execute_tool(name: str, args: dict, contract: dict) -> tuple[str, bool]:
         if not command_allowed(command, allowed_commands):
             return f"denied: '{command}' is outside allowed_commands", True
         result = subprocess.run(
-            command, shell=True, cwd=REPO_ROOT, capture_output=True, text=True, timeout=120,
+            command, shell=True, cwd=repo_root, capture_output=True, text=True, timeout=120,
         )
         output = (result.stdout or "") + (result.stderr or "")
         return output, result.returncode != 0
@@ -131,8 +132,13 @@ def execute_tool(name: str, args: dict, contract: dict) -> tuple[str, bool]:
 
 
 def git_changed_files(repo_root: Path) -> dict:
+    """--untracked-files=all is required: without it, git collapses a
+    brand-new untracked directory to a single entry for the directory
+    itself instead of the file inside it, which then fails allowed_paths
+    matching against the actual file's path. See the identical fix and
+    longer explanation in runner/claude_code_delegate.py."""
     out = subprocess.run(
-        ["git", "status", "--porcelain"],
+        ["git", "status", "--porcelain", "--untracked-files=all"],
         cwd=repo_root, capture_output=True, text=True, check=True,
     )
     changed = {}
@@ -150,8 +156,19 @@ def rollback(repo_root: Path, changed: dict) -> None:
             subprocess.run(["git", "checkout", "--", path], cwd=repo_root, check=False)
 
 
-async def run_delegate(contract: dict, model: str = DEFAULT_MODEL) -> dict:
-    client = OpenAI()
+async def run_delegate(
+    contract: dict,
+    model: str = DEFAULT_MODEL,
+    repo_root: Path = None,
+    evidence_ledger_path: str = None,
+    client: OpenAI = None,
+) -> dict:
+    """repo_root and evidence_ledger_path default to the real repo and the
+    real ledger -- override both in tests so a scripted run never touches
+    real git state or writes real evidence. Pass client to inject a fake
+    OpenAI client in tests instead of requiring OPENAI_API_KEY."""
+    repo_root = Path(repo_root) if repo_root else REPO_ROOT
+    client = client or OpenAI()
     messages = [{"role": "user", "content": build_prompt(contract)}]
     commands_run = []
     command_outputs = []  # (command, output, is_error) in call order
@@ -179,7 +196,7 @@ async def run_delegate(contract: dict, model: str = DEFAULT_MODEL) -> dict:
 
         for call in message.tool_calls:
             args = json.loads(call.function.arguments or "{}")
-            output, is_error = execute_tool(call.function.name, args, contract)
+            output, is_error = execute_tool(call.function.name, args, contract, repo_root=repo_root)
             if call.function.name == "run_command":
                 cmd = args.get("command", "")
                 commands_run.append(cmd)
@@ -187,7 +204,7 @@ async def run_delegate(contract: dict, model: str = DEFAULT_MODEL) -> dict:
             messages.append({"role": "tool", "tool_call_id": call.id, "content": output})
 
     # Never trust the model's own account of what it touched -- verify against git.
-    changed = git_changed_files(REPO_ROOT)
+    changed = git_changed_files(repo_root)
 
     # Independent verification: use the real captured stdout/stderr from test
     # commands, not the model's narration.
@@ -212,7 +229,7 @@ async def run_delegate(contract: dict, model: str = DEFAULT_MODEL) -> dict:
     )
 
     if not gate["passed"]:
-        rollback(REPO_ROOT, changed)
+        rollback(repo_root, changed)
 
     outcome = {
         "provider": PROVIDER_NAME,
@@ -226,6 +243,7 @@ async def run_delegate(contract: dict, model: str = DEFAULT_MODEL) -> dict:
         "is_error": not gate["passed"],
     }
 
+    ledger_kwargs = {"ledger_path": evidence_ledger_path} if evidence_ledger_path else {}
     record_evidence({
         "goal": contract.get("goal"),
         "contract": contract,
@@ -239,7 +257,7 @@ async def run_delegate(contract: dict, model: str = DEFAULT_MODEL) -> dict:
         "total_tokens": total_tokens,
         "evidence_kind": "simulated_delegation_result",
         "truth_status": "OBSERVED_SDK_OUTPUT_NOT_EXTERNALLY_VALIDATED",
-    })
+    }, **ledger_kwargs)
 
     return outcome
 

@@ -15,17 +15,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run Agentic Twin
-        run: |
-          python runner/controller.py || true
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - name: Print output files
-        run: |
-          echo "Plan:"
-          cat outputs/plan.md || echo "Plan missing"
-          echo "Code:"
-          cat outputs/generated_code.py || echo "Code missing"
-          echo "Tests:"
-          cat outputs/test_results.txt || echo "Tests missing"
-
-
+      - name: Run test suite
+        run: bash scripts/run_tests.sh

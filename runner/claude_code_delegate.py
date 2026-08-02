@@ -2,7 +2,7 @@
 Claude Agent SDK, then runs the result through governance.gatekeeper.enforce_contract.
 
 Requires ANTHROPIC_API_KEY to be set and `pip install claude-agent-sdk`.
-Not wired into runner/controller.py or CI: every run makes real, billed API
+Not wired into any CI workflow: every run makes real, billed API
 calls, so it only runs when you invoke it yourself.
 
 Usage:
@@ -61,13 +61,13 @@ def build_prompt(contract: dict) -> str:
     return "\n".join(lines)
 
 
-def build_options(contract: dict) -> ClaudeAgentOptions:
+def build_options(contract: dict, repo_root: Path = None) -> ClaudeAgentOptions:
     allowed = ["Read", "Glob", "Grep"]
     allowed += [f"Edit({p})" for p in contract.get("allowed_paths", [])]
     allowed += [f"Bash({c})" for c in contract.get("allowed_commands", [])]
 
     return ClaudeAgentOptions(
-        cwd=str(REPO_ROOT),
+        cwd=str(repo_root or REPO_ROOT),
         allowed_tools=allowed,
         # dontAsk: anything not covered by allowed_tools is denied outright,
         # never prompted -- required for an unattended/headless run.
@@ -81,9 +81,16 @@ def build_options(contract: dict) -> ClaudeAgentOptions:
 
 
 def git_changed_files(repo_root: Path) -> dict:
-    """Returns {path: status} where status is 'modified' or 'untracked'."""
+    """Returns {path: status} where status is 'modified' or 'untracked'.
+
+    --untracked-files=all is required: without it, git collapses a brand-new
+    untracked directory to a single entry for the directory itself (e.g.
+    "?? src/camera/" or even "?? src/") instead of listing the file inside
+    it, which then fails allowed_paths matching (e.g. "src/camera/**")
+    against the directory path even though the actual file is in scope.
+    """
     out = subprocess.run(
-        ["git", "status", "--porcelain"],
+        ["git", "status", "--porcelain", "--untracked-files=all"],
         cwd=repo_root, capture_output=True, text=True, check=True,
     )
     changed = {}
@@ -101,9 +108,13 @@ def rollback(repo_root: Path, changed: dict) -> None:
             subprocess.run(["git", "checkout", "--", path], cwd=repo_root, check=False)
 
 
-async def run_delegate(contract: dict) -> dict:
+async def run_delegate(contract: dict, repo_root: Path = None, evidence_ledger_path: str = None) -> dict:
+    """repo_root and evidence_ledger_path default to the real repo and the
+    real ledger -- override both in tests so a scripted run never touches
+    real git state or writes real evidence."""
+    repo_root = Path(repo_root) if repo_root else REPO_ROOT
     prompt = build_prompt(contract)
-    options = build_options(contract)
+    options = build_options(contract, repo_root=repo_root)
 
     commands_run = []
     declared_write_paths = set()
@@ -137,7 +148,7 @@ async def run_delegate(contract: dict) -> dict:
             result_message = message
 
     # Never trust the model's own account of what it touched -- verify against git.
-    changed = git_changed_files(REPO_ROOT)
+    changed = git_changed_files(repo_root)
 
     # Independent verification: use the real captured stdout/stderr from test
     # commands, not the model's narration of what happened.
@@ -160,7 +171,7 @@ async def run_delegate(contract: dict) -> dict:
     )
 
     if not gate["passed"]:
-        rollback(REPO_ROOT, changed)
+        rollback(repo_root, changed)
 
     # permission_denials: things Claude attempted but the SDK itself already
     # blocked, because build_options() never grants unlisted tools/commands.
@@ -181,6 +192,7 @@ async def run_delegate(contract: dict) -> dict:
         "is_error": getattr(result_message, "is_error", None),
     }
 
+    ledger_kwargs = {"ledger_path": evidence_ledger_path} if evidence_ledger_path else {}
     record_evidence({
         "goal": contract.get("goal"),
         "contract": contract,
@@ -197,7 +209,7 @@ async def run_delegate(contract: dict) -> dict:
         "max_budget_usd": contract.get("max_budget_usd"),
         "evidence_kind": "simulated_delegation_result",
         "truth_status": "OBSERVED_SDK_OUTPUT_NOT_EXTERNALLY_VALIDATED",
-    })
+    }, **ledger_kwargs)
 
     return outcome
 
