@@ -73,6 +73,10 @@ def build_options(contract: dict) -> ClaudeAgentOptions:
         # never prompted -- required for an unattended/headless run.
         permission_mode="dontAsk",
         max_turns=contract.get("max_turns", 30),
+        # Client-side estimate; the SDK stops the session when it thinks this
+        # is reached. Treated as a soft stop, not the enforcement point --
+        # enforce_contract independently checks the real reported cost below.
+        max_budget_usd=contract.get("max_budget_usd"),
     )
 
 
@@ -152,6 +156,7 @@ async def run_delegate(contract: dict) -> dict:
         commands_run=commands_run,
         test_results=test_results,
         approved_actions=approved_actions_for(contract),
+        cost_usd=getattr(result_message, "total_cost_usd", None),
     )
 
     if not gate["passed"]:
@@ -188,6 +193,7 @@ async def run_delegate(contract: dict) -> dict:
         "permission_denials": permission_denials,
         "session_id": outcome["session_id"],
         "cost_usd": outcome["cost_usd"],
+        "max_budget_usd": contract.get("max_budget_usd"),
         "evidence_kind": "simulated_delegation_result",
         "truth_status": "OBSERVED_SDK_OUTPUT_NOT_EXTERNALLY_VALIDATED",
     })

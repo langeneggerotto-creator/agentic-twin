@@ -51,8 +51,21 @@ def test_options_default_to_zero_commands_and_paths_when_contract_is_empty():
                 "an empty contract must grant no write or execute access")
 
 
+def test_max_budget_usd_is_threaded_through_when_present():
+    options = build_options({**CAMERA_CONTRACT, "max_budget_usd": 2.5})
+    assert_true(options.max_budget_usd == 2.5, "contract's max_budget_usd must reach ClaudeAgentOptions")
+
+
+def test_max_budget_usd_defaults_to_none_when_absent():
+    options = build_options(CAMERA_CONTRACT)
+    assert_true(options.max_budget_usd is None,
+                "no max_budget_usd in the contract must mean no client-side cap requested")
+
+
 if __name__ == "__main__":
     test_prompt_states_the_contract()
     test_options_are_locked_down()
     test_options_default_to_zero_commands_and_paths_when_contract_is_empty()
+    test_max_budget_usd_is_threaded_through_when_present()
+    test_max_budget_usd_defaults_to_none_when_absent()
     print("PASS: claude_code_delegate smoke tests")

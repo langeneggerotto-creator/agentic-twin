@@ -147,6 +147,49 @@ def test_approval_for_an_action_not_actually_observed_is_a_no_op():
     assert_true(result["pending_approval"] == [], "nothing is pending when the gated action never happened")
 
 
+BUDGETED_CONTRACT = {
+    "goal": "Repair the camera service startup failure",
+    "allowed_paths": ["src/camera/**"],
+    "allowed_commands": ["pytest tests/camera"],
+    "max_budget_usd": 2.00,
+}
+
+
+def test_cost_within_budget_passes():
+    result = enforce_contract(
+        BUDGETED_CONTRACT,
+        changed_files=["src/camera/driver.py"],
+        commands_run=["pytest tests/camera"],
+        test_results="test_startup: PASS",
+        cost_usd=1.25,
+    )
+    assert_true(result["passed"], f"cost under the cap must not fail the gate, got {result['violations']}")
+
+
+def test_cost_over_budget_is_rejected():
+    result = enforce_contract(
+        BUDGETED_CONTRACT,
+        changed_files=["src/camera/driver.py"],
+        commands_run=["pytest tests/camera"],
+        test_results="test_startup: PASS",
+        cost_usd=5.50,
+    )
+    assert_true(not result["passed"], "cost over the cap must fail the gate even if everything else complied")
+    assert_true(any("cost exceeded budget" in v for v in result["violations"]),
+                "violation must explain it was a budget overrun")
+
+
+def test_no_budget_set_skips_the_cost_check():
+    result = enforce_contract(
+        CAMERA_CONTRACT,
+        changed_files=["src/camera/driver.py"],
+        commands_run=["pytest tests/camera"],
+        test_results="test_startup: PASS",
+        cost_usd=9999.00,
+    )
+    assert_true(result["passed"], "a contract with no max_budget_usd must not enforce a cost cap")
+
+
 if __name__ == "__main__":
     test_compliant_change_passes()
     test_file_outside_allowed_paths_is_rejected()
@@ -158,4 +201,7 @@ if __name__ == "__main__":
     test_observed_approval_gated_action_blocks_without_a_grant()
     test_approved_action_unblocks_the_gate()
     test_approval_for_an_action_not_actually_observed_is_a_no_op()
+    test_cost_within_budget_passes()
+    test_cost_over_budget_is_rejected()
+    test_no_budget_set_skips_the_cost_check()
     print("PASS: enforce_contract smoke tests")

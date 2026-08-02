@@ -77,6 +77,7 @@ def enforce_contract(
     test_results: str = "",
     declared_actions: list = None,
     approved_actions: list = None,
+    cost_usd: float = None,
 ) -> dict:
     """Mechanically enforce a delegation contract against what an executor actually did.
 
@@ -90,6 +91,11 @@ def enforce_contract(
     fail the gate unless present in approved_actions, per "preserve human control
     over consequential actions." Pass approved_actions from a real, out-of-band
     human decision (see governance.approvals) -- never from the executor's own output.
+
+    cost_usd, if given, is checked against contract["max_budget_usd"] independently
+    of whatever client-side budget stop the executor itself was configured with --
+    "cap commitment according to evidence strength" means the actual spend is
+    verified here too, not just requested as a soft stop upstream.
     """
     commands_run = commands_run or []
     declared_actions = declared_actions or []
@@ -121,6 +127,10 @@ def enforce_contract(
     test_commands_ran = any("test" in c or "pytest" in c for c in commands_run)
     if test_commands_ran and "FAIL" in test_results:
         violations.append("acceptance criteria failed: tests did not all pass")
+
+    max_budget_usd = contract.get("max_budget_usd")
+    if max_budget_usd is not None and cost_usd is not None and cost_usd > max_budget_usd:
+        violations.append(f"cost exceeded budget: ${cost_usd:.4f} > ${max_budget_usd:.4f} cap")
 
     return {
         "passed": not violations,

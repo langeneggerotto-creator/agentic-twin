@@ -12,5 +12,6 @@
     "All camera tests pass",
     "No files outside the allowed paths change"
   ],
-  "requires_human_approval": ["production_deployment", "hardware_control"]
+  "requires_human_approval": ["production_deployment", "hardware_control"],
+  "max_budget_usd": 2.00
 }
