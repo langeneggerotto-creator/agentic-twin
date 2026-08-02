@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "dreammusicforge/schemas/editorial_architecture.schema.json",
+  "title": "DreamMusicForge Editorial Architecture",
+  "description": "Output of the Editorial Architecture Engine (pipeline stage: Editorial Architecture) -- the last engine before a Provider-Specific Production Package is assembled. Designs shot timing, reveal timing, motif evolution, visual callbacks (expectation and payoff), emotional pacing, and the ending. Cross-references the paired Cinematic Architecture's shot list and the paired Musical Architecture's tempo_map.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_principle_id",
+    "source_human_truth_id",
+    "edit_timeline",
+    "motif_evolution",
+    "visual_callbacks",
+    "ending",
+    "pacing_notes",
+    "non_goals",
+    "truth_status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "source_principle_id": { "type": "string", "minLength": 1 },
+    "source_human_truth_id": { "type": "string", "minLength": 1 },
+    "edit_timeline": {
+      "type": "array",
+      "minItems": 8,
+      "description": "One cut per shot at minimum. order and start_time_seconds must be strictly increasing. Every shot_id in the paired Cinematic Architecture must be covered by at least one cut (checked by validate_against_cinematic_architecture).",
+      "items": {
+        "type": "object",
+        "required": ["cut_id", "order", "shot_id", "start_time_seconds", "duration_seconds", "cut_on_beat"],
+        "properties": {
+          "cut_id": { "type": "string", "minLength": 1 },
+          "order": { "type": "integer", "minimum": 1 },
+          "shot_id": { "type": "string", "minLength": 1, "description": "Must match a shots[].shot_id in the paired Cinematic Architecture." },
+          "start_time_seconds": { "type": "number", "minimum": 0 },
+          "duration_seconds": { "type": "number", "exclusiveMinimum": 0 },
+          "cut_on_beat": { "type": "boolean" },
+          "linked_tempo_segment_id": {
+            "type": "string",
+            "description": "Required when cut_on_beat is true. Must match a tempo_map[].segment_id in the paired Musical Architecture."
+          },
+          "reveal_note": { "type": "string" }
+        }
+      }
+    },
+    "motif_evolution": {
+      "type": "array",
+      "description": "Grouped by motif_id. Each motif must have at least 2 entries (a motif that never evolves is not editorial architecture), strictly increasing order within its group, first stage 'introduced', and a final stage of 'transformed' or 'resolved'.",
+      "items": {
+        "type": "object",
+        "required": ["motif_id", "order", "cut_id", "stage", "state_description"],
+        "properties": {
+          "motif_id": { "type": "string", "minLength": 1 },
+          "order": { "type": "integer", "minimum": 1 },
+          "cut_id": { "type": "string", "minLength": 1, "description": "Must match an edit_timeline[].cut_id." },
+          "stage": { "enum": ["introduced", "recurred", "transformed", "resolved"] },
+          "state_description": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "visual_callbacks": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Expectation-and-payoff pairs. payoff_cut_id must occur later in the edit_timeline than setup_cut_id.",
+      "items": {
+        "type": "object",
+        "required": ["callback_id", "setup_cut_id", "payoff_cut_id", "description"],
+        "properties": {
+          "callback_id": { "type": "string", "minLength": 1 },
+          "setup_cut_id": { "type": "string", "minLength": 1 },
+          "payoff_cut_id": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "ending": {
+      "type": "object",
+      "required": ["type", "description"],
+      "properties": {
+        "type": { "enum": ["resolution_stated", "reflection_open_ended", "ambiguous"] },
+        "description": { "type": "string", "minLength": 1 },
+        "explicit_statement_rationale": {
+          "type": "string",
+          "description": "Required when type is 'resolution_stated' -- stating a resolution outright is the exception, not the default, under the v2 non-compulsion mission, so it must be a deliberate, justified choice."
+        }
+      }
+    },
+    "pacing_notes": { "type": "string", "minLength": 1 },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "contains": {
+        "const": "This kernel does not claim to guarantee any specific viewer belief, emotion, or decision."
+      }
+    },
+    "source": { "type": "string" },
+    "truth_status": { "enum": ["VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"] }
+  },
+  "additionalProperties": false
+}
