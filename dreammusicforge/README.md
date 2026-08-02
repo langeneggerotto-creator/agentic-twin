@@ -117,6 +117,7 @@ Every production is evaluated by specialized reviewers. No single score determin
 | Provider-neutral abstract production spec + per-provider translation | TARGET ARCHITECTURE, NOT BUILT — no provider adapters exist |
 | Universal Production Blueprint (~28 artifact types) | TARGET OUTPUT LIST, NOT SCHEMATIZED |
 | Review Council (8 councils) | DESIGNED as a review process; no implementation, scoring rubric, or automation exists |
+| Principle Kernel schema (Principle Engine output) | IMPLEMENTED — `schemas/principle_kernel.schema.json` (contract) + `schemas/principle_kernel.py` (dependency-free validator) + `tests/test_principle_kernel.py` (5 passing smoke tests, run with `python3 dreammusicforge/tests/test_principle_kernel.py`). Bakes the "no compelled viewer belief" ethics constraint into the schema itself: `non_goals` must contain that exact sentence or validation fails. |
 | v1 stage-6 "comprehension test" (vision-LLM checks viewer understood the exact maxim) | SUPERSEDED — conflicts with the "maximize probability of," non-compelled framing above; if revived, it must become a probabilistic/qualitative reflection signal, not a pass/fail check against one intended reading |
 | v1's other five stages (maxim, intent card, shot list, generation, assembly) | Mapped onto v2's more detailed architecture above; v1 wording preserved below for evidence continuity, not treated as current spec |
 
@@ -130,10 +131,18 @@ Every production is evaluated by specialized reviewers. No single score determin
 
 ## Next 3 + 1
 
-- **next_1:** Write the Principle Kernel schema (Principle Engine output) — the root data contract everything downstream consumes.
+- **next_1 (done):** ~~Write the Principle Kernel schema~~ — see `schemas/principle_kernel.schema.json`, `schemas/principle_kernel.py`, `tests/test_principle_kernel.py`.
 - **next_2:** Write the Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs), since Character Journey and everything downstream depends on both.
 - **next_3:** Define the Universal Production Blueprint as a concrete document schema (even if most fields start as free text) so "complete package" has one canonical shape.
 - **plus_1_control:** No engine, council, or provider adapter may be documented as built until it has a passing evidence entry — no labeled claim without a check behind it.
+
+## Running the tests
+
+```bash
+python3 dreammusicforge/tests/test_principle_kernel.py
+```
+
+No dependencies beyond the Python 3 standard library.
 
 ## Source
 

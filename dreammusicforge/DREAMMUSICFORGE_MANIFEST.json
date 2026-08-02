@@ -61,7 +61,19 @@
     "ethics_council"
   ],
   "universal_production_blueprint_status": "target_output_list_not_schematized",
-  "active_prototypes": [],
+  "active_prototypes": [
+    {
+      "name": "principle_kernel_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/principle_kernel.schema.json",
+        "schemas/principle_kernel.py",
+        "tests/test_principle_kernel.py"
+      ],
+      "evidence": "5/5 smoke tests passing via `python3 dreammusicforge/tests/test_principle_kernel.py`",
+      "note": "Validator rejects any kernel whose non_goals list drops the required ethics constraint against compelling viewer belief."
+    }
+  ],
   "non_goals_now": [
     "Do not claim, measure, or optimize for the viewer receiving one intended belief -- the goal is probability of reflection, not compelled comprehension.",
     "Do not build a hard pass/fail comprehension gate against one canonical interpretation (superseded v1 stage 6).",
@@ -70,7 +82,7 @@
     "Do not skip the Principle Engine step -- every project must trace back to one stated timeless principle."
   ],
   "next_3_plus_1": {
-    "next_1": "Write the Principle Kernel schema (Principle Engine output).",
+    "next_1": "DONE -- Principle Kernel schema (Principle Engine output). See active_prototypes.",
     "next_2": "Write the Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs).",
     "next_3": "Define the Universal Production Blueprint as a concrete document schema.",
     "plus_1_control": "No engine, council, or provider adapter may be documented as built until it has a passing evidence entry."
