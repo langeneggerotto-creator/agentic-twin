@@ -116,6 +116,17 @@
       ],
       "evidence": "11/11 smoke tests passing via `python3 dreammusicforge/tests/test_editorial_architecture.py`",
       "note": "Last engine before the Provider-Specific Production Package. Enforces motifs that actually evolve (>=2 entries, starts introduced, ends transformed/resolved), callback payoff-after-setup ordering, and an ending-type discipline requiring explicit_statement_rationale for resolution_stated endings. Cross-checks full shot coverage against Cinematic Architecture and tempo-segment references against Musical Architecture. Completes the first full 5-document chain: Principle Kernel -> Narrative/Emotional -> Musical -> Cinematic -> Editorial."
+    },
+    {
+      "name": "universal_production_blueprint_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/universal_production_blueprint.schema.json",
+        "schemas/universal_production_blueprint.py",
+        "tests/test_universal_production_blueprint.py"
+      ],
+      "evidence": "11/11 smoke tests passing via `python3 dreammusicforge/tests/test_universal_production_blueprint.py`, including validate_full_chain() re-running all 9 prior validators clean on the worked example",
+      "note": "Assembles all five prior documents into three explicitly separated tiers (VERIFIED_STRUCTURED embedded_documents, DESIGNED_FREE_TEXT narrative_supplement, NOT_YET_BUILT provider_specific_prompt_sets) plus an 8-council review_checklist, so the blueprint cannot silently present unbuilt or unverified sections as equivalent to the validated ones. validate_full_chain() is the closest thing this repo has to a full pipeline integration test."
     }
   ],
   "non_goals_now": [
@@ -131,8 +142,8 @@
     "next_3": "DONE -- Musical Architecture schema (Musical Architecture Engine output), with cross-document validation against the Narrative + Emotional Architecture. See active_prototypes.",
     "next_4": "DONE -- Cinematic Architecture schema (Visual/Shot Architecture + Performance Direction), cross-referencing both the Narrative + Emotional Architecture and the Musical Architecture's tempo map. See active_prototypes.",
     "next_5": "DONE -- Editorial Architecture schema (shot timing, motif evolution, visual callbacks, ending), cross-referencing Cinematic Architecture (full shot coverage) and Musical Architecture (tempo segments). See active_prototypes.",
-    "next_6": "Define the Universal Production Blueprint as a concrete document schema that assembles all five existing documents into the package described in the mission.",
-    "next_7": "Provider-Specific Production Package: translation layer from the Universal Production Blueprint into one real provider's prompt format -- start with one video provider and one music provider, not all of them.",
+    "next_6": "DONE -- Universal Production Blueprint schema assembling all five documents into three explicitly-tiered sections, with validate_full_chain() re-running every prior validator. See active_prototypes.",
+    "next_7": "Provider-Specific Production Package: translation layer from the Universal Production Blueprint's provider_specific_prompt_sets (currently build_status not_yet_built) into one real provider's prompt format -- start with one video provider and one music provider, not all of them.",
     "plus_1_control": "No engine, council, or provider adapter may be documented as built until it has a passing evidence entry."
   }
 }

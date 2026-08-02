@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "dreammusicforge/schemas/universal_production_blueprint.schema.json",
+  "title": "DreamMusicForge Universal Production Blueprint",
+  "description": "Assembles the five already-implemented pipeline documents (Principle Kernel, Narrative + Emotional Architecture, Musical Architecture, Cinematic Architecture, Editorial Architecture) plus the remaining Universal Production Blueprint sections from the mission into a single package. Deliberately keeps three tiers separate rather than flattening them into one undifferentiated document -- see 'tiers' below -- because they carry different epistemic status, the same discipline this repo's source material (a video on the several unrelated meanings of 'dimension' in physics and math) argues for: don't let one word, or here one document, cover claims of different reliability without marking which is which.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_principle_id",
+    "source_human_truth_id",
+    "embedded_documents",
+    "narrative_supplement",
+    "provider_specific_prompt_sets",
+    "review_checklist",
+    "non_goals",
+    "truth_status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "source_principle_id": { "type": "string", "minLength": 1 },
+    "source_human_truth_id": { "type": "string", "minLength": 1 },
+    "embedded_documents": {
+      "type": "object",
+      "description": "Tier 1: VERIFIED_STRUCTURED. Full instances of the five already-implemented, already-cross-validated documents. Not summarized or re-typed -- embedded whole, then re-validated by validate_full_chain() against every existing single-document and cross-document validator.",
+      "required": ["principle_kernel", "narrative_emotional_architecture", "musical_architecture", "cinematic_architecture", "editorial_architecture"],
+      "properties": {
+        "principle_kernel": { "$ref": "principle_kernel.schema.json" },
+        "narrative_emotional_architecture": { "$ref": "narrative_emotional_architecture.schema.json" },
+        "musical_architecture": { "$ref": "musical_architecture.schema.json" },
+        "cinematic_architecture": { "$ref": "cinematic_architecture.schema.json" },
+        "editorial_architecture": { "$ref": "editorial_architecture.schema.json" }
+      }
+    },
+    "narrative_supplement": {
+      "type": "object",
+      "description": "Tier 2: DESIGNED_FREE_TEXT. The Universal Production Blueprint sections that have no dedicated schema yet. Real and required, but not cross-checked the way tier 1 is -- do not treat these as equally verified.",
+      "required": [
+        "creative_brief", "audience_profile", "character_biographies", "scene_breakdown",
+        "sequence_plan", "wardrobe_notes", "production_design", "symbolism_ledger",
+        "choreography_and_blocking", "sound_design", "reflection_and_legacy_statement"
+      ],
+      "properties": {
+        "creative_brief": { "type": "string", "minLength": 1 },
+        "audience_profile": { "type": "string", "minLength": 1 },
+        "character_biographies": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "role", "description"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "role": { "type": "string", "minLength": 1 },
+              "description": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "scene_breakdown": { "type": "string", "minLength": 1 },
+        "sequence_plan": { "type": "string", "minLength": 1 },
+        "wardrobe_notes": { "type": "string", "minLength": 1 },
+        "production_design": { "type": "string", "minLength": 1 },
+        "symbolism_ledger": { "type": "string", "minLength": 1 },
+        "choreography_and_blocking": { "type": "string", "minLength": 1 },
+        "sound_design": { "type": "string", "minLength": 1 },
+        "reflection_and_legacy_statement": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Must describe the work's intended afterlife in the audience's mind without stating the maxim outright -- consistent with the non-compulsion mission and the ending discipline already enforced in Editorial Architecture."
+        }
+      }
+    },
+    "provider_specific_prompt_sets": {
+      "type": "object",
+      "description": "Tier 3: NOT_YET_BUILT. The provider translation layer is unimplemented -- this section exists so the Blueprint's shape is complete, not to claim the layer works. build_status must be 'not_yet_built' with an empty prompts array until that engineering actually happens.",
+      "required": ["build_status", "prompts"],
+      "properties": {
+        "build_status": { "enum": ["not_yet_built", "draft", "complete"] },
+        "prompts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["provider", "prompt_text"],
+            "properties": {
+              "provider": { "type": "string", "minLength": 1 },
+              "prompt_text": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "review_checklist": {
+      "type": "array",
+      "description": "Exactly the eight Review Councils from the mission, each present exactly once.",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["council_name", "status"],
+        "properties": {
+          "council_name": {
+            "enum": ["story_council", "editorial_council", "music_council", "performance_council", "visual_council", "symbolism_council", "audience_council", "ethics_council"]
+          },
+          "status": { "enum": ["pending", "in_review", "approved", "needs_revision"] },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "contains": {
+        "const": "This kernel does not claim to guarantee any specific viewer belief, emotion, or decision."
+      }
+    },
+    "source": { "type": "string" },
+    "truth_status": { "enum": ["VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"] }
+  },
+  "additionalProperties": false
+}
