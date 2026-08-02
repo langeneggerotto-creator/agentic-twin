@@ -20,7 +20,9 @@ from claude_agent_sdk import (
     ClaudeAgentOptions,
     ResultMessage,
     TextBlock,
+    ToolResultBlock,
     ToolUseBlock,
+    UserMessage,
     query,
 )
 
@@ -28,9 +30,19 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from governance.evidence_ledger import record_evidence
 from governance.gatekeeper import enforce_contract
 
 FILE_WRITE_TOOLS = {"Edit", "Write", "NotebookEdit"}
+
+
+def stringify_tool_result(content) -> str:
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    parts = [item.get("text", "") for item in content if isinstance(item, dict) and item.get("type") == "text"]
+    return "\n".join(parts)
 
 
 def build_prompt(contract: dict) -> str:
@@ -91,6 +103,8 @@ async def run_delegate(contract: dict) -> dict:
     commands_run = []
     declared_write_paths = set()
     transcript = []
+    bash_calls_by_id = {}   # tool_use_id -> command string
+    command_outputs = []    # (command, real stdout/stderr text, is_error) in call order
     result_message = None
 
     async for message in query(prompt=prompt, options=options):
@@ -103,19 +117,33 @@ async def run_delegate(contract: dict) -> dict:
                         cmd = block.input.get("command", "")
                         if cmd:
                             commands_run.append(cmd)
+                            bash_calls_by_id[block.id] = cmd
                     elif block.name in FILE_WRITE_TOOLS:
                         path = block.input.get("file_path")
                         if path:
                             declared_write_paths.add(path)
+        elif isinstance(message, UserMessage):
+            content = message.content if isinstance(message.content, list) else []
+            for block in content:
+                if isinstance(block, ToolResultBlock) and block.tool_use_id in bash_calls_by_id:
+                    cmd = bash_calls_by_id[block.tool_use_id]
+                    command_outputs.append((cmd, stringify_tool_result(block.content), bool(block.is_error)))
         elif isinstance(message, ResultMessage):
             result_message = message
 
     # Never trust the model's own account of what it touched -- verify against git.
     changed = git_changed_files(REPO_ROOT)
 
-    test_results = ""
-    if any("pytest" in c or "test" in c for c in commands_run):
-        test_results = "\n".join(transcript)
+    # Independent verification: use the real captured stdout/stderr from test
+    # commands, not the model's narration of what happened.
+    test_outputs = [
+        f"$ {cmd}\n{output}" for cmd, output, is_error in command_outputs
+        if "pytest" in cmd or "test" in cmd
+    ]
+    any_test_command_errored = any(is_error for cmd, _, is_error in command_outputs if "pytest" in cmd or "test" in cmd)
+    test_results = "\n\n".join(test_outputs)
+    if any_test_command_errored and "FAIL" not in test_results:
+        test_results += "\nFAIL: test command exited with an error"
 
     gate = enforce_contract(
         contract,
@@ -127,7 +155,7 @@ async def run_delegate(contract: dict) -> dict:
     if not gate["passed"]:
         rollback(REPO_ROOT, changed)
 
-    return {
+    outcome = {
         "gate": gate,
         "rolled_back": not gate["passed"],
         "changed_files_declared_by_model": sorted(declared_write_paths),
@@ -138,6 +166,22 @@ async def run_delegate(contract: dict) -> dict:
         "subtype": getattr(result_message, "subtype", None),
         "is_error": getattr(result_message, "is_error", None),
     }
+
+    record_evidence({
+        "goal": contract.get("goal"),
+        "contract": contract,
+        "gate_passed": gate["passed"],
+        "gate_violations": gate["violations"],
+        "rolled_back": outcome["rolled_back"],
+        "changed_files": outcome["changed_files_verified_by_git"],
+        "commands_run": commands_run,
+        "session_id": outcome["session_id"],
+        "cost_usd": outcome["cost_usd"],
+        "evidence_kind": "simulated_delegation_result",
+        "truth_status": "OBSERVED_SDK_OUTPUT_NOT_EXTERNALLY_VALIDATED",
+    })
+
+    return outcome
 
 
 def main() -> None:
