@@ -60,13 +60,17 @@ def _detect_actions_from_commands(commands_run: list) -> set:
     return detected
 
 
-def _path_allowed(path: str, allowed_patterns: list) -> bool:
+def path_allowed(path: str, allowed_patterns: list) -> bool:
+    """Public so providers without their own permission system (e.g. plain
+    chat-completions tool calling) can pre-check a write before it happens,
+    not just verify it after via enforce_contract."""
     if not allowed_patterns:
         return False
     return any(fnmatch.fnmatch(path, pattern) for pattern in allowed_patterns)
 
 
-def _command_allowed(command: str, allowed_commands: list) -> bool:
+def command_allowed(command: str, allowed_commands: list) -> bool:
+    """Public for the same reason as path_allowed."""
     return any(command == c or command.startswith(c + " ") for c in allowed_commands)
 
 
@@ -104,12 +108,12 @@ def enforce_contract(
 
     allowed_paths = contract.get("allowed_paths", [])
     for path in changed_files:
-        if not _path_allowed(path, allowed_paths):
+        if not path_allowed(path, allowed_paths):
             violations.append(f"file outside allowed_paths: {path}")
 
     allowed_commands = contract.get("allowed_commands", [])
     for command in commands_run:
-        if allowed_commands and not _command_allowed(command, allowed_commands):
+        if allowed_commands and not command_allowed(command, allowed_commands):
             violations.append(f"command outside allowed_commands: {command}")
 
     observed_actions = set(declared_actions) | _detect_actions_from_commands(commands_run)
