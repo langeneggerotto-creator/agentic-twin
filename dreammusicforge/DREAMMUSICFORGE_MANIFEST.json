@@ -1,0 +1,32 @@
+{
+  "system": "DreamMusicForge",
+  "repository_layer": "agentic-twin/dreammusicforge",
+  "status": "initialized",
+  "truth_status": "STRUCTURE_CREATED_NOT_PRODUCTION_CERTIFIED",
+  "created_purpose": "Generate music videos whose visuals demonstrably teach one stated causal claim, via a structured intent-card and shot-list pipeline rather than freeform AI clip assembly.",
+  "linked_to": {
+    "parent_repo": "agentic-twin",
+    "inherits": "CORE_OS_INHERITANCE.md"
+  },
+  "pipeline_stages": [
+    "principle_to_maxim",
+    "editorial_intent_card",
+    "shot_list_time_locked",
+    "generation_layer",
+    "assembly_and_sync",
+    "comprehension_test"
+  ],
+  "active_prototypes": [],
+  "non_goals_now": [
+    "Do not claim a generated video is production-ready without the stage-6 comprehension gate passing.",
+    "Do not treat subsystem names carried over from the originating design conversation as implemented until independently re-derived and evidenced.",
+    "Do not skip the stage-1 maxim gate.",
+    "Do not attempt single-shot quality and cross-shot continuity in the same build pass."
+  ],
+  "next_3_plus_1": {
+    "next_1": "Write the Editorial Intent Card JSON schema (stage 2).",
+    "next_2": "Write the Shot List JSON schema (stage 3), including the coverage-set (5 angles x 2 takes) field.",
+    "next_3": "Prototype the stage-4 continuity subsystem (SAM 2 + depth-conditioned generation) for one tracked object across two states.",
+    "plus_1_control": "No subsystem name may be documented as built until it has a passing evidence entry."
+  }
+}
