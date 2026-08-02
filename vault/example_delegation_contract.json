@@ -1,0 +1,16 @@
+{
+  "goal": "Repair the camera service startup failure",
+  "allowed_paths": ["src/camera/**", "tests/camera/**"],
+  "allowed_commands": ["pytest tests/camera"],
+  "forbidden_actions": [
+    "install_system_packages",
+    "modify_credentials",
+    "deploy_to_production",
+    "operate_physical_actuators"
+  ],
+  "acceptance_criteria": [
+    "All camera tests pass",
+    "No files outside the allowed paths change"
+  ],
+  "requires_human_approval": ["production_deployment", "hardware_control"]
+}
