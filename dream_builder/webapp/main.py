@@ -16,6 +16,7 @@ from .. import service, store
 from ..executor import ClaudeCodeError
 from ..llm_client import OllamaError
 from ..projections import project_dream
+from ..recommendations import adopt_recommendation, generate_recommendations
 from ..reflector import reflect
 from ..resources import find_resources
 from ..scaling import plan_scaling
@@ -153,6 +154,21 @@ def project_dream_endpoint(dream_id: str):
 def plan_scaling_endpoint(dream_id: str):
     dream = _require_dream(dream_id)
     return {"scaling": plan_scaling(dream)}
+
+
+@app.post("/api/dreams/{dream_id}/recommendations")
+def recommendations_endpoint(dream_id: str):
+    dream = _require_dream(dream_id)
+    return {"recommendations": generate_recommendations(dream)}
+
+
+@app.post("/api/dreams/{dream_id}/recommendations/{index}/adopt")
+def adopt_recommendation_endpoint(dream_id: str, index: int):
+    dream = _require_dream(dream_id)
+    try:
+        return adopt_recommendation(dream, index - 1)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @app.get("/api/bucket")

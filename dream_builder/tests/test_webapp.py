@@ -8,7 +8,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pytest
 from fastapi.testclient import TestClient
 
-from dream_builder import executor, planner, projections, reflector, resources, scaling, store
+from dream_builder import (
+    executor,
+    planner,
+    projections,
+    recommendations,
+    reflector,
+    resources,
+    scaling,
+    store,
+)
 from dream_builder.webapp import jobs, main
 
 
@@ -182,6 +191,52 @@ def test_scaling_endpoint(client, monkeypatch):
 
 def test_scaling_endpoint_unknown_dream_returns_404(client):
     resp = client.post("/api/dreams/doesnotexist/scaling")
+    assert resp.status_code == 404
+
+
+def _fake_recommendations_response():
+    recs = [
+        {
+            "title": f"Approach {i + 1}",
+            "summary": f"Summary {i + 1}",
+            "is_synthesized": i == 2,
+            "plan": [{"step": f"Step for approach {i + 1}", "needs_internet": False}],
+            "resources_used": [],
+        }
+        for i in range(3)
+    ]
+    return json.dumps(recs)
+
+
+def test_recommendations_endpoint_and_adopt(client, monkeypatch):
+    dream = _make_dream(monkeypatch)
+    monkeypatch.setattr(recommendations, "chat", lambda messages, **kw: _fake_recommendations_response())
+
+    resp = client.post(f"/api/dreams/{dream['id']}/recommendations")
+    assert resp.status_code == 200
+    recs = resp.json()["recommendations"]
+    assert len(recs) == 3
+    assert sum(1 for r in recs if r["is_synthesized"]) == 1
+
+    resp = client.post(f"/api/dreams/{dream['id']}/recommendations/2/adopt")
+    assert resp.status_code == 200
+    updated = resp.json()
+    assert updated["plan"][0]["step"] == "Step for approach 2"
+    assert updated["adopted_recommendation"]["title"] == "Approach 2"
+    assert updated["status"] == "in_progress"
+
+
+def test_adopt_recommendation_out_of_range_returns_400(client, monkeypatch):
+    dream = _make_dream(monkeypatch)
+    monkeypatch.setattr(recommendations, "chat", lambda messages, **kw: _fake_recommendations_response())
+    client.post(f"/api/dreams/{dream['id']}/recommendations")
+
+    resp = client.post(f"/api/dreams/{dream['id']}/recommendations/9/adopt")
+    assert resp.status_code == 400
+
+
+def test_recommendations_endpoint_unknown_dream_returns_404(client):
+    resp = client.post("/api/dreams/doesnotexist/recommendations")
     assert resp.status_code == 404
 
 

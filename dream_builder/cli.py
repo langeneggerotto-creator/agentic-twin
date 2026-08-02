@@ -6,6 +6,7 @@ from . import service, store
 from .executor import ClaudeCodeError, build_with_claude_code
 from .llm_client import OllamaError
 from .projections import project_dream
+from .recommendations import adopt_recommendation, generate_recommendations
 from .reflector import reflect
 from .resources import find_resources
 from .scaling import plan_scaling
@@ -56,6 +57,39 @@ def cmd_plan(args):
     _print_hints(dream)
 
 
+def _print_recommendations(recommendations):
+    if not recommendations:
+        return
+    print("\n3 recommended approaches — pick one with `adopt <id> <n>`:")
+    for i, r in enumerate(recommendations, 1):
+        tag = " [synthesized: combines the above in a new way]" if r["is_synthesized"] else ""
+        print(f"\n{i}. {r['title']}{tag}")
+        print(f"   {r['summary']}")
+        for s in r["plan"]:
+            print(f"   - {s['step']}")
+        if r["resources_used"]:
+            print(f"   Uses: {', '.join(r['resources_used'])}")
+
+
+def cmd_recommend(args):
+    dream = _require_dream(args.id)
+    recommendations = generate_recommendations(dream)
+    print(f"Recommendations for '{dream['title']}':")
+    _print_recommendations(recommendations)
+
+
+def cmd_adopt(args):
+    dream = _require_dream(args.id)
+    try:
+        dream = adopt_recommendation(dream, args.index - 1)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    print(f"Adopted '{dream['adopted_recommendation']['title']}' as the plan for '{dream['title']}':")
+    for i, s in enumerate(dream["plan"], 1):
+        print(f"{i}. {s['step']}")
+
+
 def cmd_resources(args):
     dream = _require_dream(args.id)
     resources = find_resources(dream)
@@ -87,11 +121,15 @@ def cmd_show(args):
     print(f"{dream['title']} — {dream['status']}")
     print(dream["description"])
     _print_hints(dream)
+    if dream.get("adopted_recommendation"):
+        print(f"\nAdopted approach: {dream['adopted_recommendation']['title']}")
     if dream["plan"]:
         print("\nPlan:")
         for i, s in enumerate(dream["plan"], 1):
             box = "x" if s["done"] else " "
             print(f"[{box}] {i}. {s['step']}")
+    elif dream.get("recommendations"):
+        _print_recommendations(dream["recommendations"])
     if dream["resources"]:
         print("\nResources:")
         for r in dream["resources"]:
@@ -283,6 +321,20 @@ def build_parser():
     )
     p_scale.add_argument("id")
     p_scale.set_defaults(func=cmd_scale)
+
+    p_recommend = sub.add_parser(
+        "recommend",
+        help="Have the AI synthesize gathered info into 3 complete approaches to pick from",
+    )
+    p_recommend.add_argument("id")
+    p_recommend.set_defaults(func=cmd_recommend)
+
+    p_adopt = sub.add_parser(
+        "adopt", help="Adopt one of the 3 recommended approaches as the dream's actual plan"
+    )
+    p_adopt.add_argument("id")
+    p_adopt.add_argument("index", type=int, help="1, 2, or 3")
+    p_adopt.set_defaults(func=cmd_adopt)
 
     p_lookup = sub.add_parser("lookup", help="Run a one-off web search")
     p_lookup.add_argument("query")

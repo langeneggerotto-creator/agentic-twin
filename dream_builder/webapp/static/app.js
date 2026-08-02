@@ -125,6 +125,8 @@ function renderDetail(dream) {
   const hints = dream.resource_hints || [];
   const projection = dream.projection || null;
   const scaling = dream.scaling || null;
+  const recommendations = dream.recommendations || [];
+  const adopted = dream.adopted_recommendation || null;
 
   detailEl.innerHTML = `
     <header>
@@ -150,6 +152,30 @@ function renderDetail(dream) {
           .join("") || "<li>No plan yet.</li>"}
       </ul>
       <button class="secondary" id="btn-plan">${plan.length ? "Regenerate plan" : "Generate plan"}</button>
+      ${adopted ? `<p class="why">Adopted approach: ${esc(adopted.title)}</p>` : ""}
+    </section>
+
+    <section>
+      <h2>Or: 3 AI-Synthesized Approaches</h2>
+      <p>Instead of planning it yourself, have the AI synthesize everything gathered so far into 3 complete approaches and pick one — it'll replace the plan above.</p>
+      <div id="recommendations-list">
+        ${
+          recommendations
+            .map(
+              (r, i) => `
+          <div class="resource-card">
+            <strong>${esc(r.title)}</strong>${r.is_synthesized ? ' <span class="status-badge">synthesized</span>' : ""}
+            <p>${esc(r.summary)}</p>
+            <ul>${r.plan.map((s) => `<li>${esc(s.step)}</li>`).join("")}</ul>
+            ${r.resources_used.length ? `<div class="why">Uses: ${esc(r.resources_used.join(", "))}</div>` : ""}
+            <button data-adopt-index="${i + 1}">Adopt this approach</button>
+          </div>`
+            )
+            .join("") || "<p>No recommendations generated yet.</p>"
+        }
+      </div>
+      <button class="secondary" id="btn-recommend">${recommendations.length ? "Regenerate recommendations" : "Get 3 recommendations"}</button>
+      <span id="recommend-spinner" class="hidden">Synthesizing…</span>
     </section>
 
     <section>
@@ -273,6 +299,10 @@ function renderDetail(dream) {
     });
   });
   document.getElementById("btn-plan").addEventListener("click", () => generatePlan(dream.id));
+  document.getElementById("btn-recommend").addEventListener("click", () => getRecommendations(dream.id));
+  detailEl.querySelectorAll("#recommendations-list [data-adopt-index]").forEach((btn) => {
+    btn.addEventListener("click", () => adoptRecommendation(dream.id, Number(btn.dataset.adoptIndex)));
+  });
   document.getElementById("btn-resources").addEventListener("click", () => findResources(dream.id));
   document.getElementById("btn-projection").addEventListener("click", () => getProjection(dream.id));
   document.getElementById("btn-scaling").addEventListener("click", () => getScaling(dream.id));
@@ -418,6 +448,34 @@ async function getProjection(id) {
   } finally {
     spinner.classList.add("hidden");
     btn.disabled = false;
+  }
+}
+
+async function getRecommendations(id) {
+  const spinner = document.getElementById("recommend-spinner");
+  const btn = document.getElementById("btn-recommend");
+  spinner.classList.remove("hidden");
+  btn.disabled = true;
+  try {
+    await api(`/api/dreams/${id}/recommendations`, { method: "POST" });
+    const dream = await api(`/api/dreams/${id}`);
+    renderDetail(dream);
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    spinner.classList.add("hidden");
+    btn.disabled = false;
+  }
+}
+
+async function adoptRecommendation(id, index) {
+  try {
+    await api(`/api/dreams/${id}/recommendations/${index}/adopt`, { method: "POST" });
+    const dream = await api(`/api/dreams/${id}`);
+    renderDetail(dream);
+    await loadDreamList();
+  } catch (err) {
+    showError(err.message);
   }
 }
 

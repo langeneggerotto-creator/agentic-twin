@@ -8,6 +8,7 @@ from dream_builder import (
     executor,
     planner,
     projections,
+    recommendations,
     reflector,
     resources,
     scaling,
@@ -445,6 +446,113 @@ def test_plan_scaling_opts_out_for_personal_goals(tmp_path, monkeypatch):
     result = scaling.plan_scaling(dream)
 
     assert "no funding is needed" in result["funding_strategy"]
+
+
+def _fake_recommendations_response(n=3, synthesized_index=2):
+    recs = []
+    for i in range(n):
+        recs.append(
+            {
+                "title": f"Approach {i + 1}",
+                "summary": f"Summary {i + 1}",
+                "is_synthesized": i == synthesized_index,
+                "plan": [{"step": f"Step for approach {i + 1}", "needs_internet": False}],
+                "resources_used": [f"Resource {i + 1}"],
+            }
+        )
+    return json.dumps(recs)
+
+
+def test_generate_recommendations_stores_three_distinct_approaches(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
+    dream["resource_hints"] = ["Could be handy: a cheap starter guitar."]
+    store.update_dream(dream)
+
+    monkeypatch.setattr(recommendations, "chat", lambda messages, **kw: _fake_recommendations_response())
+
+    result = recommendations.generate_recommendations(dream)
+
+    assert len(result) == 3
+    assert [r["title"] for r in result] == ["Approach 1", "Approach 2", "Approach 3"]
+    assert sum(1 for r in result if r["is_synthesized"]) == 1
+    assert result[2]["is_synthesized"] is True
+    assert result[0]["plan"][0]["step"] == "Step for approach 1"
+
+    fetched = store.get_dream(dream["id"])
+    assert len(fetched["recommendations"]) == 3
+
+
+def test_generate_recommendations_retries_once_on_malformed_json(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
+
+    calls = {"n": 0}
+
+    def flaky_chat(messages, **kw):
+        calls["n"] += 1
+        return "[not valid json" if calls["n"] == 1 else _fake_recommendations_response()
+
+    monkeypatch.setattr(recommendations, "chat", flaky_chat)
+
+    result = recommendations.generate_recommendations(dream)
+
+    assert calls["n"] == 2
+    assert len(result) == 3
+
+
+def test_generate_recommendations_flattens_non_string_fields(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
+
+    response = json.dumps(
+        [
+            {
+                "title": {"short": "Budget path"},
+                "summary": "y",
+                "is_synthesized": False,
+                "plan": [{"step": "x", "needs_internet": False}],
+                "resources_used": [],
+            },
+            {"title": "b", "summary": "y", "is_synthesized": False, "plan": [], "resources_used": []},
+            {"title": "c", "summary": "y", "is_synthesized": True, "plan": [], "resources_used": []},
+        ]
+    )
+    monkeypatch.setattr(recommendations, "chat", lambda messages, **kw: response)
+
+    result = recommendations.generate_recommendations(dream)
+
+    assert result[0]["title"] == "short: Budget path"
+
+
+def test_adopt_recommendation_applies_chosen_plan(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
+    monkeypatch.setattr(recommendations, "chat", lambda messages, **kw: _fake_recommendations_response())
+    recommendations.generate_recommendations(dream)
+
+    updated = recommendations.adopt_recommendation(dream, 1)
+
+    assert updated["status"] == "in_progress"
+    assert updated["plan"][0]["step"] == "Step for approach 2"
+    assert updated["adopted_recommendation"]["title"] == "Approach 2"
+
+    fetched = store.get_dream(dream["id"])
+    assert fetched["plan"][0]["step"] == "Step for approach 2"
+    assert fetched["adopted_recommendation"]["title"] == "Approach 2"
+
+
+def test_adopt_recommendation_raises_for_out_of_range_index(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DREAMS_PATH", tmp_path / "dreams.json")
+    dream = store.create_dream("Learn guitar", "Play basic songs within 3 months")
+    monkeypatch.setattr(recommendations, "chat", lambda messages, **kw: _fake_recommendations_response())
+    recommendations.generate_recommendations(dream)
+
+    try:
+        recommendations.adopt_recommendation(dream, 5)
+        assert False, "expected ValueError"
+    except ValueError:
+        pass
 
 
 def test_build_with_claude_code_raises_without_binary(tmp_path, monkeypatch):

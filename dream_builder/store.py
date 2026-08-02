@@ -38,6 +38,8 @@ def create_dream(title, description):
         "reflections": [],
         "projection": None,
         "scaling": None,
+        "recommendations": [],
+        "adopted_recommendation": None,
     }
     dreams.append(dream)
     save_dreams(dreams)

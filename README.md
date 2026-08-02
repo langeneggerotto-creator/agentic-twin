@@ -39,8 +39,14 @@ python -m dream_builder.cli add "Learn Spanish" "Be conversational within 6 mont
 # List your dreams (note the id it prints)
 python -m dream_builder.cli list
 
-# Generate a concrete action plan
+# Generate a concrete action plan yourself...
 python -m dream_builder.cli plan <id>
+
+# ...or let the AI do the synthesis: 3 complete, genuinely different
+# approaches built from everything gathered so far (one is always a novel
+# approach combining resources in a new way), then adopt whichever you like
+python -m dream_builder.cli recommend <id>
+python -m dream_builder.cli adopt <id> 2
 
 # Find real resources for it (lowest cost, highest value)
 python -m dream_builder.cli resources <id>
@@ -84,11 +90,12 @@ python -m dream_builder.cli serve
 `serve` runs a local FastAPI app (`dream_builder/webapp/`) that's a thin
 layer over the same store/planner/resources/reflector/executor code the
 CLI uses — no separate logic, no account, no auth (single local user). It
-lets you add dreams, see resource hints, generate plans, mark steps done,
-run the full resource search, get time/cost projections and lead/lag
-measures, get a funding & scaling plan, get reflections, and trigger
-`build` (with its output streamed to a log you can watch from the page)
-all from the browser instead of the terminal. Any resource or hint can
+lets you add dreams, see resource hints, generate plans yourself or get 3
+AI-synthesized approaches to pick from instead, mark steps done, run the
+full resource search, get time/cost projections and lead/lag measures,
+get a funding & scaling plan, get reflections, and trigger `build` (with
+its output streamed to a log you can watch from the page) all from the
+browser instead of the terminal. Any resource or hint can
 also be saved into an "Action Bucket" (persists independently of that
 dream, across dreams) and later combined into a brand-new dream — useful
 for bundling several separate services into one plan.
