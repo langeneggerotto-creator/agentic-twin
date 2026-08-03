@@ -1,7 +1,7 @@
 """Character Performance Package: replaces narration with characters
 performing themselves, for the DreamMusicForge v2 pipeline.
 
-Two problems, one document:
+Three problems, one document:
 
 1. Character consistency across independently generated shots. Historically
    this pipeline named the problem (SAM 2 / depth-conditioned reference
@@ -18,9 +18,26 @@ Two problems, one document:
    entry requires lip_sync_required = True, and character names are
    checked against a blocklist so "Narrator" can't sneak in relabeled.
 
+3. Every character must be original, not a real/existing copyrighted or
+   trademarked character -- this document exists precisely so a production
+   never needs to use one and risk the trouble that invites. Every
+   character_references entry requires original_character = True (a hard
+   gate) plus a substantive originality_basis, and a self-assessed
+   resembles_existing_ip_risk. assess_rights_review_status() rolls those
+   risk flags up into a document-level rights_review, following the exact
+   flags -> blockers -> hold_for_review pattern already used in this repo's
+   apex-rightschain-manifest-builder. A best-effort blocklist also rejects
+   the most obvious slip-ups (typing a known franchise character's name
+   directly) -- see KNOWN_IP_NAME_BLOCKLIST and its non_goals disclaimer:
+   this is not trademark/copyright clearance, and cannot catch a character
+   merely described to resemble existing IP without naming it. Final rights
+   clearance is a human/legal judgment, same as the existing RightsChain
+   builder's "must be verified before public release" stance.
+
 Three validators:
 
-- validate_character_performance_package(doc): structural checks.
+- validate_character_performance_package(doc): structural checks,
+  including the originality gate and rights_review reproducibility.
 - validate_against_cinematic_architecture(doc, cinematic_doc): every
   sings_during_shot_ids entry must be a real shot.
 - validate_against_blueprint(doc, blueprint_doc): every character_name
@@ -32,12 +49,39 @@ VALID_CONFIDENCE = {"VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"}
 REQUIRED_ETHICS_NON_GOAL = (
     "This kernel does not claim to guarantee any specific viewer belief, emotion, or decision."
 )
+REQUIRED_RIGHTS_NON_GOAL = (
+    "This package's originality checks (original_character, originality_basis, resembles_existing_ip_risk, "
+    "the IP name blocklist) are self-declaration plus a best-effort literal-name check, not trademark or "
+    "copyright clearance -- they cannot detect a character merely described to resemble existing IP without "
+    "naming it. Final rights clearance requires human/legal review before any public release, same as this "
+    "repo's existing apex-rightschain-manifest-builder."
+)
 
 NARRATOR_NAME_BLOCKLIST = {"narrator", "voiceover", "voice-over", "announcer", "voice of god", "off-screen voice"}
+
+RIGHTS_RISK_LEVELS = {"none_identified", "possible_overlap_flagged", "needs_legal_review"}
+
+# Best-effort, non-exhaustive: catches the most obvious case of literally
+# naming or describing a known franchise character. Does not constitute
+# legal clearance -- see REQUIRED_RIGHTS_NON_GOAL.
+KNOWN_IP_NAME_BLOCKLIST = {
+    "mickey mouse", "spider-man", "spiderman", "batman", "superman", "pikachu",
+    "harry potter", "elsa", "darth vader", "luke skywalker", "sonic the hedgehog",
+    "mario", "hello kitty", "winnie the pooh", "james bond", "iron man",
+    "wonder woman", "yoda", "shrek", "homer simpson", "spongebob",
+}
 
 
 def _is_blocked_name(name: str) -> bool:
     return name.strip().lower() in NARRATOR_NAME_BLOCKLIST
+
+
+def _mentions_known_ip(text: str) -> str | None:
+    lowered = text.lower()
+    for name in KNOWN_IP_NAME_BLOCKLIST:
+        if name in lowered:
+            return name
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -65,6 +109,12 @@ def translate_character_to_reference_prompt(character_bio: dict, provider: str) 
         ),
         "reference_image_asset_id": f"ref_{slug}",
         "source_fields_used": ["name", "role", "description"],
+        "original_character": True,
+        "originality_basis": (
+            f"Invented for this production, not based on any existing copyrighted or trademarked character. "
+            f"Distinguishing traits: {description}"
+        ),
+        "resembles_existing_ip_risk": "none_identified",
     }
 
 
@@ -72,13 +122,29 @@ def translate_character_to_reference_prompt(character_bio: dict, provider: str) 
 # Validation
 # ---------------------------------------------------------------------------
 
+def assess_rights_review_status(doc: dict) -> dict:
+    """Roll every character_references[].resembles_existing_ip_risk up into
+    a document-level rights_review, mirroring apex-rightschain-manifest-
+    builder's flags -> blockers -> hold_for_review pattern: any character
+    flagged above 'none_identified' blocks the whole package from
+    'clear_to_proceed', it doesn't just get noted and ignored."""
+    blockers = []
+    for entry in doc.get("character_references", []):
+        risk = entry.get("resembles_existing_ip_risk")
+        name = entry.get("character_name")
+        if risk in ("possible_overlap_flagged", "needs_legal_review"):
+            blockers.append(f"{name}: {risk}")
+    status = "hold_for_review" if blockers else "clear_to_proceed"
+    return {"status": status, "blockers": blockers}
+
+
 def validate_character_performance_package(doc: dict) -> list[str]:
     errors = []
 
     for field in [
         "schema_version", "source_principle_id", "source_human_truth_id", "no_narrator",
         "character_reference_provider", "character_references", "vocal_performers",
-        "non_goals", "truth_status",
+        "rights_review", "non_goals", "truth_status",
     ]:
         if field not in doc or doc[field] in (None, "", [], {}):
             if field == "no_narrator" and doc.get(field) is False:
@@ -97,14 +163,37 @@ def validate_character_performance_package(doc: dict) -> list[str]:
         if len(references) < 1:
             errors.append("character_references must contain at least one entry")
         for i, entry in enumerate(references):
-            for field in ["character_name", "reference_prompt", "consistency_notes", "reference_image_asset_id", "source_fields_used"]:
+            for field in [
+                "character_name", "reference_prompt", "consistency_notes", "reference_image_asset_id",
+                "source_fields_used", "original_character", "originality_basis", "resembles_existing_ip_risk",
+            ]:
                 if field not in entry or entry[field] in (None, "", []):
+                    if field == "original_character" and entry.get(field) is False:
+                        continue  # handled explicitly below with a clearer message
                     errors.append(f"character_references[{i}].{field} is required")
+
             name = entry.get("character_name")
             if name:
                 if _is_blocked_name(name):
                     errors.append(f"character_references[{i}].character_name '{name}' reads as a narrator/voiceover role, not a character")
                 reference_names.add(name)
+
+            if "original_character" in entry and entry["original_character"] is not True:
+                errors.append(f"character_references[{i}].original_character must be true -- this document is only for wholly original characters")
+
+            basis = entry.get("originality_basis")
+            if basis is not None and len(basis) < 20:
+                errors.append(f"character_references[{i}].originality_basis must be a substantive statement (>= 20 chars), not boilerplate")
+
+            risk = entry.get("resembles_existing_ip_risk")
+            if risk is not None and risk not in RIGHTS_RISK_LEVELS:
+                errors.append(f"character_references[{i}].resembles_existing_ip_risk must be one of {sorted(RIGHTS_RISK_LEVELS)}")
+
+            for field_name, text in [("character_name", name), ("reference_prompt", entry.get("reference_prompt"))]:
+                if text:
+                    hit = _mentions_known_ip(text)
+                    if hit:
+                        errors.append(f"character_references[{i}].{field_name} appears to reference a known trademarked/copyrighted character ('{hit}') -- this package requires fully original characters")
     elif "character_references" in doc:
         errors.append("character_references must be a list")
 
@@ -133,10 +222,28 @@ def validate_character_performance_package(doc: dict) -> list[str]:
     elif "vocal_performers" in doc:
         errors.append("vocal_performers must be a list")
 
+    rights_review = doc.get("rights_review")
+    if isinstance(rights_review, dict):
+        if rights_review.get("status") not in ("clear_to_proceed", "hold_for_review"):
+            errors.append("rights_review.status must be one of ['clear_to_proceed', 'hold_for_review']")
+        if not isinstance(rights_review.get("blockers"), list):
+            errors.append("rights_review.blockers must be a list")
+        elif isinstance(references, list):
+            recomputed = assess_rights_review_status(doc)
+            if rights_review.get("status") != recomputed["status"] or rights_review.get("blockers") != recomputed["blockers"]:
+                errors.append(
+                    f"rights_review {rights_review} does not reproduce from character_references' "
+                    f"resembles_existing_ip_risk flags (recomputed {recomputed}); looks stale or hand-typed"
+                )
+    elif "rights_review" in doc:
+        errors.append("rights_review must be an object")
+
     non_goals = doc.get("non_goals")
     if isinstance(non_goals, list):
         if REQUIRED_ETHICS_NON_GOAL not in non_goals:
             errors.append(f"non_goals must include the required ethics constraint: {REQUIRED_ETHICS_NON_GOAL!r}")
+        if REQUIRED_RIGHTS_NON_GOAL not in non_goals:
+            errors.append(f"non_goals must include the required rights-review constraint: {REQUIRED_RIGHTS_NON_GOAL!r}")
     elif "non_goals" in doc:
         errors.append("non_goals must be a list")
 
@@ -204,7 +311,7 @@ def _build_example():
         translate_character_to_reference_prompt(bios_by_name["The Asker"], provider),
     ]
 
-    return {
+    doc = {
         "schema_version": "1.0.0",
         "source_principle_id": "hope",
         "source_human_truth_id": "rebuilding_after_loss",
@@ -231,16 +338,21 @@ def _build_example():
         ],
         "non_goals": [
             REQUIRED_ETHICS_NON_GOAL,
+            REQUIRED_RIGHTS_NON_GOAL,
             "This package does not claim lip-sync accuracy has been measured -- lip_sync_required flags intent, not verified output quality.",
             "This package does not claim character_reference_provider has been benchmarked for consistency -- Nano Banana is a starting candidate, not a validated choice.",
         ],
         "source": (
             "DreamMusicForge v2 Character Performance Package, worked example replacing narration with the "
-            "Hope chain's two characters (The Builder, The Asker) singing themselves across all 8 shots, "
-            "using Nano Banana (Gemini 2.5 Flash Image) as the character-reference provider for consistency."
+            "Hope chain's two original characters (The Builder, The Asker -- invented for this production, "
+            "not existing IP) singing themselves across all 8 shots, using Nano Banana (Gemini 2.5 Flash "
+            "Image) as the character-reference provider for consistency."
         ),
         "truth_status": "ASSUMED",
     }
+
+    doc["rights_review"] = assess_rights_review_status(doc)
+    return doc
 
 
 EXAMPLE_CHARACTER_PERFORMANCE_PACKAGE = _build_example()

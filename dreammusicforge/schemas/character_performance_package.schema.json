@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "dreammusicforge/schemas/character_performance_package.schema.json",
   "title": "DreamMusicForge Character Performance Package",
-  "description": "Solves two problems raised for productions where characters sing themselves rather than a narrator: (1) character consistency across independently generated shots, via a character-reference image generated once per character and reused as conditioning for every shot that character appears in (the historical continuity problem this pipeline never built a solution for); (2) per-character vocal performance replacing a single narrator voice, with lip-sync required wherever a character sings on camera. no_narrator is a literal hard gate, not a design note -- it must be true or the document fails validation.",
+  "description": "Solves three problems raised for productions where characters sing themselves rather than a narrator: (1) character consistency across independently generated shots, via a character-reference image generated once per character and reused as conditioning for every shot that character appears in (the historical continuity problem this pipeline never built a solution for); (2) per-character vocal performance replacing a single narrator voice, with lip-sync required wherever a character sings on camera; (3) every character must be original, not a real/existing copyrighted or trademarked character, so the production doesn't risk IP infringement. no_narrator, and every character_references entry's original_character, are literal hard gates, not design notes -- they must be true or the document fails validation.",
   "type": "object",
   "required": [
     "schema_version",
@@ -12,6 +12,7 @@
     "character_reference_provider",
     "character_references",
     "vocal_performers",
+    "rights_review",
     "non_goals",
     "truth_status"
   ],
@@ -34,7 +35,7 @@
       "description": "One entry per character who appears on camera. Every character_name must match a name in the paired Universal Production Blueprint's narrative_supplement.character_biographies (checked by validate_against_blueprint).",
       "items": {
         "type": "object",
-        "required": ["character_name", "reference_prompt", "consistency_notes", "reference_image_asset_id", "source_fields_used"],
+        "required": ["character_name", "reference_prompt", "consistency_notes", "reference_image_asset_id", "source_fields_used", "original_character", "originality_basis", "resembles_existing_ip_risk"],
         "properties": {
           "character_name": { "type": "string", "minLength": 1 },
           "reference_prompt": { "type": "string", "minLength": 1 },
@@ -45,6 +46,19 @@
             "minItems": 1,
             "items": { "type": "string" },
             "description": "Which character_biographies fields this reference prompt was actually derived from."
+          },
+          "original_character": {
+            "const": true,
+            "description": "Must be true. This document is only for wholly original characters invented for this production, never real/existing copyrighted or trademarked characters."
+          },
+          "originality_basis": {
+            "type": "string",
+            "minLength": 20,
+            "description": "A specific, substantive statement of what makes this character original -- not boilerplate. Self-declaration, not legal clearance; see rights_review and non_goals."
+          },
+          "resembles_existing_ip_risk": {
+            "enum": ["none_identified", "possible_overlap_flagged", "needs_legal_review"],
+            "description": "Author's own risk self-assessment. Anything other than none_identified forces rights_review.status to hold_for_review."
           }
         }
       }
@@ -71,6 +85,15 @@
             "description": "Must be true for every performer -- if a character sings on camera, lip sync is not optional."
           }
         }
+      }
+    },
+    "rights_review": {
+      "type": "object",
+      "description": "Computed by assess_rights_review_status() from every character_references[].resembles_existing_ip_risk, the same flags-to-blockers-to-hold-for-review pattern used in apex-rightschain-manifest-builder. Must reproduce from the character_references it was computed from, or validation fails (same discipline as the Monte Carlo generation_risk_estimate reproducibility check).",
+      "required": ["status", "blockers"],
+      "properties": {
+        "status": { "enum": ["clear_to_proceed", "hold_for_review"] },
+        "blockers": { "type": "array", "items": { "type": "string" } }
       }
     },
     "non_goals": {
