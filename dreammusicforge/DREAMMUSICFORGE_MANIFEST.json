@@ -138,6 +138,17 @@
       ],
       "evidence": "12/12 smoke tests passing via `python3 dreammusicforge/tests/test_provider_specific_production_package.py`",
       "note": "First stage with real translation functions (translate_shot_to_video_prompt, translate_musical_architecture_to_music_prompt), not just a validated contract. Includes a dependency-free Monte Carlo generation_risk_estimate (stdlib random, no numpy) whose stored probability must reproduce from its own stated parameters or validation fails -- catches hand-typed/stale numbers. Worked example: Runway + Suno, ~12% probability of exceeding a 14-attempt budget across 8 shots, echoing the source video's own worked example. REQUIRED_INTERFACE_NON_GOAL states no provider rendering is authoritative over the canonical Cinematic/Musical/Editorial documents."
+    },
+    {
+      "name": "character_performance_package_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/character_performance_package.schema.json",
+        "schemas/character_performance_package.py",
+        "tests/test_character_performance_package.py"
+      ],
+      "evidence": "10/10 smoke tests passing via `python3 dreammusicforge/tests/test_character_performance_package.py`",
+      "note": "Answers a direct user request: character-consistent generation (Nano Banana / Gemini 2.5 Flash Image as the character_reference_provider) and characters singing themselves instead of a narrator. no_narrator and lip_sync_required are literal hard gates (const true), and character names are checked against a narrator/voiceover blocklist. Cross-checks against Cinematic Architecture (real shot_id references) and the Blueprint's narrative_supplement.character_biographies (no inventing characters). Worked example: The Builder and The Asker cover all 8 Hope-chain shots between them, verified by an explicit full-coverage test."
     }
   ],
   "non_goals_now": [
@@ -157,7 +168,9 @@
     "next_7": "DONE -- Provider-Specific Production Package (Runway + Suno worked example) with real translation functions and a Monte Carlo generation_risk_estimate. See active_prototypes.",
     "next_8": "DONE -- embed_provider_specific_production_package() and compute_readiness_activation() in schemas/universal_production_blueprint.py. Worked example wired to build_status 'draft' with 9 real prompts, activation 0.741. See active_prototypes.",
     "next_9": "DONE -- sync_review_checklist_with_provider_status() in schemas/universal_production_blueprint.py, called automatically by embed_provider_specific_production_package(). See active_prototypes.",
-    "next_10_candidate_not_started": "Calibrate generation_risk_estimate's per-shot success-probability range from real observed provider outcomes (MCMC/Metropolis-Hastings posterior) instead of the currently-assumed uniform range. Not started: no observed data exists yet to calibrate against.",
+    "next_10": "DONE -- Character Performance Package (character-consistent reference images via Nano Banana + no-narrator singing performers with required lip sync). See active_prototypes.",
+    "next_11": "Wire character_references/vocal_performers into the Provider-Specific Production Package's video_prompts -- each shot's video prompt should include its performer's reference_image_asset_id for conditioning.",
+    "next_12_candidate_not_started": "Calibrate generation_risk_estimate's per-shot success-probability range from real observed provider outcomes (MCMC/Metropolis-Hastings posterior) instead of the currently-assumed uniform range. Not started: no observed data exists yet to calibrate against.",
     "plus_1_control": "No engine, council, or provider adapter may be documented as built until it has a passing evidence entry."
   }
 }
