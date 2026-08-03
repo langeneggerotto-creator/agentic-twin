@@ -23,7 +23,7 @@
     "selected_video_provider": {
       "type": "string",
       "minLength": 1,
-      "description": "Not locked to an enum -- the provider layer is deliberately provider-neutral and providers churn. Documented candidates as of this writing: Google Veo, Runway, Luma AI Dream Machine, Pika, Kling AI."
+      "description": "Not locked to an enum -- the provider layer is deliberately provider-neutral and providers churn. Documented candidates as of this writing: Google Veo, Runway, Luma AI Dream Machine, Pika, Kling AI. For any shot with a singing, lip-synced performer (see the paired Character Performance Package), video_prompts[].provider for that shot must be a native audio-driven provider from assembly_package.py's native_av_policy.allowed_providers (e.g. Kling AI Avatar, Runway Act-Two, Veo 3 with native audio) -- checked by assembly_package.validate_native_av_requirement(), not just documented here."
     },
     "selected_music_provider": {
       "type": "string",

@@ -326,8 +326,13 @@ def _build_example():
         cut["shot_id"]: cut["duration_seconds"]
         for cut in editorial.EXAMPLE_EDITORIAL_ARCHITECTURE["edit_timeline"]
     }
+    # kling_ai_avatar, not a silent-video provider: every shot in this chain has a
+    # singing, lip-synced performer (see character_performance_package.py), and the
+    # Assembly Package's native_av_policy requires a native audio-driven provider
+    # for those shots -- video, vocal audio, and lip sync generated together in one
+    # call, not silent video plus a separate bolt-on lip-sync pass.
     video_prompts = [
-        translate_shot_to_video_prompt(shot, "runway", duration_seconds=durations_by_shot.get(shot["shot_id"]))
+        translate_shot_to_video_prompt(shot, "kling_ai_avatar", duration_seconds=durations_by_shot.get(shot["shot_id"]))
         for shot in shots
     ]
 
@@ -353,7 +358,7 @@ def _build_example():
         "schema_version": "1.0.0",
         "source_principle_id": "hope",
         "source_human_truth_id": "rebuilding_after_loss",
-        "selected_video_provider": "runway",
+        "selected_video_provider": "kling_ai_avatar",
         "selected_music_provider": "suno",
         "video_prompts": video_prompts,
         "music_prompt": music_prompt,
@@ -369,11 +374,13 @@ def _build_example():
         "non_goals": [
             REQUIRED_ETHICS_NON_GOAL,
             REQUIRED_INTERFACE_NON_GOAL,
-            "This package does not claim Runway or Suno were benchmarked -- the success-probability range is an assumed planning estimate, not a measured provider statistic.",
+            "This package does not claim Kling AI Avatar or Suno were benchmarked -- the success-probability range is an assumed planning estimate, not a measured provider statistic.",
         ],
         "source": (
             "DreamMusicForge v2 Provider-Specific Production Package, worked example translating the "
-            "Hope chain's Cinematic and Musical Architecture into Runway and Suno prompts. Monte Carlo "
+            "Hope chain's Cinematic and Musical Architecture into Kling AI Avatar and Suno prompts -- Kling AI "
+            "Avatar chosen because every shot has a singing, lip-synced performer and needs a native "
+            "audio-driven provider, not a silent-video one. Monte Carlo "
             "risk model follows the classic uncertain-task-duration-vs-deadline technique, generalized "
             "to per-shot geometric retries; source: https://youtu.be/slbZ-SLpIgg."
         ),
