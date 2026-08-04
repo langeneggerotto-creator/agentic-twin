@@ -110,6 +110,42 @@ def test_cross_document_validation_catches_missing_shot_coverage():
     assert_true(any("does not cover every cinematic shot" in e for e in errors), "dropping coverage of a cinematic shot should be flagged")
 
 
+VOCAL_PERFORMER_FIXTURE = {
+    "character_name": "The Builder",
+    "register": "low-mid, conversational",
+    "texture": "unprocessed, breath and imperfection left in",
+    "description": "Sings the way someone talks to themselves before they believe it.",
+    "sings_during_shot_ids": ["shot1"],
+}
+
+
+def test_video_prompt_without_vocal_performer_has_no_vocal_direction():
+    shot = cinematic.EXAMPLE_CINEMATIC_ARCHITECTURE["shots"][0]
+    prompt = provider.translate_shot_to_video_prompt(shot, "kling_ai_avatar")
+    assert_true("Vocal performance" not in prompt["prompt_text"], "a shot with no vocal_performer argument should not claim one sings")
+    assert_true(not any(f.startswith("vocal_performers.") for f in prompt["source_fields_used"]), "no vocal_performers.* source field should be declared without a vocal_performer argument")
+
+
+def test_video_prompt_with_vocal_performer_includes_lip_sync_direction():
+    shot = cinematic.EXAMPLE_CINEMATIC_ARCHITECTURE["shots"][0]
+    prompt = provider.translate_shot_to_video_prompt(shot, "kling_ai_avatar", vocal_performer=VOCAL_PERFORMER_FIXTURE)
+    assert_true("The Builder sings on camera" in prompt["prompt_text"], "vocal direction should name the actual performer")
+    assert_true("lip-sync" in prompt["prompt_text"].lower(), "a sung shot must explicitly direct lip-sync, or a native audio-driven provider has nothing to animate the mouth to")
+    for field in ["vocal_performers.register", "vocal_performers.texture", "vocal_performers.description"]:
+        assert_true(field in prompt["source_fields_used"], f"{field} should be declared as a source field when vocal_performer is used")
+
+
+def test_example_wires_real_vocal_performer_data_not_a_silent_prompt():
+    """Regression test for the actual gap this closed: shot1 and shot2 in the
+    worked example both have a singing performer per
+    character_performance_package.py, and the generated Kling prompt for
+    each must actually say so -- sound=true in the API call is not enough
+    on its own if the prompt text gives the provider nothing to sing."""
+    by_shot = {vp["shot_id"]: vp for vp in provider.EXAMPLE_PROVIDER_SPECIFIC_PRODUCTION_PACKAGE["video_prompts"]}
+    assert_true("The Builder sings on camera" in by_shot["shot1"]["prompt_text"], "shot1's prompt must direct The Builder's vocal performance")
+    assert_true("The Asker sings on camera" in by_shot["shot2"]["prompt_text"], "shot2's prompt must direct The Asker's vocal performance")
+
+
 if __name__ == "__main__":
     test_example_is_valid()
     test_monte_carlo_probability_is_reasonable()
@@ -123,4 +159,7 @@ if __name__ == "__main__":
     test_missing_ethics_non_goal_is_rejected()
     test_cross_document_validation_passes_against_paired_cinematic()
     test_cross_document_validation_catches_missing_shot_coverage()
+    test_video_prompt_without_vocal_performer_has_no_vocal_direction()
+    test_video_prompt_with_vocal_performer_includes_lip_sync_direction()
+    test_example_wires_real_vocal_performer_data_not_a_silent_prompt()
     print("PASS: DreamMusicForge Provider-Specific Production Package smoke tests")

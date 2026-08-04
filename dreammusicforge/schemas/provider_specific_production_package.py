@@ -50,7 +50,16 @@ MAX_ATTEMPTS_CAP = 1000
 # Translation functions
 # ---------------------------------------------------------------------------
 
-def translate_shot_to_video_prompt(shot: dict, provider: str, duration_seconds: float = None) -> dict:
+def translate_shot_to_video_prompt(
+    shot: dict, provider: str, duration_seconds: float = None, vocal_performer: dict = None,
+) -> dict:
+    """vocal_performer, when provided, is a character_performance_package.py
+    vocal_performers[] entry whose sings_during_shot_ids includes this shot's
+    shot_id. Without it, a shot is translated as silent/ambient even when the
+    Character Performance Package says someone sings there -- this was a real
+    gap (a generated shot with sound=true but no vocal direction produces
+    generic or near-silent audio, not the character's performance) until this
+    parameter closed it."""
     comp = shot["composition"]
     cam = shot["camera"]
     light = shot["lighting"]
@@ -74,6 +83,14 @@ def translate_shot_to_video_prompt(shot: dict, provider: str, duration_seconds: 
     if shot.get("blocking_or_performance_note"):
         parts.append(f"Performance: {shot['blocking_or_performance_note']}.")
 
+    if vocal_performer:
+        parts.append(
+            f"Vocal performance: {vocal_performer['character_name']} sings on camera for this shot -- "
+            f"{vocal_performer['register']}, {vocal_performer['texture']}. {vocal_performer['description']} "
+            f"This is not a silent or ambient-only shot: animate the mouth and jaw with natural, "
+            f"lip-synced singing motion for the full duration, matched to the vocal audio track."
+        )
+
     source_fields_used = [
         "camera.shot_size", "camera.movement", "composition.focal_point",
         "composition.framing_technique", "composition.depth_layers",
@@ -85,6 +102,8 @@ def translate_shot_to_video_prompt(shot: dict, provider: str, duration_seconds: 
         source_fields_used.append("composition.leading_lines")
     if shot.get("blocking_or_performance_note"):
         source_fields_used.append("blocking_or_performance_note")
+    if vocal_performer:
+        source_fields_used += ["vocal_performers.register", "vocal_performers.texture", "vocal_performers.description"]
 
     return {
         "shot_id": shot["shot_id"],
@@ -326,13 +345,54 @@ def _build_example():
         cut["shot_id"]: cut["duration_seconds"]
         for cut in editorial.EXAMPLE_EDITORIAL_ARCHITECTURE["edit_timeline"]
     }
+    # Every shot with a singing performer needs that performer's vocal direction
+    # in its own video prompt, or a native audio-driven provider has nothing to
+    # base the sung performance on -- see translate_shot_to_video_prompt()'s
+    # vocal_performer parameter. A shot with two performers singing in it would
+    # need to pick or merge; this chain never has more than one per shot.
+    #
+    # Inlined rather than loaded from character_performance_package.py: that
+    # module's own _build_example() loads universal_production_blueprint.py,
+    # which loads this module for its tier-3 demo -- loading
+    # character_performance_package.py from here would complete a cycle
+    # (this module -> character_performance_package -> blueprint -> this
+    # module -> ...). Values below are copied from
+    # character_performance_package.EXAMPLE_CHARACTER_PERFORMANCE_PACKAGE's
+    # vocal_performers, not independently invented.
+    vocal_performer_by_shot = {}
+    for performer in [
+        {
+            "character_name": "The Builder",
+            "register": "low-mid, conversational",
+            "texture": "unprocessed, breath and imperfection left in",
+            "description": (
+                "Sings the way someone talks to themselves before they believe it, not the way "
+                "someone performs conviction -- matches the Musical Architecture's vocal_tone."
+            ),
+            "sings_during_shot_ids": ["shot1", "shot3", "shot4", "shot5", "shot6", "shot7", "shot8"],
+        },
+        {
+            "character_name": "The Asker",
+            "register": "mid, direct",
+            "texture": "plain, unornamented",
+            "description": "Delivers the catalyst question as a single sung line, not spoken -- the only line they have in the piece.",
+            "sings_during_shot_ids": ["shot2"],
+        },
+    ]:
+        for shot_id in performer["sings_during_shot_ids"]:
+            vocal_performer_by_shot[shot_id] = performer
+
     # kling_ai_avatar, not a silent-video provider: every shot in this chain has a
     # singing, lip-synced performer (see character_performance_package.py), and the
     # Assembly Package's native_av_policy requires a native audio-driven provider
     # for those shots -- video, vocal audio, and lip sync generated together in one
     # call, not silent video plus a separate bolt-on lip-sync pass.
     video_prompts = [
-        translate_shot_to_video_prompt(shot, "kling_ai_avatar", duration_seconds=durations_by_shot.get(shot["shot_id"]))
+        translate_shot_to_video_prompt(
+            shot, "kling_ai_avatar",
+            duration_seconds=durations_by_shot.get(shot["shot_id"]),
+            vocal_performer=vocal_performer_by_shot.get(shot["shot_id"]),
+        )
         for shot in shots
     ]
 
