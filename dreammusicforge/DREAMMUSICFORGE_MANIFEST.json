@@ -164,6 +164,19 @@
       ],
       "evidence": "17/17 smoke tests passing via `python3 dreammusicforge/tests/test_assembly_package.py`",
       "note": "Answers a direct user request: get in place what's needed for native audio-driven lip-sync generation plus the post-generation Python work (stitching, reconciling generated clip durations against planned cut durations) that no single provider call can do. native_av_policy.allowed_providers (kling_ai_avatar, runway_act_two, veo3_native_audio) is required data, and validate_native_av_requirement() cross-checks it against the Provider-Specific Production Package's video_prompts[].provider for every shot with a singing performer -- this caught the prior stage's worked example still using silent-video runway and forced the fix to kling_ai_avatar. reconcile_cut_duration() derives a reconciliation_strategy (exact_match / speed_adjust / trim / pad_hold_last_frame / requires_manual_review) deterministically from drift and cut_on_beat, refusing to trim or pad a beat-matched cut (would break the Editorial Architecture's cut-on-beat guarantee) and refusing to auto-resolve drift beyond tolerance at all. render_ffmpeg_command() builds a real, re-derivable ffmpeg filter_complex plan; the validator reruns it and rejects a stale/hand-written command, same reproducibility discipline as generation_risk_estimate and rights_review. Worked example deliberately gives one of 8 cuts a 39% simulated drift so assembly_status lands on blocked_manual_review_required, not a rubber-stamped ready_to_render."
+    },
+    {
+      "name": "kling_ai_avatar_provider_client",
+      "status": "implemented_not_live_verified",
+      "files": [
+        "providers/__init__.py",
+        "providers/transport.py",
+        "providers/exceptions.py",
+        "providers/kling_ai_avatar.py",
+        "tests/test_kling_ai_avatar_client.py"
+      ],
+      "evidence": "14/14 smoke tests passing via `python3 dreammusicforge/tests/test_kling_ai_avatar_client.py`, all offline via FakeTransport -- no real network call anywhere in this suite",
+      "note": "Answers a direct user request to start the live integration layer, scoped to one provider first (Kling AI Avatar, per the agreed native-audio-driven-generation direction). This is the first module in the repository that makes, or is built to make, real network calls -- every schemas/*.py module stays pure validation logic with zero network dependency by design, and that separation is deliberate. build_jwt() is a stdlib-only (hmac/hashlib/base64, no PyJWT) HS256 signer grounded in Kling's publicly documented access-key/secret-key-signed-JWT auth pattern. KlingCredentials.from_env() reads KLING_ACCESS_KEY/KLING_SECRET_KEY and fails closed with no secret value in the error message if either is missing -- no credential is hardcoded or committed anywhere. create_task() takes a real video_prompts[] entry from the Provider-Specific Production Package as-is and rejects an oversized prompt before any request goes out, per Kling's documented 2500-character limit. generate_with_retries() polls to a terminal state and raises GenerationBudgetExceededError rather than fabricating a result if the budget (meant to come from generation_risk_estimate.budget_max_total_attempts, not a separately made-up number) runs out; proven end-to-end against the real Hope-chain shot1 prompt in test_real_shot1_prompt_through_a_scripted_success. Honesty boundary, stated in the module docstring: no API key exists in this environment, so nothing here has been exercised against Kling's real endpoint, and DEFAULT_BASE_URL is an explicitly-flagged unconfirmed placeholder (Kling has both a first-party API and third-party resellers with different paths)."
     }
   ],
   "non_goals_now": [
@@ -173,7 +186,8 @@
     "Do not skip the Principle Engine step -- every project must trace back to one stated timeless principle.",
     "Do not assign a silent-video-only provider to a shot with a singing, lip-synced performer -- native_av_policy.allowed_providers and validate_native_av_requirement() exist specifically to catch that.",
     "Do not silently force a badly-drifted generated clip to fit its planned duration -- reconcile_cut_duration() routes anything past tolerance to requires_manual_review, blocking assembly_status.",
-    "Do not claim any real API integration exists -- no credentials, no HTTP calls, no executed ffmpeg anywhere in this repository yet."
+    "Do not hardcode, log, or commit a provider credential anywhere -- KLING_ACCESS_KEY/KLING_SECRET_KEY are read from the environment only.",
+    "Do not claim a provider integration is live-verified when it isn't -- the Kling AI Avatar client's request-building and retry logic are fully tested offline, but no real network call has been made from this environment."
   ],
   "next_3_plus_1": {
     "next_1": "DONE -- Principle Kernel schema (Principle Engine output). See active_prototypes.",
@@ -188,8 +202,9 @@
     "next_10": "DONE -- Character Performance Package (character-consistent reference images via Nano Banana + no-narrator singing performers with required lip sync). See active_prototypes.",
     "next_11": "Wire character_references/vocal_performers into the Provider-Specific Production Package's video_prompts -- each shot's video prompt should include its performer's reference_image_asset_id for conditioning.",
     "next_12": "DONE -- Assembly Package: native_av_policy requirement gate (video_prompts provider must support native audio-driven lip sync for singing shots), reconcile_cut_duration() for planned-vs-actual clip duration drift, render_ffmpeg_command() for a real re-derivable stitching plan. Fixed the Provider Package's worked example (runway -> kling_ai_avatar) along the way. See active_prototypes.",
-    "next_13": "Live API integration layer -- real credentials (never committed), real HTTP calls, real error/rate-limit handling, real actual_duration_seconds instead of the Assembly Package's simulated figures. Needs the user's own API keys; deliberately not started until asked for by name.",
-    "next_14_candidate_not_started": "Calibrate generation_risk_estimate's per-shot success-probability range from real observed provider outcomes (MCMC/Metropolis-Hastings posterior) instead of the currently-assumed uniform range. Not started: no observed data exists yet to calibrate against.",
+    "next_13": "DONE, partially -- Live API integration layer scoped to one provider (Kling AI Avatar): credential loading, JWT auth, request-building, and a fail-closed retry loop, all fully tested offline. See active_prototypes (kling_ai_avatar_provider_client). Still outstanding: no real API key exists in this environment, so nothing has fired against Kling's real endpoint yet, and DEFAULT_BASE_URL needs confirming against whichever real access is actually used.",
+    "next_14": "Fire the first real Kling AI Avatar call once a real KLING_ACCESS_KEY/KLING_SECRET_KEY and a confirmed base URL are available; feed the real actual_duration_seconds result back into the Assembly Package instead of the simulated figures. Then extend the same providers/ pattern to Suno (music) and Nano Banana (character reference).",
+    "next_15_candidate_not_started": "Calibrate generation_risk_estimate's per-shot success-probability range from real observed provider outcomes (MCMC/Metropolis-Hastings posterior) instead of the currently-assumed uniform range. Not started: no observed data exists yet to calibrate against.",
     "plus_1_control": "No engine, council, or provider adapter may be documented as built until it has a passing evidence entry."
   }
 }
