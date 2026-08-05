@@ -388,11 +388,18 @@ def _build_example():
     for performer in character.EXAMPLE_CHARACTER_PERFORMANCE_PACKAGE["vocal_performers"]:
         singing_shot_ids.update(performer["sings_during_shot_ids"])
 
-    # Illustrative, not real generation output -- see REQUIRED_ASSEMBLY_NON_GOAL.
-    # cut7 deliberately drifts far past tolerance to demonstrate that a bad
-    # generation blocks assembly_status rather than being silently forced to fit.
+    # cut1/cut2 are REAL: the first two live Kling AI Avatar generations both came
+    # back at 10.0417s (ffprobe-confirmed), which is why the Editorial Architecture's
+    # planned durations for those two cuts were replanned to 10.04s instead of the
+    # originally-designed 4.5s/5.0s -- see editorial_architecture.py's edit_timeline
+    # comment. Reconciling against the replanned figure correctly lands on
+    # exact_match, not requires_manual_review, because the plan now reflects reality.
+    # cut3-cut8 remain illustrative/simulated pending their own real generations --
+    # see REQUIRED_ASSEMBLY_NON_GOAL. cut7 deliberately drifts far past tolerance to
+    # demonstrate that a bad generation blocks assembly_status rather than being
+    # silently forced to fit.
     simulated_actual_durations = {
-        "cut1": 4.52, "cut2": 5.35, "cut3": 4.58, "cut4": 3.65,
+        "cut1": 10.0417, "cut2": 10.0417, "cut3": 4.58, "cut4": 3.65,
         "cut5": 5.90, "cut6": 5.05, "cut7": 8.90, "cut8": 7.15,
     }
 
@@ -421,9 +428,12 @@ def _build_example():
         ],
         "source": (
             "DreamMusicForge v2 Assembly Package, worked example reconciling the Hope chain's 8 beat-matched "
-            "cuts against simulated generation output. cut7's simulated drift (39%) deliberately exceeds "
-            "tolerance to demonstrate assembly_status routing to blocked_manual_review_required rather than "
-            "silently forcing a bad generation to fit the planned timeline."
+            "cuts. cut1/cut2 use real Kling AI Avatar output (10.0417s each) against a replanned timeline -- "
+            "the first real generation data fed back into this pipeline, after the original 4.5s/5.0s plan "
+            "was found undeliverable. cut3-cut8 remain simulated pending their own real generations; cut7's "
+            "simulated drift (39%) deliberately exceeds tolerance to demonstrate assembly_status routing to "
+            "blocked_manual_review_required rather than silently forcing a bad generation to fit the planned "
+            "timeline."
         ),
         "truth_status": "ASSUMED",
     }

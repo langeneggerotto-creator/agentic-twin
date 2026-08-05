@@ -191,14 +191,22 @@ EXAMPLE_EDITORIAL_ARCHITECTURE = {
     "source_principle_id": "hope",
     "source_human_truth_id": "rebuilding_after_loss",
     "edit_timeline": [
-        {"cut_id": "cut1", "order": 1, "shot_id": "shot1", "start_time_seconds": 0.0, "duration_seconds": 4.5, "cut_on_beat": True, "linked_tempo_segment_id": "seg1"},
-        {"cut_id": "cut2", "order": 2, "shot_id": "shot2", "start_time_seconds": 4.5, "duration_seconds": 5.0, "cut_on_beat": True, "linked_tempo_segment_id": "seg2"},
-        {"cut_id": "cut3", "order": 3, "shot_id": "shot3", "start_time_seconds": 9.5, "duration_seconds": 4.6, "cut_on_beat": True, "linked_tempo_segment_id": "seg3", "reveal_note": "first clear view of the two broken pieces"},
-        {"cut_id": "cut4", "order": 4, "shot_id": "shot4", "start_time_seconds": 14.1, "duration_seconds": 3.2, "cut_on_beat": True, "linked_tempo_segment_id": "seg4"},
-        {"cut_id": "cut5", "order": 5, "shot_id": "shot5", "start_time_seconds": 17.3, "duration_seconds": 5.8, "cut_on_beat": True, "linked_tempo_segment_id": "seg5"},
-        {"cut_id": "cut6", "order": 6, "shot_id": "shot6", "start_time_seconds": 23.1, "duration_seconds": 4.9, "cut_on_beat": True, "linked_tempo_segment_id": "seg6", "reveal_note": "first new plank set in place"},
-        {"cut_id": "cut7", "order": 7, "shot_id": "shot7", "start_time_seconds": 28.0, "duration_seconds": 6.4, "cut_on_beat": True, "linked_tempo_segment_id": "seg7", "reveal_note": "unfinished structure standing beside the ruin"},
-        {"cut_id": "cut8", "order": 8, "shot_id": "shot8", "start_time_seconds": 34.4, "duration_seconds": 7.0, "cut_on_beat": True, "linked_tempo_segment_id": "seg8"},
+        # cut1/cut2 durations are REAL, not planned: the first two live Kling AI Avatar
+        # generations both came back at 10.04s regardless of the originally-planned 4.5s/5.0s
+        # (see providers/kling_ai_avatar.py's DEFAULT_BASE_URL caveat -- duration_seconds in
+        # provider_parameters was not honored). Replanned around what the provider actually
+        # delivers rather than forcing a >100% drift through reconciliation -- see
+        # assembly_package.py's REQUIRED_ASSEMBLY_NON_GOAL discipline against silently
+        # papering over exactly this. cut3-cut8 durations remain planned/ASSUMED pending
+        # their own real generations, which will likely need the same treatment.
+        {"cut_id": "cut1", "order": 1, "shot_id": "shot1", "start_time_seconds": 0.0, "duration_seconds": 10.04, "cut_on_beat": True, "linked_tempo_segment_id": "seg1"},
+        {"cut_id": "cut2", "order": 2, "shot_id": "shot2", "start_time_seconds": 10.04, "duration_seconds": 10.04, "cut_on_beat": True, "linked_tempo_segment_id": "seg2"},
+        {"cut_id": "cut3", "order": 3, "shot_id": "shot3", "start_time_seconds": 20.08, "duration_seconds": 4.6, "cut_on_beat": True, "linked_tempo_segment_id": "seg3", "reveal_note": "first clear view of the two broken pieces"},
+        {"cut_id": "cut4", "order": 4, "shot_id": "shot4", "start_time_seconds": 24.68, "duration_seconds": 3.2, "cut_on_beat": True, "linked_tempo_segment_id": "seg4"},
+        {"cut_id": "cut5", "order": 5, "shot_id": "shot5", "start_time_seconds": 27.88, "duration_seconds": 5.8, "cut_on_beat": True, "linked_tempo_segment_id": "seg5"},
+        {"cut_id": "cut6", "order": 6, "shot_id": "shot6", "start_time_seconds": 33.68, "duration_seconds": 4.9, "cut_on_beat": True, "linked_tempo_segment_id": "seg6", "reveal_note": "first new plank set in place"},
+        {"cut_id": "cut7", "order": 7, "shot_id": "shot7", "start_time_seconds": 38.58, "duration_seconds": 6.4, "cut_on_beat": True, "linked_tempo_segment_id": "seg7", "reveal_note": "unfinished structure standing beside the ruin"},
+        {"cut_id": "cut8", "order": 8, "shot_id": "shot8", "start_time_seconds": 44.98, "duration_seconds": 7.0, "cut_on_beat": True, "linked_tempo_segment_id": "seg8"},
     ],
     "motif_evolution": [
         {"motif_id": "rebuilt_object", "order": 1, "cut_id": "cut3", "stage": "introduced", "state_description": "the two broken pieces cannot be joined"},

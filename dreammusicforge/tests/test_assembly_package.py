@@ -41,6 +41,21 @@ def test_reconcile_negligible_drift_is_exact_match():
     assert_true(strategy == "exact_match" and duration == 5.0, "sub-1% drift should need no reconciliation")
 
 
+def test_cut1_and_cut2_are_exact_match_after_the_real_generation_replan():
+    """Regression test for the actual event this closed: the first two live
+    Kling AI Avatar generations both came back at 10.0417s against an
+    originally-planned 4.5s/5.0s (>100% drift, would have hit
+    requires_manual_review). Rather than force that through reconciliation,
+    the Editorial Architecture's plan for cut1/cut2 was replanned to match
+    reality -- so reconciling against the *replanned* figures should land
+    cleanly on exact_match, proving the plan now reflects what the provider
+    actually delivers instead of papering over the drift."""
+    by_cut = {s["cut_id"]: s for s in assembly.EXAMPLE_ASSEMBLY_PACKAGE["shot_assemblies"]}
+    for cut_id in ("cut1", "cut2"):
+        assert_true(by_cut[cut_id]["reconciliation_strategy"] == "exact_match", f"{cut_id} should be exact_match after the replan, got {by_cut[cut_id]['reconciliation_strategy']}")
+        assert_true(by_cut[cut_id]["planned_duration_seconds"] == 10.04, f"{cut_id}'s planned duration should reflect the replanned Editorial Architecture, got {by_cut[cut_id]['planned_duration_seconds']}")
+
+
 def test_reconcile_beat_matched_cut_never_trims_or_pads():
     # 20% drift on a non-beat cut would trim/pad; on a beat-matched cut it must
     # instead require manual review, since trimming/padding breaks cut-on-beat timing.
@@ -142,6 +157,7 @@ def test_has_singing_performer_mismatch_is_caught():
 if __name__ == "__main__":
     test_example_is_valid()
     test_example_flags_the_deliberately_bad_cut_for_manual_review()
+    test_cut1_and_cut2_are_exact_match_after_the_real_generation_replan()
     test_reconcile_negligible_drift_is_exact_match()
     test_reconcile_beat_matched_cut_never_trims_or_pads()
     test_reconcile_non_beat_cut_can_trim_or_pad()
