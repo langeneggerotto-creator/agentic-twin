@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "dreammusicforge/schemas/character_performance_package.schema.json",
+  "title": "DreamMusicForge Character Performance Package",
+  "description": "Solves three problems raised for productions where characters sing themselves rather than a narrator: (1) character consistency across independently generated shots, via a character-reference image generated once per character and reused as conditioning for every shot that character appears in (the historical continuity problem this pipeline never built a solution for); (2) per-character vocal performance replacing a single narrator voice, with lip-sync required wherever a character sings on camera; (3) every character must be original, not a real/existing copyrighted or trademarked character, so the production doesn't risk IP infringement. no_narrator, and every character_references entry's original_character, are literal hard gates, not design notes -- they must be true or the document fails validation.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_principle_id",
+    "source_human_truth_id",
+    "no_narrator",
+    "character_reference_provider",
+    "character_references",
+    "vocal_performers",
+    "rights_review",
+    "non_goals",
+    "truth_status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "source_principle_id": { "type": "string", "minLength": 1 },
+    "source_human_truth_id": { "type": "string", "minLength": 1 },
+    "no_narrator": {
+      "const": true,
+      "description": "Must be true. This document exists specifically to replace narration with characters performing themselves."
+    },
+    "character_reference_provider": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Not locked to an enum, consistent with the rest of the provider layer. As of this writing the motivating candidate is Google's Gemini 2.5 Flash Image model (\"Nano Banana\"), chosen for character-consistency across independently generated images."
+    },
+    "character_references": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per character who appears on camera. Every character_name must match a name in the paired Universal Production Blueprint's narrative_supplement.character_biographies (checked by validate_against_blueprint).",
+      "items": {
+        "type": "object",
+        "required": ["character_name", "reference_prompt", "consistency_notes", "reference_image_asset_id", "source_fields_used", "original_character", "originality_basis", "resembles_existing_ip_risk"],
+        "properties": {
+          "character_name": { "type": "string", "minLength": 1 },
+          "reference_prompt": { "type": "string", "minLength": 1 },
+          "consistency_notes": { "type": "string", "minLength": 1 },
+          "reference_image_asset_id": { "type": "string", "minLength": 1 },
+          "source_fields_used": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Which character_biographies fields this reference prompt was actually derived from."
+          },
+          "original_character": {
+            "const": true,
+            "description": "Must be true. This document is only for wholly original characters invented for this production, never real/existing copyrighted or trademarked characters."
+          },
+          "originality_basis": {
+            "type": "string",
+            "minLength": 20,
+            "description": "A specific, substantive statement of what makes this character original -- not boilerplate. Self-declaration, not legal clearance; see rights_review and non_goals."
+          },
+          "resembles_existing_ip_risk": {
+            "enum": ["none_identified", "possible_overlap_flagged", "needs_legal_review"],
+            "description": "Author's own risk self-assessment. Anything other than none_identified forces rights_review.status to hold_for_review."
+          }
+        }
+      }
+    },
+    "vocal_performers": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Every character_name must also have a character_references entry (you can't lip-sync a character whose visual identity was never established). Every sings_during_shot_ids entry must exist in the paired Cinematic Architecture's shots (checked by validate_against_cinematic_architecture).",
+      "items": {
+        "type": "object",
+        "required": ["character_name", "register", "texture", "description", "sings_during_shot_ids", "lip_sync_required"],
+        "properties": {
+          "character_name": { "type": "string", "minLength": 1 },
+          "register": { "type": "string", "minLength": 1 },
+          "texture": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "sings_during_shot_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          },
+          "lip_sync_required": {
+            "const": true,
+            "description": "Must be true for every performer -- if a character sings on camera, lip sync is not optional."
+          }
+        }
+      }
+    },
+    "rights_review": {
+      "type": "object",
+      "description": "Computed by assess_rights_review_status() from every character_references[].resembles_existing_ip_risk, the same flags-to-blockers-to-hold-for-review pattern used in apex-rightschain-manifest-builder. Must reproduce from the character_references it was computed from, or validation fails (same discipline as the Monte Carlo generation_risk_estimate reproducibility check).",
+      "required": ["status", "blockers"],
+      "properties": {
+        "status": { "enum": ["clear_to_proceed", "hold_for_review"] },
+        "blockers": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "contains": {
+        "const": "This kernel does not claim to guarantee any specific viewer belief, emotion, or decision."
+      }
+    },
+    "source": { "type": "string" },
+    "truth_status": { "enum": ["VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"] }
+  },
+  "additionalProperties": false
+}

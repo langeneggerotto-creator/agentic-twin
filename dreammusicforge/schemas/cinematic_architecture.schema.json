@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "dreammusicforge/schemas/cinematic_architecture.schema.json",
+  "title": "DreamMusicForge Cinematic Architecture",
+  "description": "Output of the Cinematic Architecture Engine (pipeline stages: Visual Architecture, Shot Architecture, Performance Direction). A shot list where every shot cross-references the paired Narrative + Emotional Architecture's emotional_waveform and the paired Musical Architecture's tempo_map, and must justify why it exists, why it occurs now, and what audience state it changes.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_principle_id",
+    "source_human_truth_id",
+    "shots",
+    "non_goals",
+    "truth_status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "source_principle_id": { "type": "string", "minLength": 1 },
+    "source_human_truth_id": { "type": "string", "minLength": 1 },
+    "shots": {
+      "type": "array",
+      "minItems": 8,
+      "description": "One entry per narrative beat at minimum. order must be strictly increasing and unique; every one of the eight narrative stages must be covered by at least one shot.",
+      "items": { "$ref": "#/definitions/shot" }
+    },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "contains": {
+        "const": "This kernel does not claim to guarantee any specific viewer belief, emotion, or decision."
+      }
+    },
+    "source": { "type": "string" },
+    "truth_status": { "enum": ["VERIFIED", "INFERRED", "ASSUMED", "UNKNOWN"] }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "shot": {
+      "type": "object",
+      "required": [
+        "shot_id", "order", "linked_narrative_stage", "linked_waveform_beat_id",
+        "linked_tempo_segment_id", "justification", "composition", "camera", "lighting"
+      ],
+      "properties": {
+        "shot_id": { "type": "string", "minLength": 1 },
+        "order": { "type": "integer", "minimum": 1 },
+        "linked_narrative_stage": {
+          "enum": ["beginning", "catalyst", "conflict", "choice", "sacrifice", "transformation", "resolution", "reflection"]
+        },
+        "linked_waveform_beat_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Must match a beat_id in the paired Narrative + Emotional Architecture's emotional_waveform, and that beat's linked_narrative_stage must equal this shot's linked_narrative_stage (checked by validate_against_narrative_architecture, not by this schema alone)."
+        },
+        "linked_tempo_segment_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Must match a segment_id in the paired Musical Architecture's tempo_map (checked by validate_against_musical_architecture)."
+        },
+        "justification": {
+          "type": "object",
+          "description": "Every shot must justify why it exists, why it occurs now, and what audience state it changes.",
+          "required": ["exists_because", "why_now", "audience_state_change"],
+          "properties": {
+            "exists_because": { "type": "string", "minLength": 1 },
+            "why_now": { "type": "string", "minLength": 1 },
+            "audience_state_change": { "type": "string", "minLength": 1 }
+          }
+        },
+        "composition": {
+          "type": "object",
+          "required": [
+            "focal_point", "framing_technique", "space_balance", "headroom",
+            "leadroom", "balance", "depth_layers", "focus_technique", "color_contrast_strategy"
+          ],
+          "properties": {
+            "focal_point": { "type": "string", "minLength": 1 },
+            "framing_technique": {
+              "enum": ["rule_of_thirds", "golden_triangle", "centered", "frame_within_frame", "symmetrical", "off_balance_intentional"]
+            },
+            "centered_rationale": {
+              "type": "string",
+              "description": "Required when framing_technique is 'centered' -- centered framing signals authority or direct address, and that must be an intentional choice, not a default."
+            },
+            "leading_lines": { "type": "string", "description": "Optional. Note whether lines are orderly (guide the eye to the subject) or chaotic (convey confusion/disorder)." },
+            "space_balance": {
+              "type": "object",
+              "required": ["subject_frame_proportion", "negative_space_purpose"],
+              "properties": {
+                "subject_frame_proportion": { "enum": ["extreme_small", "small", "medium", "large", "extreme_close"] },
+                "negative_space_purpose": { "type": "string", "minLength": 1 }
+              }
+            },
+            "headroom": { "enum": ["minimal", "standard", "abnormal_large"] },
+            "leadroom": { "enum": ["standard", "minimal", "none"] },
+            "balance": { "enum": ["balanced", "deliberately_unbalanced"] },
+            "depth_layers": {
+              "type": "object",
+              "description": "At least two of the three layers must be populated -- a subject flat against a background wall has no depth.",
+              "properties": {
+                "foreground": { "type": ["string", "null"] },
+                "midground": { "type": ["string", "null"] },
+                "background": { "type": ["string", "null"] }
+              }
+            },
+            "focus_technique": { "enum": ["shallow_isolate", "deep_focus", "rack_focus"] },
+            "color_contrast_strategy": { "type": "string", "minLength": 1 }
+          }
+        },
+        "camera": {
+          "type": "object",
+          "required": ["shot_size", "movement"],
+          "properties": {
+            "shot_size": { "enum": ["extreme_wide", "wide", "medium_wide", "medium", "close_up", "extreme_close_up"] },
+            "movement": { "enum": ["static", "glidecam", "slider", "handheld", "dolly"] },
+            "lens_note": { "type": "string" }
+          }
+        },
+        "lighting": {
+          "type": "object",
+          "required": ["key_style", "note"],
+          "properties": {
+            "key_style": { "enum": ["soft", "hard"] },
+            "note": { "type": "string", "minLength": 1 }
+          }
+        },
+        "blocking_or_performance_note": { "type": "string" },
+        "symbolic_object": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

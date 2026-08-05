@@ -1,0 +1,211 @@
+{
+  "system": "DreamMusicForge",
+  "repository_layer": "agentic-twin/dreammusicforge",
+  "status": "initialized",
+  "truth_status": "STRUCTURE_CREATED_NOT_PRODUCTION_CERTIFIED",
+  "spec_version": "v2",
+  "created_purpose": "Transform timeless human principles into original audiovisual experiences that maximize the probability of meaningful reflection, emotional connection, and positive personal growth -- an Intelligent Creative Operating System, not a video-clip generator.",
+  "superseded_versions": [
+    {
+      "version": "v1",
+      "created_purpose": "Generate music videos whose visuals demonstrably teach one stated causal claim, via a structured intent-card and shot-list pipeline.",
+      "superseded_by": "v2",
+      "superseded_reason": "v1's stage-6 comprehension test checked for one compelled, intended reading; v2's mission explicitly rejects enforcing viewer belief in favor of maximizing probability of reflection.",
+      "preserved_at": "README.md#superseded-v1-design-preserved-for-evidence-continuity"
+    }
+  ],
+  "linked_to": {
+    "parent_repo": "agentic-twin",
+    "inherits": "CORE_OS_INHERITANCE.md",
+    "converges_with": "APEX/01_CANON/01_APEX_HEART_CORE.md (Dignity Gate, Control Gate)"
+  },
+  "mission_principle": "DreamMusicForge exists to transform timeless human principles into original audiovisual experiences that help people see themselves, imagine new possibilities, and carry meaningful insights beyond the final frame.",
+  "pipeline_stages": [
+    "timeless_principle",
+    "human_truth",
+    "audience",
+    "transformation_goal",
+    "narrative_architecture",
+    "character_journey",
+    "emotional_architecture",
+    "musical_architecture",
+    "visual_architecture",
+    "shot_architecture",
+    "performance_direction",
+    "editorial_architecture",
+    "character_performance_package",
+    "provider_specific_production_package",
+    "assembly_package"
+  ],
+  "core_design_engines": [
+    "principle_engine",
+    "human_experience_engine",
+    "story_architecture_engine",
+    "emotional_architecture_engine",
+    "cinematic_architecture_engine",
+    "musical_architecture_engine",
+    "editorial_architecture_engine"
+  ],
+  "provider_layer": {
+    "status": "translation_layer_implemented_no_live_credentials",
+    "principle": "provider-neutral abstract production spec, translated per-provider at the last step",
+    "video_candidates": ["Google Veo", "Runway", "Luma AI Dream Machine", "Pika", "Kling AI"],
+    "native_audio_driven_video_candidates": ["Kling AI Avatar", "Runway Act-Two", "Veo 3 (native audio)"],
+    "character_reference_candidates": ["Nano Banana (Gemini 2.5 Flash Image)"],
+    "music_candidates": ["Suno", "Udio"]
+  },
+  "review_council": [
+    "story_council",
+    "editorial_council",
+    "music_council",
+    "performance_council",
+    "visual_council",
+    "symbolism_council",
+    "audience_council",
+    "ethics_council"
+  ],
+  "universal_production_blueprint_status": "target_output_list_not_schematized",
+  "active_prototypes": [
+    {
+      "name": "principle_kernel_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/principle_kernel.schema.json",
+        "schemas/principle_kernel.py",
+        "tests/test_principle_kernel.py"
+      ],
+      "evidence": "5/5 smoke tests passing via `python3 dreammusicforge/tests/test_principle_kernel.py`",
+      "note": "Validator rejects any kernel whose non_goals list drops the required ethics constraint against compelling viewer belief."
+    },
+    {
+      "name": "narrative_emotional_architecture_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/narrative_emotional_architecture.schema.json",
+        "schemas/narrative_emotional_architecture.py",
+        "tests/test_narrative_emotional_architecture.py"
+      ],
+      "evidence": "7/7 smoke tests passing via `python3 dreammusicforge/tests/test_narrative_emotional_architecture.py`",
+      "note": "Validator enforces all 8 narrative stages present, before/after states differ, waveform has >=3 monotonically-ordered beats, and every narrative stage is covered by at least one waveform beat."
+    },
+    {
+      "name": "musical_architecture_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/musical_architecture.schema.json",
+        "schemas/musical_architecture.py",
+        "tests/test_musical_architecture.py"
+      ],
+      "evidence": "10/10 smoke tests passing via `python3 dreammusicforge/tests/test_musical_architecture.py`",
+      "note": "First cross-document check in this repo: validate_against_narrative_architecture() confirms every tempo_map[].linked_waveform_beat_id exists in the paired Narrative + Emotional Architecture's emotional_waveform, in addition to internal tempo/dynamics/motif/silence-reference checks."
+    },
+    {
+      "name": "cinematic_architecture_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/cinematic_architecture.schema.json",
+        "schemas/cinematic_architecture.py",
+        "tests/test_cinematic_architecture.py"
+      ],
+      "evidence": "10/10 smoke tests passing via `python3 dreammusicforge/tests/test_cinematic_architecture.py`",
+      "note": "Composition rules (focal point, rule of thirds, golden triangle, centered framing + rationale, leading lines, headroom/leadroom, depth layering, focus technique, color/contrast) sourced from a cited practitioner composition breakdown. Cross-checks against both prior documents, including a stage-drift check (a shot's declared narrative stage must match its linked waveform beat's actual stage in the narrative document), not just referential existence."
+    },
+    {
+      "name": "editorial_architecture_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/editorial_architecture.schema.json",
+        "schemas/editorial_architecture.py",
+        "tests/test_editorial_architecture.py"
+      ],
+      "evidence": "11/11 smoke tests passing via `python3 dreammusicforge/tests/test_editorial_architecture.py`",
+      "note": "Last engine before the Provider-Specific Production Package. Enforces motifs that actually evolve (>=2 entries, starts introduced, ends transformed/resolved), callback payoff-after-setup ordering, and an ending-type discipline requiring explicit_statement_rationale for resolution_stated endings. Cross-checks full shot coverage against Cinematic Architecture and tempo-segment references against Musical Architecture. Completes the first full 5-document chain: Principle Kernel -> Narrative/Emotional -> Musical -> Cinematic -> Editorial."
+    },
+    {
+      "name": "universal_production_blueprint_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/universal_production_blueprint.schema.json",
+        "schemas/universal_production_blueprint.py",
+        "tests/test_universal_production_blueprint.py"
+      ],
+      "evidence": "20/20 smoke tests passing via `python3 dreammusicforge/tests/test_universal_production_blueprint.py`, including validate_full_chain() re-running all 9 prior validators clean on the worked example",
+      "note": "Assembles all five prior documents into three explicitly separated tiers (VERIFIED_STRUCTURED embedded_documents, DESIGNED_FREE_TEXT narrative_supplement, tier-3 provider_specific_prompt_sets) plus an 8-council review_checklist, so the blueprint cannot silently present unbuilt or unverified sections as equivalent to the validated ones. validate_full_chain() is the closest thing this repo has to a full pipeline integration test. Tier 3 is actually wired: embed_provider_specific_production_package() validates a real Provider-Specific Production Package and promotes build_status to 'draft' via compute_readiness_activation(), a single sigmoid neuron over two Monte Carlo risk features (weighted sum + bias, per the classic neural-network formulation) -- never promotes to 'complete', which still requires review_checklist. It then calls sync_review_checklist_with_provider_status(), which auto-advances visual_council/music_council/ethics_council from pending to in_review once build_status reaches draft, never regressing a council a human already moved. The worked example's activation is 0.741, wiring in 9 real prompts and advancing 3 of 8 councils."
+    },
+    {
+      "name": "provider_specific_production_package_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/provider_specific_production_package.schema.json",
+        "schemas/provider_specific_production_package.py",
+        "tests/test_provider_specific_production_package.py"
+      ],
+      "evidence": "12/12 smoke tests passing via `python3 dreammusicforge/tests/test_provider_specific_production_package.py`",
+      "note": "First stage with real translation functions (translate_shot_to_video_prompt, translate_musical_architecture_to_music_prompt), not just a validated contract. Includes a dependency-free Monte Carlo generation_risk_estimate (stdlib random, no numpy) whose stored probability must reproduce from its own stated parameters or validation fails -- catches hand-typed/stale numbers. Worked example: Kling AI Avatar + Suno (updated from Runway once the Assembly Package's native_av_policy required a native audio-driven provider for every shot, since all 8 have a singing performer), ~12% probability of exceeding a 14-attempt budget across 8 shots, echoing the source video's own worked example. REQUIRED_INTERFACE_NON_GOAL states no provider rendering is authoritative over the canonical Cinematic/Musical/Editorial documents."
+    },
+    {
+      "name": "character_performance_package_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/character_performance_package.schema.json",
+        "schemas/character_performance_package.py",
+        "tests/test_character_performance_package.py"
+      ],
+      "evidence": "17/17 smoke tests passing via `python3 dreammusicforge/tests/test_character_performance_package.py`",
+      "note": "Answers a direct user request: character-consistent generation (Nano Banana / Gemini 2.5 Flash Image as the character_reference_provider), characters singing themselves instead of a narrator, and -- per explicit follow-up -- a rights-safety gate requiring every character to be original, never a real/existing copyrighted character. no_narrator, lip_sync_required, and original_character are literal hard gates (const true). assess_rights_review_status() rolls per-character resembles_existing_ip_risk flags into a document-level rights_review (clear_to_proceed / hold_for_review), the same flags-to-blockers pattern as apex-rightschain-manifest-builder; the validator reruns it and rejects a stale/hand-typed rights_review, same discipline as the Monte Carlo generation_risk_estimate reproducibility check. A best-effort KNOWN_IP_NAME_BLOCKLIST catches literal franchise-name slip-ups; REQUIRED_RIGHTS_NON_GOAL is explicit that none of this is legal clearance. Cross-checks against Cinematic Architecture (real shot_id references) and the Blueprint's narrative_supplement.character_biographies (every character must be deliberately authored, not silently conjured -- this requires originals, it does not require real ones). Worked example: The Builder and The Asker cover all 8 Hope-chain shots between them, rights_review clear_to_proceed."
+    },
+    {
+      "name": "assembly_package_schema",
+      "status": "implemented",
+      "files": [
+        "schemas/assembly_package.schema.json",
+        "schemas/assembly_package.py",
+        "tests/test_assembly_package.py"
+      ],
+      "evidence": "19/19 smoke tests passing via `python3 dreammusicforge/tests/test_assembly_package.py`",
+      "note": "Answers a direct user request: get in place what's needed for native audio-driven lip-sync generation plus the post-generation Python work (stitching, reconciling generated clip durations against planned cut durations) that no single provider call can do. native_av_policy.allowed_providers (kling_ai_avatar, runway_act_two, veo3_native_audio) is required data, and validate_native_av_requirement() cross-checks it against the Provider-Specific Production Package's video_prompts[].provider for every shot with a singing performer -- this caught the prior stage's worked example still using silent-video runway and forced the fix to kling_ai_avatar. reconcile_cut_duration() derives a reconciliation_strategy (exact_match / speed_adjust / trim / pad_hold_last_frame / requires_manual_review) deterministically from drift and cut_on_beat, refusing to trim or pad a beat-matched cut (would break the Editorial Architecture's cut-on-beat guarantee) and refusing to auto-resolve drift beyond tolerance at all. render_ffmpeg_command() builds a real, re-derivable ffmpeg filter_complex plan; the validator reruns it and rejects a stale/hand-written command, same reproducibility discipline as generation_risk_estimate and rights_review. Worked example deliberately gives one of 8 cuts a 39% simulated drift so assembly_status lands on blocked_manual_review_required, not a rubber-stamped ready_to_render. FIXED after a real reported failure: manually stitching two real Kling clips produced a file with no audible audio in the reporter's player, despite ffmpeg's own tools showing valid non-silent audio -- root cause was per-clip timestamps passed straight through (copy/acopy) into the concat with no reset, which independently-generated clips don't tolerate. render_ffmpeg_command() now resets every clip's timestamps (setpts/asetpts PTS-STARTPTS) before concat and specifies explicit compatible output settings (yuv420p, 44.1kHz AAC, +faststart) instead of ffmpeg defaults. Re-verified by running the regenerated command against the real clips outside this environment -- clean encode, no timestamp warnings."
+    },
+    {
+      "name": "kling_ai_avatar_provider_client",
+      "status": "implemented_not_live_verified",
+      "files": [
+        "providers/__init__.py",
+        "providers/transport.py",
+        "providers/exceptions.py",
+        "providers/kling_ai_avatar.py",
+        "tests/test_kling_ai_avatar_client.py"
+      ],
+      "evidence": "14/14 smoke tests passing via `python3 dreammusicforge/tests/test_kling_ai_avatar_client.py`, all offline via FakeTransport -- no real network call anywhere in this suite",
+      "note": "Answers a direct user request to start the live integration layer, scoped to one provider first (Kling AI Avatar, per the agreed native-audio-driven-generation direction). This is the first module in the repository that makes, or is built to make, real network calls -- every schemas/*.py module stays pure validation logic with zero network dependency by design, and that separation is deliberate. build_jwt() is a stdlib-only (hmac/hashlib/base64, no PyJWT) HS256 signer grounded in Kling's publicly documented access-key/secret-key-signed-JWT auth pattern. KlingCredentials.from_env() reads KLING_ACCESS_KEY/KLING_SECRET_KEY and fails closed with no secret value in the error message if either is missing -- no credential is hardcoded or committed anywhere. create_task() takes a real video_prompts[] entry from the Provider-Specific Production Package as-is and rejects an oversized prompt before any request goes out, per Kling's documented 2500-character limit. generate_with_retries() polls to a terminal state and raises GenerationBudgetExceededError rather than fabricating a result if the budget (meant to come from generation_risk_estimate.budget_max_total_attempts, not a separately made-up number) runs out; proven end-to-end against the real Hope-chain shot1 prompt in test_real_shot1_prompt_through_a_scripted_success. Honesty boundary, stated in the module docstring: no API key exists in this environment, so nothing here has been exercised against Kling's real endpoint, and DEFAULT_BASE_URL is an explicitly-flagged unconfirmed placeholder (Kling has both a first-party API and third-party resellers with different paths)."
+    }
+  ],
+  "non_goals_now": [
+    "Do not claim, measure, or optimize for the viewer receiving one intended belief -- the goal is probability of reflection, not compelled comprehension.",
+    "Do not build a hard pass/fail comprehension gate against one canonical interpretation (superseded v1 stage 6).",
+    "Do not lock the pipeline to a single video or music provider before the translation layer exists.",
+    "Do not skip the Principle Engine step -- every project must trace back to one stated timeless principle.",
+    "Do not assign a silent-video-only provider to a shot with a singing, lip-synced performer -- native_av_policy.allowed_providers and validate_native_av_requirement() exist specifically to catch that.",
+    "Do not silently force a badly-drifted generated clip to fit its planned duration -- reconcile_cut_duration() routes anything past tolerance to requires_manual_review, blocking assembly_status.",
+    "Do not hardcode, log, or commit a provider credential anywhere -- KLING_ACCESS_KEY/KLING_SECRET_KEY are read from the environment only.",
+    "Do not claim a provider integration is live-verified when it isn't -- the Kling AI Avatar client's request-building and retry logic are fully tested offline, but no real network call has been made from this environment."
+  ],
+  "next_3_plus_1": {
+    "next_1": "DONE -- Principle Kernel schema (Principle Engine output). See active_prototypes.",
+    "next_2": "DONE -- Narrative + Emotional Architecture schema (Story Architecture Engine + Emotional Architecture Engine outputs). See active_prototypes.",
+    "next_3": "DONE -- Musical Architecture schema (Musical Architecture Engine output), with cross-document validation against the Narrative + Emotional Architecture. See active_prototypes.",
+    "next_4": "DONE -- Cinematic Architecture schema (Visual/Shot Architecture + Performance Direction), cross-referencing both the Narrative + Emotional Architecture and the Musical Architecture's tempo map. See active_prototypes.",
+    "next_5": "DONE -- Editorial Architecture schema (shot timing, motif evolution, visual callbacks, ending), cross-referencing Cinematic Architecture (full shot coverage) and Musical Architecture (tempo segments). See active_prototypes.",
+    "next_6": "DONE -- Universal Production Blueprint schema assembling all five documents into three explicitly-tiered sections, with validate_full_chain() re-running every prior validator. See active_prototypes.",
+    "next_7": "DONE -- Provider-Specific Production Package (Kling AI Avatar + Suno worked example, updated from Runway) with real translation functions and a Monte Carlo generation_risk_estimate. See active_prototypes.",
+    "next_8": "DONE -- embed_provider_specific_production_package() and compute_readiness_activation() in schemas/universal_production_blueprint.py. Worked example wired to build_status 'draft' with 9 real prompts, activation 0.741. See active_prototypes.",
+    "next_9": "DONE -- sync_review_checklist_with_provider_status() in schemas/universal_production_blueprint.py, called automatically by embed_provider_specific_production_package(). See active_prototypes.",
+    "next_10": "DONE -- Character Performance Package (character-consistent reference images via Nano Banana + no-narrator singing performers with required lip sync). See active_prototypes.",
+    "next_11": "Wire character_references/vocal_performers into the Provider-Specific Production Package's video_prompts -- each shot's video prompt should include its performer's reference_image_asset_id for conditioning.",
+    "next_12": "DONE -- Assembly Package: native_av_policy requirement gate (video_prompts provider must support native audio-driven lip sync for singing shots), reconcile_cut_duration() for planned-vs-actual clip duration drift, render_ffmpeg_command() for a real re-derivable stitching plan. Fixed the Provider Package's worked example (runway -> kling_ai_avatar) along the way. See active_prototypes.",
+    "next_13": "DONE, partially -- Live API integration layer scoped to one provider (Kling AI Avatar): credential loading, JWT auth, request-building, and a fail-closed retry loop, all fully tested offline. See active_prototypes (kling_ai_avatar_provider_client). Still outstanding: no real API key exists in this environment, so nothing has fired against Kling's real endpoint yet, and DEFAULT_BASE_URL needs confirming against whichever real access is actually used.",
+    "next_14": "DONE, cut1/cut2 only -- fired manually outside this environment (no live credentials here). Both real generations came back at 10.0417s against a planned 4.5s/5.0s (>100% drift), correctly triggering requires_manual_review. editorial_architecture.py's edit_timeline replanned so cut1/cut2's planned duration matches reality (10.04s each, cascading cut3-cut8 start times forward); assembly_package.py's worked example now reconciles cut1/cut2 to exact_match against real data. Stitched via ffmpeg concat demuxer (stream copy) into a 20.13s file. cut3-cut8 remain simulated.",
+    "next_15": "Fire cut3-cut8 for real; check whether Kling's API takes a duration parameter with discrete allowed values (5s/10s buckets, most likely) instead of an arbitrary float -- create_task() currently passes provider_parameters.duration_seconds through unvalidated.",
+    "next_16_candidate_not_started": "Calibrate generation_risk_estimate's per-shot success-probability range from real observed provider outcomes (MCMC/Metropolis-Hastings posterior) instead of the currently-assumed uniform range. Not started: no observed data exists yet to calibrate against.",
+    "plus_1_control": "No engine, council, or provider adapter may be documented as built until it has a passing evidence entry."
+  }
+}
