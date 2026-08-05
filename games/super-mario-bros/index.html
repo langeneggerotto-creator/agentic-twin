@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plumber Bros - A Super Mario Bros Style Game</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-wrap">
+    <div id="hud">
+      <div class="hud-item">SCORE<br><span id="score">000000</span></div>
+      <div class="hud-item">COINS<br><span id="coins">x00</span></div>
+      <div class="hud-item">WORLD<br><span id="world">1-1</span></div>
+      <div class="hud-item">TIME<br><span id="time">400</span></div>
+      <div class="hud-item">LIVES<br><span id="lives">x3</span></div>
+    </div>
+    <canvas id="game" width="800" height="480"></canvas>
+    <div id="overlay" class="overlay">
+      <h1>PLUMBER BROS</h1>
+      <p>A Super-Mario-Bros-style platformer</p>
+      <p class="controls">
+        &larr;/&rarr; or A/D: Move &nbsp;|&nbsp; Space/&uarr;/W: Jump &nbsp;|&nbsp; P: Pause
+      </p>
+      <button id="start-btn">Press Start</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
