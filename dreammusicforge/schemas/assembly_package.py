@@ -177,16 +177,39 @@ def render_ffmpeg_command(shot_assemblies: list, output_filename: str = "final_c
     concat_labels = []
     for i, s in enumerate(usable):
         if s["ffmpeg_filter"] is None:
-            filter_parts.append(f"[{i}:v]copy[v{i}]")
-            filter_parts.append(f"[{i}:a]acopy[a{i}]")
+            # setpts/asetpts, not copy/acopy: independently-generated clips each
+            # start their own internal timestamps from a different point, and
+            # passing that through unchanged into a concat is exactly what
+            # produced a real, reported "no audio on the stitched file" failure
+            # in manual testing -- ffmpeg's own decoder tolerated the resulting
+            # non-monotonic DTS well enough to still report audio levels, but at
+            # least one real player would not play the track at all. Resetting
+            # every input's timestamps to start at 0 before concatenation is
+            # what actually fixed it end to end.
+            filter_parts.append(f"[{i}:v]setpts=PTS-STARTPTS[v{i}]")
+            filter_parts.append(f"[{i}:a]asetpts=PTS-STARTPTS[a{i}]")
         else:
-            filter_parts.append(f"[{i}:v]{s['ffmpeg_filter']['video']}[v{i}]")
-            filter_parts.append(f"[{i}:a]{s['ffmpeg_filter']['audio']}[a{i}]")
+            filter_parts.append(f"[{i}:v]{s['ffmpeg_filter']['video']},setpts=PTS-STARTPTS[v{i}]")
+            filter_parts.append(f"[{i}:a]{s['ffmpeg_filter']['audio']},asetpts=PTS-STARTPTS[a{i}]")
         concat_labels.append(f"[v{i}][a{i}]")
 
     filter_parts.append("".join(concat_labels) + f"concat=n={len(usable)}:v=1:a=1[outv][outa]")
     filter_complex = ";".join(filter_parts)
-    return f'ffmpeg {inputs} -filter_complex "{filter_complex}" -map "[outv]" -map "[outa]" "{output_filename}"'
+    # Explicit re-encode with broadly-compatible settings, not just whatever
+    # ffmpeg's defaults happen to be: yuv420p (some players reject other pixel
+    # formats), 44.1kHz AAC-LC, +faststart (moov atom at the front, needed for
+    # many mobile/web players to start playback at all). The filter_complex
+    # graph above already forces a decode/re-encode -- stream-copy was never
+    # actually possible once real filtering entered the picture, but the
+    # output codec choice was previously left to ffmpeg's defaults instead of
+    # being a deliberate, tested choice.
+    output_args = (
+        '-c:v libx264 -pix_fmt yuv420p -c:a aac -ar 44100 -b:a 192k -movflags +faststart'
+    )
+    return (
+        f'ffmpeg {inputs} -filter_complex "{filter_complex}" '
+        f'-map "[outv]" -map "[outa]" {output_args} "{output_filename}"'
+    )
 
 
 # ---------------------------------------------------------------------------

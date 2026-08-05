@@ -88,6 +88,24 @@ def test_ffmpeg_filter_speed_adjust_has_video_and_audio():
     assert_true("atempo" in f["audio"], "speed_adjust audio filter should use atempo")
 
 
+def test_concat_command_resets_timestamps_per_clip_not_copy():
+    """Regression test for a real, reported failure: stream-copying
+    independently-generated clips straight into a concat (copy/acopy, no
+    timestamp reset) produced a file whose audio decoded fine in ffmpeg's
+    own tools but did not play in at least one real player. Every input
+    branch must reset its own timestamps to start at 0 before concatenation."""
+    command = assembly.EXAMPLE_ASSEMBLY_PACKAGE["concat_command"]
+    assert_true("copy[v" not in command and "acopy[a" not in command, "concat_command must not pass raw copy/acopy through unchanged -- timestamps need resetting")
+    assert_true(command.count("setpts=PTS-STARTPTS") >= 1, "every clip's video branch should reset timestamps before concat")
+    assert_true(command.count("asetpts=PTS-STARTPTS") >= 1, "every clip's audio branch should reset timestamps before concat")
+
+
+def test_concat_command_uses_broadly_compatible_output_settings():
+    command = assembly.EXAMPLE_ASSEMBLY_PACKAGE["concat_command"]
+    for expected in ["-pix_fmt yuv420p", "-c:a aac", "-ar 44100", "-movflags +faststart"]:
+        assert_true(expected in command, f"concat_command should specify {expected!r} for broad player compatibility, not leave it to ffmpeg's defaults")
+
+
 def test_stale_reconciliation_strategy_is_rejected():
     doc = copy.deepcopy(assembly.EXAMPLE_ASSEMBLY_PACKAGE)
     doc["shot_assemblies"][0]["reconciliation_strategy"] = "trim"
@@ -164,6 +182,8 @@ if __name__ == "__main__":
     test_reconcile_extreme_drift_always_requires_manual_review()
     test_ffmpeg_filter_is_none_for_exact_match_and_manual_review()
     test_ffmpeg_filter_speed_adjust_has_video_and_audio()
+    test_concat_command_resets_timestamps_per_clip_not_copy()
+    test_concat_command_uses_broadly_compatible_output_settings()
     test_stale_reconciliation_strategy_is_rejected()
     test_stale_concat_command_is_rejected()
     test_stale_assembly_status_is_rejected()
