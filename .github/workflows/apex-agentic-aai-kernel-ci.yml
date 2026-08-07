@@ -1,0 +1,31 @@
+name: APEX Agentic AAI Kernel CI
+
+on:
+  pull_request:
+    paths:
+      - 'APEX/01_CANON/AGENTIC_AAI_AUTONOMY_CHARTER_v0.1.md'
+      - 'APEX/04_ENGINEERING/AGENTIC_AAI_KERNEL_v0.1/**'
+      - 'APEX/04_ENGINEERING/GITHUB_DELIVERY_BRIDGE_v0.1/**'
+      - 'APEX/07_TESTING/**'
+      - '.github/workflows/apex-agentic-aai-kernel-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-authority-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute AAI boundary tests
+        run: python -m unittest discover -s APEX/04_ENGINEERING/AGENTIC_AAI_KERNEL_v0.1/tests -v
+      - name: Verify charter includes blocked consequential actions
+        run: |
+          grep -q "No autonomous merge" APEX/01_CANON/AGENTIC_AAI_AUTONOMY_CHARTER_v0.1.md
+          grep -q "No physical action" APEX/01_CANON/AGENTIC_AAI_AUTONOMY_CHARTER_v0.1.md

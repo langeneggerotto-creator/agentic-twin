@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "APEX Module Contract v0.1",
+  "type": "object",
+  "required": ["module_id", "purpose", "user_outcome", "authority_required", "outputs", "tests", "promotion_gate"],
+  "properties": {
+    "module_id": {"type": "string"},
+    "purpose": {"type": "string"},
+    "user_outcome": {"type": "string"},
+    "authority_required": {"enum": ["A0_DEFINE", "A1_BUILD", "A2_TEST", "A3_DRAFT_DELIVERY"]},
+    "outputs": {"type": "array", "items": {"type": "string"}},
+    "tests": {"type": "array"},
+    "promotion_gate": {"type": "object"},
+    "physical_action_requested": {"type": "boolean"}
+  }
+}

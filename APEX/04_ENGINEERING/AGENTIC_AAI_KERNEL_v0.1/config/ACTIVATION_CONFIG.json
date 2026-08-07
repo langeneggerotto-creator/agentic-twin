@@ -1,0 +1,15 @@
+{
+  "run_id": "AAI-KERNEL-RUN-0001",
+  "principal": "Otto Langenegger",
+  "authority_ceiling": "A3_DRAFT_DELIVERY",
+  "runtime_target": "HYBRID_LOCAL_PLUS_GITHUB_ACTIONS",
+  "monthly_compute_api_ceiling_usd": 50,
+  "maximum_repair_cycles_per_run": 5,
+  "module_order": [
+    "APEX_AGENTIC_AAI_KERNEL_v0.1",
+    "GITHUB_DELIVERY_BRIDGE_v0.1",
+    "COMIC_FOUNDRY_RUN_HARNESS_v0.2"
+  ],
+  "first_visible_proof_module": "GITHUB_DELIVERY_BRIDGE_v0.1",
+  "release_boundary": "DRAFT_REVIEW_ONLY"
+}
